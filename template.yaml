@@ -1,0 +1,870 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Trapheus
+
+  Restoration of a RDS instance or cluster from a snapshot using a Lambda state machine.
+
+Globals:
+  Function:
+    Runtime: python3.7
+    Timeout: 900
+    Environment:
+      Variables:
+        Region:
+          Fn::Sub: ${AWS::Region}
+
+Parameters:
+  vpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: choose the VPC under which all lambdas will be configured
+  Subnets:
+    Type: String
+    Description: The comma separated list of SubnetIds in your Virtual Private Cloud (VPC)
+  SenderEmail:
+    Type: String
+    Description: sender email account for failure alert
+  RecipientEmail:
+    Type: String
+    Description: comma separated list of recipient email ids for failure alerts
+
+Resources:
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonSESFullAccess
+        - arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/AWSStepFunctionsReadOnlyAccess
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+
+  StatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: security group added to VPC config of every lambda used
+      GroupName: my-sg
+      VpcId: !Ref vpcId
+
+  CommonLambdaLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: lambda-utility
+      Description: Dependencies on util methods used in lambdas of the state machine
+      ContentUri: src/common/common.zip
+      CompatibleRuntimes:
+        - python3.7
+        - python3.6
+      LicenseInfo: 'MIT'
+
+  RenameLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-rename-dbinstance"
+      Description: Lambda functions required to execute rename of a database instance.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/rename/
+      Handler: rename_function.lambda_rename_dbinstance
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  DbInstanceStatusLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-get-dbinstance-status-sf"
+      Description: Lambda function which provides information on status of db instance post any operation.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/checkstatus/
+      Handler: get_dbstatus_function.lambda_get_dbinstance_status
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  DBRestoreLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-restore-dbinstance-sf"
+      Description: Lambda functions required to execute database restore.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/restore/
+      Handler: restore_function.lambda_restore_dbinstance
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  DeleteInstanceLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-delete-dbinstance-sf"
+      Description: Lambda functions required to execute database instance deletion.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/delete/
+      Handler: delete_function.lambda_delete_dbinstance
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  DBSnapshotLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-dbsnapshot-sf"
+      Description: Lambda functions required to take snapshot of a database instance.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/snapshot/
+      Handler: snapshot_function.lambda_create_dbinstance_snapshot
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  EmailAlertLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-send-emailalert-sf"
+      Description: Lambda functions required to enable alerts in case of any failure of state machine.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/emailalert/
+      Handler: email_function.lambda_handler
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+      Environment:
+        Variables:
+          SenderEmail:
+            Fn::Sub: ${SenderEmail}
+          RecipientEmail:
+            Fn::Sub: ${RecipientEmail}
+
+  ClusterRenameLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-dbcluster-rename-sf"
+      Description: Lambda functions required to execute database cluster rename.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/rename/
+      Handler: cluster_rename_function.lambda_rename_dbcluster
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  ClusterRestoreLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-dbcluster-restore-sf"
+      Description: Lambda functions required to execute database cluster restore.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/restore/
+      Handler: cluster_restore_function.lambda_restore_dbcluster
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  ClusterStatusLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-dbcluster-status-sf"
+      Description: Lambda function which provides information on status of db cluster post any operation.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/checkstatus/
+      Handler: get_dbcluster_status_function.lambda_get_cluster_status
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  ClusterDeleteLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-dbcluster-delete-sf"
+      Description: Lambda functions required to execute deletion of database cluster.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/delete/
+      Handler: cluster_delete_function.lambda_delete_dbcluster
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  ClusterSnapshotLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-dbcluster-snapshot-sf"
+      Description: Lambda functions required to take snapshot of database cluster.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/snapshot/
+      Handler: cluster_snapshot_function.lambda_create_cluster_snapshot
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
+  DBRestoreStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString:
+        !Sub
+        - |-
+          {
+            "StartAt": "ShouldRestoreClusterOrInstance",
+            "States": {
+              "ShouldRestoreClusterOrInstance": {
+                "Type": "Choice",
+                  "Choices": [{
+                    "Variable": "$.isCluster",
+                    "BooleanEquals": false,
+                    "Next": "ShouldTakeDbSnapshot"
+                  }],
+                  "Default": "ShouldTakeClusterSnapshot"
+              },
+              "ShouldTakeClusterSnapshot": {
+                "Type": "Choice",
+                  "Choices": [{
+                    "Variable": "$.task",
+                    "StringEquals": "create_snapshot",
+                    "Next": "ClusterSnapshotCreate"
+                  }],
+                  "Default": "ClusterRename"
+              },
+              "ClusterSnapshotCreate": {
+                "Type": "Task",
+                "Resource": "${ClusterSnapshotLambdaArn}",
+                "Next": "GetClusterSnapshotStatus",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException", "RetryClusterSnapshotException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetClusterSnapshotStatus": {
+                "Type": "Task",
+                "Resource": "${ClusterStatusLambdaArn}",
+                "Next": "IsClusterSnapshotAvailable",
+                "Retry": [{
+                  "ErrorEquals": ["InstanceUnavailableException"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 },
+                 {
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "IsClusterSnapshotAvailable": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_COMPLETE",
+                  "Next": "ClusterRename"
+                },
+                {
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_FAILED",
+                  "Next": "SendFailureAlert"
+                }],
+                "Default": "GetClusterSnapshotStatus"
+              },
+              "ClusterRename": {
+                "Type": "Task",
+                "Resource": "${ClusterRenameLambdaArn}",
+                "Next": "GetClusterStatusPostRename",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetClusterStatusPostRename": {
+                "Type": "Task",
+                "Resource": "${ClusterStatusLambdaArn}",
+                "Next": "IsClusterAvailablePostRename",
+                "Retry": [{
+                  "ErrorEquals": ["InstanceUnavailableException"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 },
+                 {
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "IsClusterAvailablePostRename": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_COMPLETE",
+                  "Next": "RestoreClusterFromSnapshot"
+                },
+                {
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_FAILED",
+                  "Next": "SendFailureAlert"
+                }],
+                "Default": "GetClusterStatusPostRestore"
+              },
+              "RestoreClusterFromSnapshot": {
+                "Type": "Task",
+                "Resource": "${ClusterRestoreLambdaArn}",
+                "ResultPath": "$.output",
+                "Next": "GetClusterStatusPostRestore",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetClusterStatusPostRestore": {
+                "Type": "Task",
+                "Resource": "${ClusterStatusLambdaArn}",
+                "Next": "IsClusterAvailablePostRestore",
+                "Retry": [{
+                  "ErrorEquals": ["InstanceUnavailableException"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 },
+                 {
+                  "ErrorEquals": ["RateExceededException", "Lambda.Unknown"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "IsClusterAvailablePostRestore": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_COMPLETE",
+                  "Next": "DeleteOriginalCluster"
+                },
+                {
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_FAILED",
+                  "Next": "SendFailureAlert"
+                }],
+                "Default": "GetClusterStatusPostRestore"
+              },
+              "DeleteOriginalCluster": {
+                "Type": "Task",
+                "Resource": "${ClusterDeleteLambdaArn}",
+                "ResultPath": "$.output",
+                "Next": "GetClusterStatusPostDelete",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetClusterStatusPostDelete": {
+                "Type": "Task",
+                "Resource": "${ClusterStatusLambdaArn}",
+                "Next": "isClusterDeleted",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "isClusterDeleted": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_COMPLETE",
+                  "Next": "RestorePipelineComplete"
+                },
+                {
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_FAILED",
+                  "Next": "SendFailureAlert"
+                }],
+                "Default": "GetClusterStatusPostDelete"
+              },
+              "RevertOldClusterRename": {
+                "Type": "Task",
+                "Resource": "${ClusterRenameLambdaArn}",
+                "Next": "GetClusterStatusPostRenameRevert",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetClusterStatusPostRenameRevert": {
+                "Type": "Task",
+                "Resource": "${ClusterStatusLambdaArn}",
+                "Next": "RestorePipelineComplete",
+                "Retry": [{
+                  "ErrorEquals": ["InstanceUnavailableException"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 },
+                 {
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "ShouldTakeDbSnapshot": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "create_snapshot",
+                  "Next": "DbSnapshotCreate"
+                }],
+                "Default": "DbInstanceRename"
+              },
+              "DbSnapshotCreate": {
+                "Type": "Task",
+                "Resource": "${DBSnapshotLambdaArn}",
+                "Next": "GetDbSnapshotStatus",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException", "RetryDBSnapshotException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetDbSnapshotStatus": {
+                "Type": "Task",
+                "Resource": "${DBStatusLambdaArn}",
+                "Next": "IsDbSnapshotAvailable",
+                "Retry": [{
+                  "ErrorEquals": ["InstanceUnavailableException"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 },
+                 {
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "IsDbSnapshotAvailable": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_COMPLETE",
+                  "Next": "DbInstanceRename"
+                },
+                {
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_FAILED",
+                  "Next": "SendFailureAlert"
+                }],
+                "Default": "GetDbSnapshotStatus"
+              },
+              "DbInstanceRename": {
+                "Type": "Task",
+                "Resource": "${DBRenameLambdaArn}",
+                "Next": "GetDbInstanceStatusPostRename",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetDbInstanceStatusPostRename": {
+                "Type": "Task",
+                "Resource": "${DBStatusLambdaArn}",
+                "Next": "IsDbInstanceAvailablePostRename",
+                "Retry": [{
+                  "ErrorEquals": ["InstanceUnavailableException"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 },
+                 {
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "IsDbInstanceAvailablePostRename": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_COMPLETE",
+                  "Next": "RestoreDbInstanceFromSnapshot"
+                },
+                {
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_FAILED",
+                  "Next": "SendFailureAlert"
+                }],
+                "Default": "GetDbInstanceStatusPostRename"
+              },
+              "RestoreDbInstanceFromSnapshot": {
+                "Type": "Task",
+                "Resource": "${DBRestoreLambdaArn}",
+                "ResultPath": "$.output",
+                "Next": "GetDbInstanceStatusPostRestore",
+                 "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetDbInstanceStatusPostRestore": {
+                "Type": "Task",
+                "Resource": "${DBStatusLambdaArn}",
+                "Next": "IsDbInstanceAvailablePostRestore",
+                "Retry": [{
+                  "ErrorEquals": ["InstanceUnavailableException"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 },
+                 {
+                  "ErrorEquals": ["RateExceededException", "Lambda.Unknown"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "IsDbInstanceAvailablePostRestore": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_COMPLETE",
+                  "Next": "DeleteOriginalDbInstance"
+                },
+                {
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_FAILED",
+                  "Next": "SendFailureAlert"
+                }],
+                "Default": "GetDbInstanceStatusPostRestore"
+              },
+              "DeleteOriginalDbInstance": {
+                "Type": "Task",
+                "Resource": "${DBDeleteLambdaArn}",
+                "ResultPath": "$.output",
+                "Next": "GetDbInstanceStatusPostDelete",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetDbInstanceStatusPostDelete": {
+                "Type": "Task",
+                "Resource": "${DBStatusLambdaArn}",
+                "Next": "isDbInstanceDeleted",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "isDbInstanceDeleted": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_COMPLETE",
+                  "Next": "RestorePipelineComplete"
+                },
+                {
+                  "Variable": "$.task",
+                  "StringEquals": "TASK_FAILED",
+                  "Next": "SendFailureAlert"
+                }],
+                "Default": "GetDbInstanceStatusPostDelete"
+              },
+              "SendFailureAlert": {
+                "Type": "Task",
+                "Resource": "${EmailAlertLambdaArn}",
+                "Next": "CheckForRenameReversal"
+              },
+              "CheckForRenameReversal": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.Error",
+                  "StringEquals": "InstanceRestoreException",
+                  "Next": "RevertOldInstanceRename"
+                },
+                {
+                  "Variable": "$.Error",
+                  "StringEquals": "ClusterRestoreException",
+                  "Next": "RevertOldClusterRename"
+                }],
+                "Default": "RestorePipelineComplete"
+              },
+              "RevertOldInstanceRename": {
+                "Type": "Task",
+                "Resource": "${DBRenameLambdaArn}",
+                "Next": "GetDbInstanceStatusPostRenameRevert",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "GetDbInstanceStatusPostRenameRevert": {
+                "Type": "Task",
+                "Resource": "${DBStatusLambdaArn}",
+                "Next": "RestorePipelineComplete",
+                "Retry": [{
+                  "ErrorEquals": ["InstanceUnavailableException"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 },
+                 {
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
+              "RestorePipelineComplete": {
+                 "Type": "Pass",
+                 "End": true
+              }
+            }
+          }
+        - {
+            ClusterRenameLambdaArn: !GetAtt ClusterRenameLambdaFunction.Arn,
+            ClusterStatusLambdaArn: !GetAtt ClusterStatusLambdaFunction.Arn,
+            ClusterSnapshotLambdaArn: !GetAtt ClusterSnapshotLambdaFunction.Arn,
+            ClusterRestoreLambdaArn: !GetAtt ClusterRestoreLambdaFunction.Arn,
+            ClusterDeleteLambdaArn: !GetAtt ClusterDeleteLambdaFunction.Arn,
+            DBRenameLambdaArn: !GetAtt RenameLambdaFunction.Arn,
+            DBStatusLambdaArn: !GetAtt DbInstanceStatusLambdaFunction.Arn,
+            DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
+            DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
+            DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
+            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn
+          }
+      RoleArn: !GetAtt StatesExecutionRole.Arn
