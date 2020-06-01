@@ -8,9 +8,6 @@ jobs:
     executor: python/default
     steps:
       - checkout
-      - run:
-          command: python -m pytest tests/ -v
-          name: Test
 
 workflows:
   main:
