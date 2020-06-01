@@ -1,4 +1,4 @@
-# Trapheus. 
+# Trapheus
 
 
 ![Logo](screenshots/Trapheus-logo.png)
