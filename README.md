@@ -1,5 +1,6 @@
 # Trapheus
 
+[![CircleCI](https://circleci.com/gh/intuit/Trapheus.svg?style=svg)](https://app.circleci.com/pipelines/github/intuit/Trapheus)
 
 ![Logo](screenshots/Trapheus-logo.png)
 
