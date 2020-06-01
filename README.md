@@ -1,4 +1,4 @@
-# Trapheus. [![Intuit](https://circleci.com/github/intuit/Trapheus.svg?style=svg&circle-token=831ae344668bc6118e884b810e34b502ffb39044)](<LINK>)
+# Trapheus. 
 
 
 ![Logo](screenshots/Trapheus-logo.png)
