@@ -11,6 +11,7 @@ jobs:
       - run:
           command: |
             pip install pytest
+            pip install mock
             python -m pytest tests/ -v
           name: Test
 
