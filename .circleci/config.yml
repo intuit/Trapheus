@@ -12,6 +12,7 @@ jobs:
           command: |
             pip install pytest
             pip install mock
+            pip install boto3
             python -m pytest tests/ -v
           name: Test
 
