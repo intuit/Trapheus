@@ -1,8 +1,10 @@
-# Trapheus
+<div align="center">
+<img width="300"
+src="screenshots/Trapheus-logo.png">
+</div>
 
-[![CircleCI](https://circleci.com/gh/intuit/Trapheus.svg?style=svg)](https://app.circleci.com/pipelines/github/intuit/Trapheus)
+<div align="center"><a href="https://circleci.com/gh/intuit/Trapheus"><img src="https://circleci.com/gh/intuit/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
 
-![Logo](screenshots/Trapheus-logo.png)
 
 - [AWS RDS Snasphot Restoration](#Trapheus)
 - [Pre-Requisites](#pre-requisites)
