@@ -181,3 +181,4 @@ Executed using lambdas created for deletion purposes, once the deletion is succe
 8. If the restore step fails, as part of failure handling, the **Step-4** of instance/cluster rename is reverted to ensure that the original db-instance or db cluster is available for use.
 
 ![DBRestore failure handling depiction](screenshots/failure_handling.png)
+
