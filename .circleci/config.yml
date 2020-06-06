@@ -13,9 +13,13 @@ jobs:
             pip install pytest
             pip install mock
             pip install boto3
-            python -m pytest tests/ -v
+            pip install coverage
+            coverage --source src/ python -m pytest tests/ -v
+            coverage report
+            coverage html 
           name: Test
-
+      - store_artifacts:
+        path: htmlcov    
 workflows:
   main:
     jobs:
