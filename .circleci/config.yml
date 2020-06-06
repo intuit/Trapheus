@@ -18,7 +18,7 @@ jobs:
             $HOME/.local/bin/coverage report
             $HOME/.local/bin/coverage html 
           name: Test
-      - store_test_results:
+      - store_artifacts:
           path: htmlcov    
 workflows:
   main:
