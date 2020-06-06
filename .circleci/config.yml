@@ -19,7 +19,7 @@ jobs:
             coverage html 
           name: Test
       - store_test_results:
-        path: htmlcov    
+          path: htmlcov    
 workflows:
   main:
     jobs:
