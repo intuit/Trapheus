@@ -14,9 +14,9 @@ jobs:
             pip install mock
             pip install boto3
             pip install coverage
-            coverage run --source src/ python -m pytest tests/ -v
-            coverage report
-            coverage html 
+            $HOME/.local/bin/coverage run --source src/ python -m pytest tests/ -v
+            $HOME/.local/bin/coverage report
+            $HOME/.local/bin/coverage html 
           name: Test
       - store_test_results:
           path: htmlcov    
