@@ -18,7 +18,7 @@ def lambda_delete_dbinstance(event, context):
         result['identifier'] = instance_id
         return result
     except Exception as error:
-        error_message = constants.IDENTIFIER + instance_id + ' \n' + str(error)
+        error_message = util.get_error_message(instance_id, error)
         if constants.RATE_EXCEEDED in str(error):
             raise custom_exceptions.RateExceededException(error_message)
         else:

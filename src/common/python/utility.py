@@ -76,3 +76,7 @@ def get_waiter_max_attempts(context):
     # calculating max attempts for waiter task
     max_attempts = math.floor(abs(remaining_time - constants.DELAY_INTERVAL) / constants.DELAY_INTERVAL)
     return max_attempts
+
+def get_error_message(identifier, error):
+    error_message = constants.IDENTIFIER + identifier + ' \n' + str(error)
+    return error_message

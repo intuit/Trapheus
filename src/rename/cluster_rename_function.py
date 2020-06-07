@@ -27,52 +27,57 @@ def lambda_rename_dbcluster(event, context):
         result['identifier'] = rename_response["modified_cluster_identifier"]
         return result
     except Exception as error:
-        error_message = constants.IDENTIFIER + rename_response["modified_cluster_identifier"] + ' \n' + str(error)
         if constants.RATE_EXCEEDED in str(error):
-            raise custom_exceptions.RateExceededException(error_message)
+            raise custom_exceptions.RateExceededException(str(error))
         else:
-            raise custom_exceptions.RenameException(error_message)
+            raise custom_exceptions.RenameException(str(error))
 
 
 def cluster_instance_rename_reversal(event, rds):
     """in case of failure at the Restore step, revert the initial rename of cluster readers and writers to unblock any activity on the db"""
     response = {}
     response = util.get_identifier_from_error(event)
-    modified_cluster_identifier = response["modified_identifier"]
-    original_cluster_identifier = response["original_identifier"]
-    describe_response = rds.describe_db_clusters(
-        DBClusterIdentifier = original_cluster_identifier
-    )
-    # revert the rename of the reader and writer instances before renaming the cluster
-    for db_cluster_member in describe_response['DBClusters'][0]['DBClusterMembers']:
-        old_dbinstance_id = db_cluster_member['DBInstanceIdentifier']
-        new_dbinstance_id = util.get_modified_identifier(old_dbinstance_id)["instance_id"]
-        rds.modify_db_instance(
-            DBInstanceIdentifier = old_dbinstance_id,
-            ApplyImmediately = True,
-            NewDBInstanceIdentifier = new_dbinstance_id
+    try:
+        describe_response = rds.describe_db_clusters(
+            DBClusterIdentifier = response["original_identifier"]
         )
-    response["original_cluster_identifier"] = original_cluster_identifier
-    response["modified_cluster_identifier"] = modified_cluster_identifier
-    return response
+        # revert the rename of the reader and writer instances before renaming the cluster
+        for db_cluster_member in describe_response['DBClusters'][0]['DBClusterMembers']:
+            old_dbinstance_id = db_cluster_member['DBInstanceIdentifier']
+            new_dbinstance_id = util.get_modified_identifier(old_dbinstance_id)["instance_id"]
+            rds.modify_db_instance(
+                DBInstanceIdentifier = old_dbinstance_id,
+                ApplyImmediately = True,
+                NewDBInstanceIdentifier = new_dbinstance_id
+            )
+        response["original_cluster_identifier"] = response["original_identifier"]
+        response["modified_cluster_identifier"] = response["modified_identifier"]
+        return response
+    except Exception as error:
+        error_message = util.get_error_message(response["modified_identifier"], error)
+        raise Exception(error_message)
 
 def cluster_instance_rename(event,rds):
     """rename of the reader and writer instances in a cluster"""
     response = {}
     original_cluster_identifier = event['identifier']
     modified_cluster_identifier = event['identifier'] + constants.TEMP_POSTFIX
-    describe_response = rds.describe_db_clusters(
-        DBClusterIdentifier = original_cluster_identifier
-    )
-    #rename the reader and writee instances before renaming the cluster
-    for db_cluster_member in describe_response['DBClusters'][0]['DBClusterMembers']:
-        old_dbinstance_id = db_cluster_member['DBInstanceIdentifier']
-        new_dbinstance_id = old_dbinstance_id + '-temp'
-        rds.modify_db_instance(
-            DBInstanceIdentifier = old_dbinstance_id,
-            ApplyImmediately = True,
-            NewDBInstanceIdentifier = new_dbinstance_id
+    try:
+        describe_response = rds.describe_db_clusters(
+            DBClusterIdentifier = original_cluster_identifier
         )
-    response["original_cluster_identifier"] = original_cluster_identifier
-    response["modified_cluster_identifier"] = modified_cluster_identifier
-    return response
+        #rename the reader and writer instances before renaming the cluster
+        for db_cluster_member in describe_response['DBClusters'][0]['DBClusterMembers']:
+            old_dbinstance_id = db_cluster_member['DBInstanceIdentifier']
+            new_dbinstance_id = old_dbinstance_id + constants.TEMP_POSTFIX
+            rds.modify_db_instance(
+                DBInstanceIdentifier = old_dbinstance_id,
+                ApplyImmediately = True,
+                NewDBInstanceIdentifier = new_dbinstance_id
+            )
+        response["original_cluster_identifier"] = original_cluster_identifier
+        response["modified_cluster_identifier"] = modified_cluster_identifier
+        return response
+    except Exception as error:
+        error_message = util.get_error_message(modified_cluster_identifier, error)
+        raise Exception(error_message)

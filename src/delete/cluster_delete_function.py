@@ -26,7 +26,7 @@ def lambda_delete_dbcluster(event, context):
         result['identifier'] = cluster_id
         return result
     except Exception as error:
-        error_message = constants.IDENTIFIER + cluster_id + ' \n' + str(error)
+        error_message = util.get_error_message(cluster_id, error)
         if constants.RATE_EXCEEDED in str(error):
             raise custom_exceptions.RateExceededException(error_message)
         else:
