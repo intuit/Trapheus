@@ -28,7 +28,7 @@ def lambda_restore_dbinstance(event, context):
         result['identifier'] = response["instance_id"]
         return result
     except Exception as error:
-        error_message = constants.IDENTIFIER + response["instance_id"] + ' \n' + str(error)
+        error_message = util.get_error_message(response["instance_id"], error)
         if constants.RATE_EXCEEDED in str(error):
             raise custom_exceptions.RateExceededException(error_message)
         else:

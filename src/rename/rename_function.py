@@ -33,7 +33,7 @@ def lambda_rename_dbinstance(event, context):
         return result
 
     except Exception as error:
-        error_message = constants.IDENTIFIER + modified_instance_identifier + ' \n' + str(error)
+        error_message = util.get_error_message(original_instance_identifier, error)
         if constants.RATE_EXCEEDED in str(error):
             raise custom_exceptions.RateExceededException(error_message)
         else:
