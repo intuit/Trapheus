@@ -133,14 +133,14 @@ To execute the step function, follow the steps below:
 {
     "identifier": "<identifier name>",
     "task": "<taskname>",
-    "isCluster": True or False
+    "isCluster": true or false
 }
 ```
    a. `identifier`: (Required - String) The RDS instance or cluster identifier that has to be restored. Any type of RDS instance or Amazon aurora clusters are supported in this.
    
    b. `task`: (Required - String) Valid options are `create_snapshot` or `db_restore`.
   
-   c. `isCluster`: (Required - Boolean) Set to `True` if the identifier provided is of a cluster else set to `False`
+   c. `isCluster`: (Required - Boolean) Set to `true` if the identifier provided is of a cluster else set to `false`
  
 The state machine can do one of the following tasks:
 1. if `task` is set to `create_snapshot`, the state machine creates/updates a snapshot for the given RDS instance or cluster using the snapshot identifier: *identifier*-snapshot and then executes the pipeline
