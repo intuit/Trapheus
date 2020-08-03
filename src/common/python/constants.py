@@ -5,12 +5,15 @@ DIVISOR = 1000
 IDENTIFIER = "Identifier:"
 SNAPSHOT_POSTFIX = "-snapshot"
 TEMP_POSTFIX = "-temp"
+EXPORT_TASK_POSTFIX = "-export-task"
+RDS_SNAPSHOTS_BUCKET_NAME = "rds-snapshots"
 
 DELETE = "Delete"
 RENAME = "Rename"
 SNAPSHOT = "SnapshotCreation"
 DB_RESTORE = "Restore"
 CLUSTER_RESTORE = "ClusterRestore"
+EXPORT_SNAPSHOT = "SnapshotExportTask"
 
 TASK_ERROR_MAP = {
     'Rename' : custom_exceptions.RenameException,
