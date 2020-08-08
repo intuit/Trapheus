@@ -223,7 +223,6 @@ Resources:
           SenderEmail:
             Fn::Sub: ${SlackWebhookUrls}
 
-
   ClusterRenameLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
