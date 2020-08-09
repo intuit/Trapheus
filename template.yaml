@@ -433,7 +433,7 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "SnapshotExport"
+                  "Next": "ClusterRename"
                 },
                 {
                   "Variable": "$.task",
@@ -441,24 +441,6 @@ Resources:
                   "Next": "SendFailureAlert"
                 }],
                 "Default": "GetClusterSnapshotStatus"
-              },
-              "SnapshotExport": {
-                "Type": "Task",
-                "Resource": "${SnapshotExportLambdaArn}",
-                "Next": "ClusterRename",
-                "ResultPath": "$.output",
-                "Retry": [{
-                  "ErrorEquals": ["Exception","States.TaskFailed"],
-                  "IntervalSeconds": 10,
-                  "MaxAttempts": 5,
-                  "BackoffRate": 2.0
-                 }],
-                "Catch": [
-                  {
-                    "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
-                  }
-                ]
               },
               "ClusterRename": {
                 "Type": "Task",
@@ -715,7 +697,7 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "DbInstanceRename"
+                  "Next": "SnapshotExport"
                 },
                 {
                   "Variable": "$.task",
@@ -723,6 +705,24 @@ Resources:
                   "Next": "SendFailureAlert"
                 }],
                 "Default": "GetDbSnapshotStatus"
+              },
+              "SnapshotExport": {
+                "Type": "Task",
+                "Resource": "${SnapshotExportLambdaArn}",
+                "Next": "DbInstanceRename",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["Exception", "States.TaskFailed"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
               },
               "DbInstanceRename": {
                 "Type": "Task",
