@@ -39,7 +39,27 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: "sts:AssumeRole"
+          - Effect: Allow
+              Principal:
+                Service: export.rds.amazonaws.com
+              Action: "sts:AssumeRole"
       Path: "/"
+      Policies:
+        - PolicyName: SnapshotExportPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: "*"
+                Action:
+                  - iam:PassRole
+              - Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::rds-snapshots-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::rds-snapshots-${AWS::AccountId}/*"
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonRDSFullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
@@ -283,6 +303,63 @@ Resources:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
 
+  SnapshotExportKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Symmetric CMK to export snapshot to s3
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: snapshot-export-key
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: kms:*
+            Resource: '*'
+          - Sid: Allow administration of the key
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt LambdaExecutionRole.Arn
+            Action:
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:TagResource
+              - kms:UntagResource
+            Resource: '*'
+
+  SnapshotsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'rds-snapshots-${AWS::AccountId}'
+
+  SnapshotExportLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-snapshot-export-sf"
+      Description: Lambda functions required to start export task of RDS snapshot to s3.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/export/
+      Handler: export_snapshot_s3_function.lambda_export_rds_snapshot_to_s3
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
@@ -356,7 +433,7 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "ClusterRename"
+                  "Next": "SnapshotExport"
                 },
                 {
                   "Variable": "$.task",
@@ -364,6 +441,24 @@ Resources:
                   "Next": "SendFailureAlert"
                 }],
                 "Default": "GetClusterSnapshotStatus"
+              },
+              "SnapshotExport": {
+                "Type": "Task",
+                "Resource": "${SnapshotExportLambdaArn}",
+                "Next": "ClusterRename",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["Exception","States.TaskFailed"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
               },
               "ClusterRename": {
                 "Type": "Task",
@@ -865,6 +960,7 @@ Resources:
             DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
             DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
             DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
-            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn
+            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
+            SnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
