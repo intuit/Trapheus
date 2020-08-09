@@ -6,7 +6,7 @@ IDENTIFIER = "Identifier:"
 SNAPSHOT_POSTFIX = "-snapshot"
 TEMP_POSTFIX = "-temp"
 EXPORT_TASK_POSTFIX = "-export-task"
-RDS_SNAPSHOTS_BUCKET_NAME = "rds-snapshots"
+RDS_SNAPSHOTS_BUCKET_NAME_PREFIX = "rds-snapshots-"
 
 DELETE = "Delete"
 RENAME = "Rename"

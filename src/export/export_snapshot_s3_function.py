@@ -1,36 +1,36 @@
 import os
 
 import boto3
-from retrying import retry
 
 import constants
-import utility as util
 
 
 def lambda_export_rds_snapshot_to_s3(event, context):
-    """export RDS snapshot to S3 bucket"""
+    """start export task of RDS snapshot to S3 bucket"""
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
     export_id = event['identifier'] + constants.EXPORT_TASK_POSTFIX
     snapshot_id = event['identifier'] + constants.SNAPSHOT_POSTFIX
     snapshot_arn = check_db_snapshot_is_ready(snapshot_id)
+    account_id = __get_aws_account_id()
+    bucket_name = constants.RDS_SNAPSHOTS_BUCKET_NAME_PREFIX + account_id
     try:
         response = rds.start_export_task(
             ExportTaskIdentifier=export_id,
             SourceArn=snapshot_arn,
-            S3BucketName=constants.RDS_SNAPSHOTS_BUCKET_NAME,
+            S3BucketName=bucket_name,
             IamRoleArn=os.environ['SNAPSHOT_EXPORT_TASK_ROLE'],
             KmsKeyId=os.environ['SNAPSHOT_EXPORT_TASK_KEY'],
         )
         result['taskname'] = constants.EXPORT_SNAPSHOT
         result['identifier'] = response['SourceArn']
+        result['status'] = response['Status']
         return result
     except Exception as error:
-        raise Exception()
+        raise Exception(error)
 
 
-@retry(stop_max_attempt_number=3, wait_exponential_multiplier=1000)
 def check_db_snapshot_is_ready(snapshot_name):
     region = os.environ['Region']
     rds = boto3.client('rds', region)
@@ -46,3 +46,7 @@ def check_db_snapshot_is_ready(snapshot_name):
         return snap_arn
     else:
         raise Exception(f"Snapshot is not ready yet (status is {snap_status})")
+
+
+def __get_aws_account_id():
+    return boto3.client('sts').get_caller_identity().get('Account')
