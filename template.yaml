@@ -15,6 +15,10 @@ Globals:
           Fn::Sub: ${AWS::Region}
 
 Parameters:
+  ProjectName:
+    Default: "trapheus"
+    Description: The name of the artifacts bucket
+    Type: String
   vpcId:
     Type: AWS::EC2::VPC::Id
     Description: choose the VPC under which all lambdas will be configured
@@ -40,9 +44,9 @@ Resources:
               Service: lambda.amazonaws.com
             Action: "sts:AssumeRole"
           - Effect: Allow
-              Principal:
-                Service: export.rds.amazonaws.com
-              Action: "sts:AssumeRole"
+            Principal:
+              Service: export.rds.amazonaws.com
+            Action: "sts:AssumeRole"
       Path: "/"
       Policies:
         - PolicyName: SnapshotExportPolicy
@@ -346,7 +350,7 @@ Resources:
   SnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: "lambda-function-snapshot-export-sf"
+      FunctionName: !Sub ${ProjectName}-snapshot-export-sf
       Description: Lambda functions required to start export task of RDS snapshot to s3.
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.7
@@ -356,6 +360,10 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Environment:
+        Variables:
+          SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
+          SNAPSHOT_EXPORT_TASK_KEY: !Ref SnapshotExportKmsKey
       VpcConfig:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
@@ -697,7 +705,7 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "SnapshotExport"
+                  "Next": "StartSnapshotExportTask"
                 },
                 {
                   "Variable": "$.task",
@@ -706,7 +714,7 @@ Resources:
                 }],
                 "Default": "GetDbSnapshotStatus"
               },
-              "SnapshotExport": {
+              "StartSnapshotExportTask": {
                 "Type": "Task",
                 "Resource": "${SnapshotExportLambdaArn}",
                 "Next": "DbInstanceRename",
