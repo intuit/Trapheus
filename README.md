@@ -122,6 +122,8 @@ The CFT creates the following resources:
 2. Multiple lambdas to execute various steps in the state machine.
 3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
 4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas.
+5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to.
+6. KMS key: is required to start export task of snapshot to s3
 
 **Execution**
 
