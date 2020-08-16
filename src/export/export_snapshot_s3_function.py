@@ -10,9 +10,10 @@ def lambda_export_rds_snapshot_to_s3(event, context):
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
-    export_id = event['identifier'] + constants.EXPORT_TASK_POSTFIX
-    snapshot_id = event['identifier'] + constants.SNAPSHOT_POSTFIX
-    snapshot_arn = check_db_snapshot_is_ready(snapshot_id)
+    instance_id = event['identifier']
+    export_id = instance_id + constants.EXPORT_TASK_POSTFIX
+    snapshot_id = instance_id + constants.SNAPSHOT_POSTFIX
+    snapshot_arn = get_snapshot_arn(snapshot_id)
     account_id = __get_aws_account_id()
     bucket_name = constants.RDS_SNAPSHOTS_BUCKET_NAME_PREFIX + account_id
     try:
@@ -24,14 +25,16 @@ def lambda_export_rds_snapshot_to_s3(event, context):
             KmsKeyId=os.environ['SNAPSHOT_EXPORT_TASK_KEY'],
         )
         result['taskname'] = constants.EXPORT_SNAPSHOT
-        result['identifier'] = response['SourceArn']
+        result['identifier'] = instance_id
+        result['snapshot_arn'] = response['SourceArn']
         result['status'] = response['Status']
         return result
     except Exception as error:
         raise Exception(error)
 
 
-def check_db_snapshot_is_ready(snapshot_name):
+def get_snapshot_arn(snapshot_name):
+    """returns snapshort arn if in available state"""
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     snapshots_response = rds.describe_db_snapshots(DBSnapshotIdentifier=snapshot_name)
@@ -40,12 +43,12 @@ def check_db_snapshot_is_ready(snapshot_name):
     snapshots = snapshots_response['DBSnapshots']
     assert len(snapshots) == 1, f"More than one snapshot matches name {snapshot_name}"
     snap = snapshots[0]
-    snap_arn = snap['DBSnapshotArn']
-    snap_status = snapshots[0]['Status']
+    snap_status = snap.get('Status')
     if snap_status == 'available':
+        snap_arn = snap.get('DBSnapshotArn')
         return snap_arn
     else:
-        raise Exception(f"Snapshot is not ready yet (status is {snap_status})")
+        raise Exception(f"Snapshot is not available yet, status is {snap_status}")
 
 
 def __get_aws_account_id():
