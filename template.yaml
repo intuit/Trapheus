@@ -816,6 +816,11 @@ Resources:
               "SendFailureAlert": {
                 "Type": "Task",
                 "Resource": "${EmailAlertLambdaArn}",
+                "Next": "SendSlackFailureAlert"
+              },
+              "SendSlackFailureAlert": {
+                "Type": "Task",
+                "Resource": "${SlackAlertLambdaArn}",
                 "Next": "CheckForRenameReversal"
               },
               "CheckForRenameReversal": {
@@ -890,6 +895,7 @@ Resources:
             DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
             DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
             DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
-            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn
+            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
+            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn

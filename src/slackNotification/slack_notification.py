@@ -22,7 +22,7 @@ def send_to_slack(slack_webhooks, message):
     if not slack_webhooks:
         print('No webhooks provided. Not sending a message...')
         return
-    for webhhook in slack_webhooks:
+    for webhook in slack_webhooks:
         data = {"text": message}
-        response = requests.post(webhhook, json=data)
+        response = requests.post(webhook, json=data)
         response.raise_for_status()
