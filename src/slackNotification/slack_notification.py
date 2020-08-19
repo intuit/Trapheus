@@ -1,4 +1,5 @@
 import os
+import constants
 from botocore.vendored import requests
 
 """
@@ -9,11 +10,11 @@ def lambda_handler(event, context):
     slack_webhooks = os.environ['SLACK_WEBHOOK'].split(',')
     message = {}
     if 'status' in event:
-        message['Error'] = event['taskname'] + 'Error'
-        message['Cause'] = event['status']
+        message[constants.Error] = event['taskname'] + 'Error'
+        message[constants.Cause] = event['status']
     elif 'Error' in event:
-        message['Error'] = event['Error']
-        message['Cause'] = event['Cause']
+        message[constants.Error] = event['Error']
+        message[constants.Cause] = event['Cause']
     send_to_slack(slack_webhooks, message)
 
 

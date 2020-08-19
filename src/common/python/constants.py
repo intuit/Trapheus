@@ -5,6 +5,8 @@ DIVISOR = 1000
 IDENTIFIER = "Identifier:"
 SNAPSHOT_POSTFIX = "-snapshot"
 TEMP_POSTFIX = "-temp"
+ERROR = "Error"
+CAUSE = "Cause"
 
 DELETE = "Delete"
 RENAME = "Rename"

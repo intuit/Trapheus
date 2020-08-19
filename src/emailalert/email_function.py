@@ -1,4 +1,5 @@
 import os
+import constants
 import boto3
 
 def lambda_handler(event, context):
@@ -9,11 +10,11 @@ def lambda_handler(event, context):
     SUBJECT = "Failure alert for RDS Restore Pipeline"
     result = {}
     if 'status' in event:
-        result['Error'] = event['taskname'] + 'Error'
-        result['Cause'] = event['status']
+        result[constants.Error] = event['taskname'] + 'Error'
+        result[constants.CAUSE] = event['status']
     elif 'Error' in event:
-        result['Error'] = event['Error']
-        result['Cause'] = event['Cause']
+        result[constants.Error] = event['Error']
+        result[constants.CAUSE] = event['Cause']
     BODY_HTML = """<html>
     <head></head>
     <body>
