@@ -18,6 +18,7 @@ def lambda_get_cluster_status(event, context):
             result['task'] = eval_cluster_member_status(rds, context, identifier)
         result['identifier'] = identifier
         result['taskname'] = taskname
+        result['isCluster'] = event['isCluster']
         return result
     except Exception as error:
         return util.eval_exception(error, identifier, taskname)

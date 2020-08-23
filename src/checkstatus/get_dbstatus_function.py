@@ -14,6 +14,7 @@ def lambda_get_dbinstance_status(event, context):
         result["task"] = eval_dbinstance_status(rds, context, taskname, identifier)
         result['identifier'] = identifier
         result['taskname'] = taskname
+        result['isCluster'] = event['isCluster']
         return result
     except Exception as error:
         return util.eval_exception(error, identifier, taskname)
