@@ -441,7 +441,7 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "ClusterRename"
+                  "Next": "StartClusterSnapshotExportTask"
                 },
                 {
                   "Variable": "$.task",
@@ -449,6 +449,24 @@ Resources:
                   "Next": "SendFailureAlert"
                 }],
                 "Default": "GetClusterSnapshotStatus"
+              },
+              "StartClusterSnapshotExportTask": {
+                "Type": "Task",
+                "Resource": "${SnapshotExportLambdaArn}",
+                "Next": "ClusterRename",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["Exception", "States.TaskFailed"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
               },
               "ClusterRename": {
                 "Type": "Task",
