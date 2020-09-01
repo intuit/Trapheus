@@ -11,10 +11,10 @@ def lambda_handler(event, context):
     message = {}
     if 'status' in event:
         message[constants.ERROR] = event['taskname'] + 'Error'
-        message[constants.Cause] = event['status']
+        message[constants.CAUSE] = event['status']
     elif 'Error' in event:
         message[constants.ERROR] = event['Error']
-        message[constants.Cause] = event['Cause']
+        message[constants.CAUSE] = event['Cause']
     send_to_slack(slack_webhooks, message)
 
 
