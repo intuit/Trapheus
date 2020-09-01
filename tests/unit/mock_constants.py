@@ -11,6 +11,8 @@ RENAME = "Rename"
 SNAPSHOT = "SnapshotCreation"
 DB_RESTORE = "Restore"
 CLUSTER_RESTORE = "ClusterRestore"
+ERROR = "Error"
+CAUSE = "Cause"
 
 TASK_ERROR_MAP = {
     'Rename' : custom_exceptions.RenameException,
