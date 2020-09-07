@@ -31,6 +31,10 @@ Parameters:
   RecipientEmail:
     Type: String
     Description: comma separated list of recipient email ids for failure alerts
+  SlackWebhookUrls:
+    Type: String
+    Default : "https://hooks.slack.com"
+    Description: comma seperated list of slack webhooks for failure alerts
 
 Resources:
   LambdaExecutionRole:
@@ -221,6 +225,27 @@ Resources:
             Fn::Sub: ${SenderEmail}
           RecipientEmail:
             Fn::Sub: ${RecipientEmail}
+
+  SlackAlertLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda-function-send-slackalert-sf"
+      Description: Lambda functions required to enable slack alerts in case of any failure of state machine.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/slacknotification/
+      Handler: slack_notification.lambda_handler
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+      Environment:
+        Variables:
+          SenderEmail:
+            Fn::Sub: ${SlackWebhookUrls}
 
   ClusterRenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -912,6 +937,11 @@ Resources:
               "SendFailureAlert": {
                 "Type": "Task",
                 "Resource": "${EmailAlertLambdaArn}",
+                "Next": "SendSlackFailureAlert"
+              },
+              "SendSlackFailureAlert": {
+                "Type": "Task",
+                "Resource": "${SlackAlertLambdaArn}",
                 "Next": "CheckForRenameReversal"
               },
               "CheckForRenameReversal": {
@@ -986,6 +1016,8 @@ Resources:
             DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
             DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
             DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
+            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
+            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
             SnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn
           }

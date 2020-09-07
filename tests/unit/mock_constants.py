@@ -13,6 +13,8 @@ RENAME = "Rename"
 SNAPSHOT = "SnapshotCreation"
 DB_RESTORE = "Restore"
 CLUSTER_RESTORE = "ClusterRestore"
+ERROR = "Error"
+CAUSE = "Cause"
 EXPORT_SNAPSHOT = "SnapshotExportTask"
 
 TASK_ERROR_MAP = {
