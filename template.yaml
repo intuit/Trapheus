@@ -780,7 +780,7 @@ Resources:
               },
               "StartSnapshotExportTask": {
                 "Type": "Task",
-                "Resource": "${SnapshotExportLambdaArn}",
+                "Resource": "${DBSnapshotExportLambdaArn}",
                 "Next": "DbInstanceRename",
                 "ResultPath": "$.output",
                 "Retry": [{
@@ -1038,8 +1038,8 @@ Resources:
             DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
             DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
             DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
+            DBSnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
-            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
-            SnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn
+            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
