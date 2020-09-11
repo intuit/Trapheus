@@ -8,8 +8,8 @@ import constants
 import utility as util
 
 
-def lambda_export_rds_snapshot_to_s3(event, context):
-    """start export task of RDS snapshot to S3 bucket"""
+def lambda_export_rds_cluster_snapshot_to_s3(event, context):
+    """start export task of RDS cluster snapshot to S3 bucket"""
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
@@ -17,7 +17,7 @@ def lambda_export_rds_snapshot_to_s3(event, context):
     random_str_id = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
     export_id = instance_id + "-" + random_str_id
     snapshot_id = instance_id + constants.SNAPSHOT_POSTFIX
-    snapshot_arn = get_instance_snapshot_arn(snapshot_id)
+    snapshot_arn = get_cluster_snapshot_arn(snapshot_id)
     account_id = util.get_aws_account_id()
     bucket_name = constants.RDS_SNAPSHOTS_BUCKET_NAME_PREFIX + account_id
     try:
@@ -36,18 +36,18 @@ def lambda_export_rds_snapshot_to_s3(event, context):
         raise Exception(error)
 
 
-def get_instance_snapshot_arn(snapshot_name):
-    """returns instance snapshot arn if in available state"""
+def get_cluster_snapshot_arn(snapshot_name):
+    """returns cluster snapshot arn if in available state"""
     region = os.environ['Region']
     rds = boto3.client('rds', region)
-    snapshots_response = rds.describe_db_snapshots(DBSnapshotIdentifier=snapshot_name)
+    snapshots_response = rds.describe_db_cluster_snapshots(DBClusterSnapshotIdentifier=snapshot_name)
     assert snapshots_response['ResponseMetadata'][
-               'HTTPStatusCode'] == 200, f"Error fetching DB snapshots: {snapshots_response}"
-    snapshots = snapshots_response['DBSnapshots']
+               'HTTPStatusCode'] == 200, f"Error fetching cluster snapshots: {snapshots_response}"
+    snapshots = snapshots_response['DBClusterSnapshots']
     assert len(snapshots) == 1, f"More than one snapshot matches name {snapshot_name}"
     snap = snapshots[0]
     snap_status = snap.get('Status')
     if snap_status == 'available':
-        return snap['DBSnapshotArn']
+        return snap['DBClusterSnapshotArn']
     else:
         raise Exception(f"Snapshot is not available yet, status is {snap_status}")

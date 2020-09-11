@@ -393,6 +393,27 @@ Resources:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
 
+  ClusterSnapshotExportLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-cluster-snapshot-export-sf
+      Description: Lambda functions required to start export task of RDS snapshot to s3.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/export/
+      Handler: export_cluster_snapshot_s3_function.lambda_export_rds_cluster_snapshot_to_s3
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Environment:
+        Variables:
+          SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
+          SNAPSHOT_EXPORT_TASK_KEY: !Ref SnapshotExportKmsKey
+      VpcConfig:
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
+
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
@@ -477,7 +498,7 @@ Resources:
               },
               "StartClusterSnapshotExportTask": {
                 "Type": "Task",
-                "Resource": "${SnapshotExportLambdaArn}",
+                "Resource": "${ClusterSnapshotExportLambdaArn}",
                 "Next": "ClusterRename",
                 "ResultPath": "$.output",
                 "Retry": [{
@@ -1011,14 +1032,14 @@ Resources:
             ClusterSnapshotLambdaArn: !GetAtt ClusterSnapshotLambdaFunction.Arn,
             ClusterRestoreLambdaArn: !GetAtt ClusterRestoreLambdaFunction.Arn,
             ClusterDeleteLambdaArn: !GetAtt ClusterDeleteLambdaFunction.Arn,
+            ClusterSnapshotExportLambdaArn: !GetAtt ClusterSnapshotExportLambdaFunction.Arn,
             DBRenameLambdaArn: !GetAtt RenameLambdaFunction.Arn,
             DBStatusLambdaArn: !GetAtt DbInstanceStatusLambdaFunction.Arn,
             DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
             DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
             DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
-            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
-            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
+            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
             SnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
