@@ -1,6 +1,5 @@
 import os
-import random
-import string
+import time
 
 import boto3
 
@@ -14,8 +13,8 @@ def lambda_export_rds_cluster_snapshot_to_s3(event, context):
     rds = boto3.client('rds', region)
     result = {}
     instance_id = event['identifier']
-    random_str_id = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
-    export_id = instance_id + "-" + random_str_id
+    epoch = int(time.time())
+    export_id = instance_id + "-" + str(epoch)
     snapshot_id = instance_id + constants.SNAPSHOT_POSTFIX
     snapshot_arn = get_cluster_snapshot_arn(snapshot_id)
     account_id = util.get_aws_account_id()
