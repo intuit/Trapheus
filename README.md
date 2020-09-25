@@ -6,7 +6,7 @@ src="screenshots/Trapheus-logo.png">
 <div align="center"><a href="https://circleci.com/gh/intuit/Trapheus"><img src="https://circleci.com/gh/intuit/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
 </div>
 
-- [AWS RDS Snasphot Restoration](#Trapheus)
+- [AWS RDS Snapshot Restoration](#Trapheus)
 - [Pre-Requisites](#pre-requisites)
 - [Parameters](#parameters)
 - [Instructions](#instructions)
