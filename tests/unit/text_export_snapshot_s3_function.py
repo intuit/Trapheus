@@ -44,7 +44,6 @@ class TestExportSnapshotS3Function(TestCase):
 
     @patch("export.export_snapshot_s3_function.boto3.client")
     def test_lambda_export_rds_snapshot_to_s3_good(self, mock_client, _):
-        self.event["isCluster"] = False
         mock_rds = mock_client.return_value
         mock_rds.describe_db_snapshots.return_value = self.mocked_describe_db_snapshots_good
         mock_rds.start_export_task.return_value = {
@@ -56,13 +55,22 @@ class TestExportSnapshotS3Function(TestCase):
 
     @patch("export.export_snapshot_s3_function.boto3.client")
     def test_lambda_export_rds_snapshot_to_s3_bad(self, mock_client, _):
-        self.event["isCluster"] = False
         mock_rds = mock_client.return_value
         err_msg = "An error occurred (ExportTaskAlreadyExists) when calling the StartExportTask operation"
         mock_rds.start_export_task.side_effect = Exception(err_msg)
         with self.assertRaises(Exception) as err:
             _ = export_snapshot_s3_function.lambda_export_rds_snapshot_to_s3(self.event, {})
             self.assertEqual(err.exception, err_msg)
+
+    @patch("export.export_snapshot_s3_function.boto3.client")
+    def test_lambda_export_rds_snapshot_to_s3_bad_bucket_deleted(self, mock_client, _):
+        mock_rds = mock_client.return_value
+        err_msg = "An error occurred (InvalidS3BucketFault) when calling the StartExportTask operation: The S3 bucket rds-snapshots-1231231234 doesn't exist."
+        mock_rds.start_export_task.side_effect = Exception(err_msg)
+        with self.assertRaises(Exception) as err:
+            _ = export_snapshot_s3_function.lambda_export_rds_snapshot_to_s3(self.event, {})
+            self.assertEqual(err.exception, err_msg)
+
 
     @patch("export.export_snapshot_s3_function.boto3.client")
     def test_get_snapshot_arn_good(self, mock_client, _):
