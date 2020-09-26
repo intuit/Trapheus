@@ -467,10 +467,8 @@ Resources:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
           SNAPSHOT_EXPORT_TASK_KEY: !Ref SnapshotExportKmsKey
       VpcConfig:
-        !If [UseVPCAndSubnetsCondition, {
-          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
-          SubnetIds: !Split [ "," , !Ref Subnets ]
-        } ,  !Ref "AWS::NoValue"  ]
+        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
+        SubnetIds: !Split [ "," , !Ref Subnets ]
 
   CheckRegionSupportSnapshotExportToS3LambdaFunction:
     Type: AWS::Serverless::Function
