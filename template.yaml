@@ -37,11 +37,6 @@ Parameters:
     Default : "true"
 Conditions:
   UseVPCAndSubnetsCondition: !Equals [ !Ref UseVPCAndSubnets, "true" ]
-  HasVPCId: !Not [ !Equals [ !Ref vpcId, "" ]]
-  HasSubnetsIDs: !Not [ !Equals [ !Ref Subnets, "" ]]
-  HasVPCIdAndSubnetsIDs: !And
-    - !Condition HasVPCId
-    - !Condition HasSubnetsIDs
 
 Resources:
   LambdaExecutionRole:
