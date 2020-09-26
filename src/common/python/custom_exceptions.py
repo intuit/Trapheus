@@ -52,3 +52,14 @@ class RetryClusterSnapshotException(Exception):
     def __str__(self):
         return self.value
 
+class UnsupportedSnapshotExportRegionException(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return self.value
+
+class ExportSnapshotSupportedRegionNotProvidedException():
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return self.value

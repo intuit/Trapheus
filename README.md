@@ -1,5 +1,5 @@
 <div align="center">
-<img width="300"
+<img width="300" 
 src="screenshots/Trapheus-logo.png">
 </div>
 
@@ -96,6 +96,56 @@ The app requires the following AWS resources to exist before installation:
 
 4. One or more instances of a RDS database that you wish to restore.
 
+In case your region doesn't support exporting a RDS snapshot to S3 (check here https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html) you also need to:  
+
+5. Create a KmsKeyId in a rds snapshot export to s3 supported region with role policy: 
+```
+{
+    "Version": "2012-10-17",
+    "Id": "snapshot-copy-export-key",
+    "Statement": [
+        {
+            "Sid": "Enable IAM User Permissions",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::<awsAccountId>:root"
+            },
+            "Action": "kms:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "Allow administration of the key",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "<LambdaExecutionRole.Arn>"
+            },
+            "Action": [
+                "kms:Create*",
+                "kms:Describe*",
+                "kms:Enable*",
+                "kms:List*",
+                "kms:Put*",
+                "kms:Update*",
+                "kms:Revoke*",
+                "kms:Disable*",
+                "kms:Get*",
+                "kms:Delete*",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion",
+                "kms:TagResource",
+                "kms:UntagResource",
+                "kms:CreateGrant",
+                "kms:DescribeKey"
+            ],
+            "Resource": "*"
+        }
+    ]
+}  
+```
+Make sure you change the:  
+<awsAccountId> with your aws account id.  
+<LambdaExecutionRole.Arn> with the arn of the LambdaExecutionRole (check the resources of the CF stack) (after you create you stack - check Instructions->Setup).  
+Once KmsKeyId created, remember (y)ou would need to use later on) the aws generated "Key ID: " (located in the breadcrumb/top of the screen).
 
 ## Parameters
 
@@ -105,6 +155,9 @@ The following are the parameters for creating the cloudformation template:
 2. `Subnets` : [Required] A comma separated list of private subnet ids (region specific) in the chosen VPC, used to configure the VPC config for all the lambdas
 3. `SenderEmail` : [Required] A SES email alert is configured to notify the user about any failures in the state machine. The sender email parameter is needed to configure the email id through which the alert is sent out. Please ensure the same is configured in SES
 4. `RecipientEmail` : [Required] Comma separated list of recipient email addresses that should receive the failure email alerts
+In case your region doesn't support exporting a RDS snapshot to S3 (check here https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html) you also need to provide the following parameters:  
+5. `ExportSnapshotSupportedRegion` : [Required] A region that supports exporting a snapshot to S3.
+6. `SnapshotCopyExportKmsKey` : [Required] A KmsKeyId (check Pre-requisites section) that will enable the copy of the snapshots across regions. Must be created in the region where you are copying to.
 
 ## Instructions
 
@@ -115,6 +168,8 @@ To setup the Trapheus in your AWS account, follow the steps below:
 1. Clone the Trapheus git repository
 3. Execute `sam package --template-file template.yaml --output-template-file deploy.yaml --s3-bucket <s3 bucket name from corresponding AWS account and region>` from the Trapheus repo.
 4. Execute `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail>` to deploy the stack using the above mentioned parameters.
+In case your region doesn't support exporting a RDS snapshot to S3 (check here https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html) you need to execute:
+    1. `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> ExportSnapshotSupportedRegion=<ExportSnapshotSupportedRegion> SnapshotCopyExportKmsKey=<SnapshotCopyExportKmsKey>`
 
 **TO BE NOTED**:
 The CFT creates the following resources: 
@@ -122,7 +177,7 @@ The CFT creates the following resources:
 2. Multiple lambdas to execute various steps in the state machine.
 3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
 4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas.
-5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to.
+5. S3 bucket: rds-snapshots-<your_account_id>-region where snapshots will be exported to.
 6. KMS key: is required to start export task of snapshot to s3
 
 **Execution**
@@ -154,6 +209,7 @@ To tear down your application and remove all resources associated with the Traph
 
 1. Log into the [Amazon CloudFormation Console](https://console.aws.amazon.com/cloudformation/home?#) and find the stack you created.
 2. Delete the stack.
+3. Delete the SnapshotCopyExportKmsKey
 
 ## How it Works
 

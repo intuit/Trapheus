@@ -2,9 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Trapheus
-
   Restoration of a RDS instance or cluster from a snapshot using a Lambda state machine.
-
 Globals:
   Function:
     Runtime: python3.7
@@ -25,16 +23,31 @@ Parameters:
   Subnets:
     Type: String
     Description: The comma separated list of SubnetIds in your Virtual Private Cloud (VPC)
+  UseVPCAndSubnets:
+    Type: String
+    Description: Wether to use VPC and Subnets in Lambda-s.
   SenderEmail:
     Type: String
     Description: sender email account for failure alert
   RecipientEmail:
     Type: String
     Description: comma separated list of recipient email ids for failure alerts
-  SlackWebhookUrls:
+  ExportSnapshotSupportedRegion:
+    Default: ""
     Type: String
-    Default : "https://hooks.slack.com"
-    Description: comma seperated list of slack webhooks for failure alerts
+    Description: A region that supports exporting a snapshot to S3. https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html
+  SnapshotCopyExportKmsKey:
+    Default: ""
+    Type: String
+    Description: A KmsKeyId (check README.md Pre-requisites section) that will enable the copy of the snapshots across regions. Must be created in the region where you are copying to.
+Conditions:
+  UseVPCAndSubnetsCondition: !Equals [ !Ref UseVPCAndSubnets, "true" ]
+  HasVPCId: !Not [ !Equals [ !Ref vpcId, "" ]]
+  HasSubnetsIDs: !Not [ !Equals [ !Ref Subnets, "" ]]
+  HasVPCIdAndSubnetsIDs: !And
+    - !Condition HasVPCId
+    - !Condition HasSubnetsIDs
+  HasExportSnapshotSupportedRegion: !Not [ !Equals [ !Ref ExportSnapshotSupportedRegion, "" ]]
 
 Resources:
   LambdaExecutionRole:
@@ -63,8 +76,14 @@ Resources:
                   - iam:PassRole
               - Effect: Allow
                 Resource:
-                  - !Sub "arn:aws:s3:::rds-snapshots-${AWS::AccountId}"
-                  - !Sub "arn:aws:s3:::rds-snapshots-${AWS::AccountId}/*"
+                  - !If [HasExportSnapshotSupportedRegion,
+                    !Join [ "", [ !Sub "arn:aws:s3:::rds-snapshots-${AWS::AccountId}-",!Ref ExportSnapshotSupportedRegion ] ] ,
+                    !Sub "arn:aws:s3:::rds-snapshots-${AWS::AccountId}-${AWS::Region}"
+                  ]
+                  - !If [HasExportSnapshotSupportedRegion,
+                    !Join [ "", [ !Sub "arn:aws:s3:::rds-snapshots-${AWS::AccountId}-",!Ref ExportSnapshotSupportedRegion,"/*" ] ] ,
+                    !Sub "arn:aws:s3:::rds-snapshots-${AWS::AccountId}-${AWS::Region}/*"
+                  ]
                 Action:
                   - s3:PutObject
                   - s3:DeleteObject
@@ -102,6 +121,7 @@ Resources:
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Condition: UseVPCAndSubnetsCondition
     Properties:
       GroupDescription: security group added to VPC config of every lambda used
       GroupName: my-sg
@@ -132,8 +152,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DbInstanceStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -148,9 +170,14 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Environment:
+        Variables:
+          ExportSnapshotSupportedRegion: !Ref ExportSnapshotSupportedRegion
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DBRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -166,8 +193,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DeleteInstanceLambdaFunction:
     Type: AWS::Serverless::Function
@@ -183,8 +212,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DBSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -200,8 +231,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   EmailAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -217,35 +250,16 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
       Environment:
         Variables:
           SenderEmail:
             Fn::Sub: ${SenderEmail}
           RecipientEmail:
             Fn::Sub: ${RecipientEmail}
-
-  SlackAlertLambdaFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: "lambda-function-send-slackalert-sf"
-      Description: Lambda functions required to enable slack alerts in case of any failure of state machine.
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
-      CodeUri: src/slacknotification/
-      Handler: slack_notification.lambda_handler
-      MemorySize: 128
-      Layers:
-        - !Ref CommonLambdaLayer
-      Timeout: 900
-      VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
-      Environment:
-        Variables:
-          SenderEmail:
-            Fn::Sub: ${SlackWebhookUrls}
 
   ClusterRenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -261,8 +275,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   ClusterRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -278,8 +294,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   ClusterStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -295,8 +313,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   ClusterDeleteLambdaFunction:
     Type: AWS::Serverless::Function
@@ -312,8 +332,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   ClusterSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -329,8 +351,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   SnapshotExportKmsKey:
     Type: AWS::KMS::Key
@@ -370,7 +394,10 @@ Resources:
   SnapshotsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'rds-snapshots-${AWS::AccountId}'
+      BucketName: !If [HasExportSnapshotSupportedRegion,
+                    !Join [ "", [ !Sub "rds-snapshots-${AWS::AccountId}-",!Ref ExportSnapshotSupportedRegion ] ] ,
+                    !Sub "rds-snapshots-${AWS::AccountId}-${AWS::Region}"
+                  ]
 
   SnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -387,32 +414,60 @@ Resources:
       Timeout: 900
       Environment:
         Variables:
+          ExportSnapshotSupportedRegion: !Ref ExportSnapshotSupportedRegion
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
           SNAPSHOT_EXPORT_TASK_KEY: !Ref SnapshotExportKmsKey
+          SNAPSHOT_COPY_EXPORT_TASK_KEY: !Ref SnapshotCopyExportKmsKey
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
-  ClusterSnapshotExportLambdaFunction:
+  CheckRegionSupportSnapshotExportToS3LambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${ProjectName}-cluster-snapshot-export-sf
-      Description: Lambda functions required to start export task of RDS snapshot to s3.
+      FunctionName: !Sub ${ProjectName}-check-region-support-snapshot-export-to-S3-sf
+      Description: Lambda functions required to check whether region supports RDS snapshot export to s3.
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.7
-      CodeUri: src/export/
-      Handler: export_cluster_snapshot_s3_function.lambda_export_rds_cluster_snapshot_to_s3
+      CodeUri: src/export/copy_across_regions/
+      Handler: check_region_support_snapshot_export_to_s3_function.lambda_check_region_support_snapshot_export_to_s3
       MemorySize: 128
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
       Environment:
         Variables:
-          SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
-          SNAPSHOT_EXPORT_TASK_KEY: !Ref SnapshotExportKmsKey
+          ExportSnapshotSupportedRegion: !Ref ExportSnapshotSupportedRegion
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } ,  !Ref "AWS::NoValue"  ]
+
+  SnapshotCopyToExportToS3SupportedRegionLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-snapshot-copy-to-export-to-S3-supported-region-sf
+      Description: Lambda functions required to copy RDS snapshot to export to s3 supported region.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/export/copy_across_regions/
+      Handler: copy_snapshot_to_s3_export_supportable_region_function.lambda_copy_snapshot_to_s3_export_supportable_region
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Environment:
+        Variables:
+          ExportSnapshotSupportedRegion: !Ref ExportSnapshotSupportedRegion
+          SNAPSHOT_COPY_EXPORT_TASK_KEY: !Ref SnapshotCopyExportKmsKey
+      VpcConfig:
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } ,  !Ref "AWS::NoValue"  ]
 
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -498,7 +553,7 @@ Resources:
               },
               "StartClusterSnapshotExportTask": {
                 "Type": "Task",
-                "Resource": "${ClusterSnapshotExportLambdaArn}",
+                "Resource": "${SnapshotExportLambdaArn}",
                 "Next": "ClusterRename",
                 "ResultPath": "$.output",
                 "Retry": [{
@@ -741,6 +796,24 @@ Resources:
                   }
                 ]
               },
+              "DbSnapshotCopy": {
+                "Type": "Task",
+                "Resource": "${SnapshotCopyToExportToS3SupportedRegionLambdaArn}",
+                "Next": "GetDbSnapshotStatus",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException", "RetryDBSnapshotException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
               "GetDbSnapshotStatus": {
                 "Type": "Task",
                 "Resource": "${DBStatusLambdaArn}",
@@ -769,7 +842,7 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "StartSnapshotExportTask"
+                  "Next": "CheckRegionSupportSnapshotExportToS3"
                 },
                 {
                   "Variable": "$.task",
@@ -778,9 +851,34 @@ Resources:
                 }],
                 "Default": "GetDbSnapshotStatus"
               },
+              "CheckRegionSupportSnapshotExportToS3": {
+                "Type": "Task",
+                "Resource": "${CheckRegionSupportSnapshotExportToS3LambdaArn}",
+                "Next": "DoesRegionSupportSnapshotExportToS3",
+                "ResultPath": "$"
+              },
+              "DoesRegionSupportSnapshotExportToS3": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.taskname",
+                  "StringEquals": "SnapshotExportSupportedTask",
+                  "Next": "StartSnapshotExportTask"
+                },
+                {
+                  "Variable": "$.taskname",
+                  "StringEquals": "export_from_region_that_supports_snapshot_export_to_s3_task",
+                  "Next": "StartSnapshotExportTask"
+                },
+                {
+                  "Variable": "$.taskname",
+                  "StringEquals": "SnapshotCopyTask",
+                  "Next": "DbSnapshotCopy"
+                }],
+                "Default": "StartSnapshotExportTask"
+              },
               "StartSnapshotExportTask": {
                 "Type": "Task",
-                "Resource": "${DBSnapshotExportLambdaArn}",
+                "Resource": "${SnapshotExportLambdaArn}",
                 "Next": "DbInstanceRename",
                 "ResultPath": "$.output",
                 "Retry": [{
@@ -958,11 +1056,6 @@ Resources:
               "SendFailureAlert": {
                 "Type": "Task",
                 "Resource": "${EmailAlertLambdaArn}",
-                "Next": "SendSlackFailureAlert"
-              },
-              "SendSlackFailureAlert": {
-                "Type": "Task",
-                "Resource": "${SlackAlertLambdaArn}",
                 "Next": "CheckForRenameReversal"
               },
               "CheckForRenameReversal": {
@@ -1027,19 +1120,19 @@ Resources:
             }
           }
         - {
-            ClusterRenameLambdaArn: !GetAtt ClusterRenameLambdaFunction.Arn,
-            ClusterStatusLambdaArn: !GetAtt ClusterStatusLambdaFunction.Arn,
-            ClusterSnapshotLambdaArn: !GetAtt ClusterSnapshotLambdaFunction.Arn,
-            ClusterRestoreLambdaArn: !GetAtt ClusterRestoreLambdaFunction.Arn,
-            ClusterDeleteLambdaArn: !GetAtt ClusterDeleteLambdaFunction.Arn,
-            ClusterSnapshotExportLambdaArn: !GetAtt ClusterSnapshotExportLambdaFunction.Arn,
-            DBRenameLambdaArn: !GetAtt RenameLambdaFunction.Arn,
-            DBStatusLambdaArn: !GetAtt DbInstanceStatusLambdaFunction.Arn,
-            DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
-            DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
-            DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
-            DBSnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn,
-            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
-            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
-          }
+          ClusterRenameLambdaArn: !GetAtt ClusterRenameLambdaFunction.Arn,
+          ClusterStatusLambdaArn: !GetAtt ClusterStatusLambdaFunction.Arn,
+          ClusterSnapshotLambdaArn: !GetAtt ClusterSnapshotLambdaFunction.Arn,
+          ClusterRestoreLambdaArn: !GetAtt ClusterRestoreLambdaFunction.Arn,
+          ClusterDeleteLambdaArn: !GetAtt ClusterDeleteLambdaFunction.Arn,
+          DBRenameLambdaArn: !GetAtt RenameLambdaFunction.Arn,
+          DBStatusLambdaArn: !GetAtt DbInstanceStatusLambdaFunction.Arn,
+          DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
+          DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
+          DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
+          EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
+          SnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn,
+          CheckRegionSupportSnapshotExportToS3LambdaArn: !GetAtt CheckRegionSupportSnapshotExportToS3LambdaFunction.Arn,
+          SnapshotCopyToExportToS3SupportedRegionLambdaArn: !GetAtt SnapshotCopyToExportToS3SupportedRegionLambdaFunction.Arn
+        }
       RoleArn: !GetAtt StatesExecutionRole.Arn
