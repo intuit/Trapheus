@@ -127,6 +127,56 @@ The app requires the following AWS resources to exist before installation:
         - Settings: enter password
         - Connectivity: VPC: Trapheus-VPC-[region]
         
+In case your region doesn't support exporting a RDS snapshot to S3 (check here https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html) you also need to:  
+
+7. Create a KmsKeyId in a rds snapshot export to s3 supported region with role policy: 
+```
+{
+    "Version": "2012-10-17",
+    "Id": "snapshot-copy-export-key",
+    "Statement": [
+        {
+            "Sid": "Enable IAM User Permissions",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::<awsAccountId>:root"
+            },
+            "Action": "kms:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "Allow administration of the key",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "<LambdaExecutionRole.Arn>"
+            },
+            "Action": [
+                "kms:Create*",
+                "kms:Describe*",
+                "kms:Enable*",
+                "kms:List*",
+                "kms:Put*",
+                "kms:Update*",
+                "kms:Revoke*",
+                "kms:Disable*",
+                "kms:Get*",
+                "kms:Delete*",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion",
+                "kms:TagResource",
+                "kms:UntagResource",
+                "kms:CreateGrant",
+                "kms:DescribeKey"
+            ],
+            "Resource": "*"
+        }
+    ]
+}  
+```
+Make sure you change the:  
+<awsAccountId> with your aws account id.  
+<LambdaExecutionRole.Arn> with the arn of the LambdaExecutionRole (check the resources of the CF stack) (after you create you stack - check Instructions->Setup).  
+Once KmsKeyId created, remember (y)ou would need to use later on) the aws generated "Key ID: " (located in the breadcrumb/top of the screen).
 
 ## Parameters
 
@@ -137,7 +187,10 @@ The following are the parameters for creating the cloudformation template:
 3. `Subnets` : [Required] A comma separated list of private subnet ids (region specific) from the [Pre-Requisites](#pre-requisites) VPC.
 4. `SenderEmail` : [Required] The SES sending email configured in the [Pre-Requisites](#pre-requisites)
 5. `RecipientEmail` : [Required] Comma separated list of recipient email addresses configured in [Pre-Requisites](#pre-requisites).
-6. `UseVPCAndSubnets` : [Optional] Whether to use the vpc and subnets to create a security group and link the security group and vpc to the lambdas. When UseVPCAndSubnets left out (default) or set to 'true', lambdas are connected to a VPC in your account, and by default the function can't access the RDS (or other services) if VPC doesn't provide access (either by routing outbound traffic to a [NAT gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) in a public subnet, or having a [VPC endpoint](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html), both of which incur cost or require more setup). If set to 'false', the [lambdas will run in a default Lambda owned VPC that has access to RDS (and other AWS services)](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html#vpc-internet).
+6. `UseVPCAndSubnets` : [Optional] Whether to use the vpc and subnets to create a security group and link the security group and vpc to the lambdas. When UseVPCAndSubnets left out (default) or set to 'true', lambdas are connected to a VPC in your account, and by default the function can't access the RDS (or other services) if VPC doesn't provide access (either by routing outbound traffic to a [NAT gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) in a public subnet, or having a [VPC endpoint](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html), both of which incur cost or require more setup). If set to 'false', the [lambdas will run in a default Lambda owned VPC that has access to RDS (and other AWS services)](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html#vpc-internet).  
+In case your region doesn't support exporting a RDS snapshot to S3 (check here https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html) you also need to provide the following parameters:  
+7. `ExportSnapshotSupportedRegion` : [Required] A region that supports exporting a snapshot to S3.
+8. `SnapshotCopyExportKmsKey` : [Required] A KmsKeyId (check Pre-requisites section) that will enable the copy of the snapshots across regions. Must be created in the region where you are copying to.
 
 ## Instructions
 
@@ -152,7 +205,9 @@ To setup the Trapheus in your AWS account, follow the steps below:
 `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail>`  
 3.1. In order to have the minimal Lambda-RDS access configuration and less costs ([UseVPCAndSubnets description above](#parameters) for more), add the `UseVPCAndSubnets=false` at the end of the sam deploy command or:  
 `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> UseVPCAndSubnets=false`  
-Typically, linking your own VPC to the lambdas and not setting addition NAT gateway or VPC endpoint configuration will result in a ["Connect timeout on endpoint URL: "https://rds.[region].amazonaws.com/"" or "Task timed out after 3.00 seconds" issue](https://docs.aws.amazon.com/lambda/latest/dg/troubleshooting-networking.html).
+Typically, linking your own VPC to the lambdas and not setting addition NAT gateway or VPC endpoint configuration will result in a ["Connect timeout on endpoint URL: "https://rds.[region].amazonaws.com/"" or "Task timed out after 3.00 seconds" issue](https://docs.aws.amazon.com/lambda/latest/dg/troubleshooting-networking.html).  
+4.2. In case your region doesn't support exporting a RDS snapshot to S3 (check here https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html) you need to execute:  
+`sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> ExportSnapshotSupportedRegion=<ExportSnapshotSupportedRegion> SnapshotCopyExportKmsKey=<SnapshotCopyExportKmsKey>`  
 
 **TO BE NOTED**:
 The CFT creates the following resources: 
@@ -160,7 +215,7 @@ The CFT creates the following resources:
 2. Multiple lambdas to execute various steps in the state machine.
 3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
 4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas.
-5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to.
+5. S3 bucket: rds-snapshots-<your_account_id>-region where snapshots will be exported to.
 6. KMS key: is required to start export task of snapshot to s3
 
 **Execution**
@@ -200,6 +255,7 @@ To tear down your application and remove all resources associated with the Traph
 1. Log into the [Amazon CloudFormation Console](https://console.aws.amazon.com/cloudformation/home?#) and find the stack you created.
 2. Delete the stack. Note that stack deletion will fail if rds-snapshots-<YOUR_ACCOUNT_NO> s3 bucket is not empty, so first delete the snapshots' exports in the bucket.
 3. Delete the AWS resources from the [Pre-Requisites](#pre-requisites). Removal of SES, the CFN S3 bucket (empty it if not deleting) and VPC is optional as you won't see charges, but can re-use them later for a quick start.
+4. Delete the SnapshotCopyExportKmsKey
 
 ## How it Works
 
