@@ -126,6 +126,8 @@ The CFT creates the following resources:
 2. Multiple lambdas to execute various steps in the state machine.
 3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
 4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas.
+5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to.
+6. KMS key: is required to start export task of snapshot to s3
 
 **Execution**
 
@@ -155,7 +157,7 @@ The state machine can do one of the following tasks:
 To tear down your application and remove all resources associated with the Trapheus DB Restore state machine, follow these steps:
 
 1. Log into the [Amazon CloudFormation Console](https://console.aws.amazon.com/cloudformation/home?#) and find the stack you created.
-2. Delete the stack.
+2. Delete the stack. Note that stack deletion will fail if rds-snapshots-<YOUR_ACCOUNT_NO> s3 bucket is not empty, so first delete the snapshots' exports in the bucket.
 
 ## How it Works
 
