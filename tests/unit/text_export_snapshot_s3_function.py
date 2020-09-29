@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
+import mock_import
 import constants
 import utility
 from export import export_snapshot_s3_function
