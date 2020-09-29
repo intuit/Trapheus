@@ -2,11 +2,11 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
 import constants
 import utility
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/export')))
-import export_snapshot_s3_function
+from export import export_snapshot_s3_function
 
 os.environ["Region"] = "us-west-2"
 os.environ['SNAPSHOT_EXPORT_TASK_ROLE'] = "testrole"
