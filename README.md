@@ -153,7 +153,7 @@ The state machine can do one of the following tasks:
 To tear down your application and remove all resources associated with the Trapheus DB Restore state machine, follow these steps:
 
 1. Log into the [Amazon CloudFormation Console](https://console.aws.amazon.com/cloudformation/home?#) and find the stack you created.
-2. Delete the stack.
+2. Delete the stack. Note that stack deletion will fail if rds-snapshots-<YOUR_ACCOUNT_NO> s3 bucket is not empty, so first delete the snapshots' exports in the bucket.
 
 ## How it Works
 

@@ -43,7 +43,7 @@ def get_instance_snapshot_arn(snapshot_name):
     assert snapshots_response['ResponseMetadata'][
                'HTTPStatusCode'] == 200, f"Error fetching DB snapshots: {snapshots_response}"
     snapshots = snapshots_response['DBSnapshots']
-    assert len(snapshots) == 1, f"More than one snapshot matches name {snapshot_name}"
+    assert len(snapshots) == 1, f"No snapshot matches name {snapshot_name}"
     snap = snapshots[0]
     snap_status = snap.get('Status')
     if snap_status == 'available':
