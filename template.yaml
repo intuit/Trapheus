@@ -31,6 +31,12 @@ Parameters:
     Type: String
     Default : "https://hooks.slack.com"
     Description: comma seperated list of slack webhooks for failure alerts
+  UseVPCAndSubnets:
+    Type: String
+    Description: Wether to use VPC and Subnets in Lambda-s.
+    Default : "true"
+Conditions:
+  UseVPCAndSubnetsCondition: !Equals [ !Ref UseVPCAndSubnets, "true" ]
 
 Resources:
   LambdaExecutionRole:
@@ -78,6 +84,7 @@ Resources:
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Condition: UseVPCAndSubnetsCondition
     Properties:
       GroupDescription: security group added to VPC config of every lambda used
       GroupName: my-sg
@@ -108,8 +115,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DbInstanceStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -125,8 +134,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DBRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -142,8 +153,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DeleteInstanceLambdaFunction:
     Type: AWS::Serverless::Function
@@ -159,8 +172,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DBSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -176,8 +191,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   EmailAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -193,8 +210,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
       Environment:
         Variables:
           SenderEmail:
@@ -216,8 +235,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
       Environment:
         Variables:
           SenderEmail:
@@ -237,8 +258,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   ClusterRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -254,8 +277,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   ClusterStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -271,8 +296,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   ClusterDeleteLambdaFunction:
     Type: AWS::Serverless::Function
@@ -288,8 +315,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   ClusterSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -305,8 +334,10 @@ Resources:
         - !Ref CommonLambdaLayer
       Timeout: 900
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue"  ]
 
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
