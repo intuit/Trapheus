@@ -4,6 +4,8 @@ from unittest.mock import patch
 
 import constants
 import utility
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/export')))
 import export_snapshot_s3_function
 
 os.environ["Region"] = "us-west-2"
