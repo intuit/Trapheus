@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import constants
 import utility
-from export import export_cluster_snapshot_s3_function
+import export_cluster_snapshot_s3_function
 
 os.environ["Region"] = "us-west-2"
 os.environ['SNAPSHOT_EXPORT_TASK_ROLE'] = "testrole"
