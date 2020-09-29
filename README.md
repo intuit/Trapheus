@@ -39,7 +39,7 @@ Trapheus can be scheduled using a cloudwatch alarm rule or can be run using any 
 │   └── restore_state_machine.png
 ├── src
 │   ├── checkstatus
-│   │   ├── DBClusterStatusWaiter.py              <-- Python [Waiter](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html) for checking the status of the cluster
+│   │   ├── DBClusterStatusWaiter.py              <-- Python Waiter(https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html#waiters) for checking the status of the cluster
 │   │   ├── get_dbcluster_status_function.py      <-- Python Lambda code for polling the status of a clusterised database
 │   │   ├── get_dbstatus_function.py              <-- Python Lambda code for polling the status of a non clusterised RDS instance
 │   │   └── waiter_acceptor_config.py             <-- Config module for the waiters
