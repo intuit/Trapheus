@@ -192,3 +192,15 @@ Executed using lambdas created for deletion purposes, once the deletion is succe
 
 ![DBRestore failure handling depiction](screenshots/failure_handling.png)
 
+
+## Contributing to Trapheus
+
+1. Fork Trapheus repo
+2. Make changes locally and add unit tests as needed
+3. Run the test suite in the repo to ensure existing flows are not breaking
+```
+cd Trapheus
+python -m pytest tests/ -v #to execute the complete test suite
+python -m pytest tests/unit/test_get_dbstatus_function.py -v #to execute any individual test
+```
+4. Raise a pull request from the fork
