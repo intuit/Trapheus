@@ -163,6 +163,8 @@ The CFT creates the following resources:
 2. Multiple lambdas to execute various steps in the state machine.
 3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
 4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas.
+5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to.
+6. KMS key: is required to start export task of snapshot to s3
 
 **Execution**
 
@@ -199,7 +201,7 @@ After done with development or using the tool:
 To tear down your application and remove all resources associated with the Trapheus DB Restore state machine, follow these steps:
 
 1. Log into the [Amazon CloudFormation Console](https://console.aws.amazon.com/cloudformation/home?#) and find the stack you created.
-2. Delete the stack.
+2. Delete the stack. Note that stack deletion will fail if rds-snapshots-<YOUR_ACCOUNT_NO> s3 bucket is not empty, so first delete the snapshots' exports in the bucket.
 3. Delete the AWS resources from the [Pre-Requisites](#pre-requisites). Removal of SES, the CFN S3 bucket (empty it if not deleting) and VPC is optional as you won't see charges, but can re-use them later for a quick start.
 
 ## How it Works
@@ -235,3 +237,15 @@ Executed using lambdas created for deletion purposes, once the deletion is succe
 
 ![DBRestore failure handling depiction](screenshots/failure_handling.png)
 
+
+## Contributing to Trapheus
+
+1. Fork Trapheus repo
+2. Make changes locally and add unit tests as needed
+3. Run the test suite in the repo to ensure existing flows are not breaking
+```
+cd Trapheus
+python -m pytest tests/ -v #to execute the complete test suite
+python -m pytest tests/unit/test_get_dbstatus_function.py -v #to execute any individual test
+```
+4. Raise a pull request from the fork

@@ -1,6 +1,7 @@
 import math
 import constants
 import custom_exceptions
+import boto3
 
 def eval_exception(error, identifier, taskname):
     result = {}
@@ -80,3 +81,6 @@ def get_waiter_max_attempts(context):
 def get_error_message(identifier, error):
     error_message = constants.IDENTIFIER + identifier + ' \n' + str(error)
     return error_message
+
+def get_aws_account_id():
+    return boto3.client('sts').get_caller_identity().get('Account')
