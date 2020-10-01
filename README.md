@@ -212,7 +212,7 @@ Prepare your environment. Install tools as needed.
    ```bash
     git checkout trapheus-change1
    ```
-You can combine boths command by typing `git checkout -b trapheus-change1`.
+    You can combine boths command by typing `git checkout -b trapheus-change1`.
 1. Make changes locally using an editor and add unit tests as needed.
 1. Run the test suite in the repo to ensure existing flows are not breaking.
     ```bash
