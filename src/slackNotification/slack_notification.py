@@ -1,5 +1,6 @@
 import os
 import constants
+import json
 from botocore.vendored import requests
 
 """
@@ -24,6 +25,6 @@ def send_to_slack(slack_webhooks, message):
         print('No webhooks provided. Not sending a message...')
         return
     for webhook in slack_webhooks:
-        data = {"text": message}
+        data = {"text": json.dumps(message)}
         response = requests.post(webhook, json=data)
         response.raise_for_status()
