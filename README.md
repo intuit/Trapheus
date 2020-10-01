@@ -3,10 +3,9 @@
 src="screenshots/Trapheus-logo.png">
 </div>
 
-<!-- <div align="center"><a href="https://circleci.com/gh/intuit/Trapheus"><img src="https://circleci.com/gh/intuit/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
 </div> -->
-<div align="center"><a href="https://circleci.com/gh/sarthakgupta072/Trapheus"><img src="https://circleci.com/gh/sarthakgupta072/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
-<a href = "https://coveralls.io/github/sarthakgupta072/Trapheus?branch=master"><img src= "https://coveralls.io/repos/github/sarthakgupta072/Trapheus/badge.svg?branch=master" alt = "Coverage"/></a>
+<div align="center"><a href="https://circleci.com/gh/intuit/Trapheus"><img src="https://circleci.com/gh/intuit/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
+<a href = "https://coveralls.io/github/intuit/Trapheus?branch=master"><img src= "https://coveralls.io/repos/github/intuit/Trapheus/badge.svg?branch=master" alt = "Coverage"/></a>
 </div>
 
 - [AWS RDS Snapshot Restoration](#Trapheus)
