@@ -83,3 +83,11 @@ def get_error_message(identifier, error):
 
 def get_aws_account_id():
     return 1231231234
+
+
+def get_instance_snapshot_arn(snapshot_name, region):
+    return 'testarn'
+
+
+# def supports_snapshot_export_region(region):
+#     return False

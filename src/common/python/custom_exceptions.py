@@ -58,7 +58,7 @@ class UnsupportedSnapshotExportRegionException(Exception):
     def __str__(self):
         return self.value
 
-class ExportSnapshotSupportedRegionNotProvidedException():
+class ExportSnapshotSupportedRegionNotProvidedException(Exception):
     def __init__(self, value):
         self.value = value
     def __str__(self):
