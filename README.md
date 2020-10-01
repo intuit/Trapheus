@@ -238,12 +238,55 @@ Executed using lambdas created for deletion purposes, once the deletion is succe
 
 ## Contributing to Trapheus
 
+Prepare your environment. Install tools as needed.
+
+* [Git Bash](https://gitforwindows.org/) used to run Git from Command Line.
+* [Github Desktop](https://desktop.github.com/) Git desktop tool for managing pull requests, branches and repos.
+* [Visual Studio Code](https://code.visualstudio.com/) Full visual editor. Extensions for Github can be added.
+* Or an editor of your choice.
+
+
 1. Fork Trapheus repo
-2. Make changes locally and add unit tests as needed
-3. Run the test suite in the repo to ensure existing flows are not breaking
-```
-cd Trapheus
-python -m pytest tests/ -v #to execute the complete test suite
-python -m pytest tests/unit/test_get_dbstatus_function.py -v #to execute any individual test
-```
-4. Raise a pull request from the fork
+1. Create a working branch.
+    ```bash
+    git branch trapheus-change1
+    ```
+1. Confirm working branch for changes.
+   ```bash
+    git checkout trapheus-change1
+   ```
+    You can combine boths command by typing `git checkout -b trapheus-change1`.
+1. Make changes locally using an editor and add unit tests as needed.
+1. Run the test suite in the repo to ensure existing flows are not breaking.
+    ```bash
+       cd Trapheus
+       python -m pytest tests/ -v #to execute the complete test suite
+       python -m pytest tests/unit/test_get_dbstatus_function.py -v #to execute any individual test
+    ```
+1. Stage edited files.
+   ```bash
+      git add contentfile.md 
+    ```
+    Or use `git add . ` for multiple files.
+
+1. Commit changes from staging.
+    ```bash
+       git commit -m "trapheus-change1"
+    ```
+1. Push new changes to github
+    ```bash
+       git push --set-upstream origin trapheus-change1
+    ```
+1. Verify status of branch
+    ```bash
+    git status
+    ```
+    Review `Output` to confirm commit status.
+
+
+1. Git push
+    ```bash
+        git push --set-upstream origin trapheus-change1
+    ```
+
+1. The `Output` will provide a link to create your Pull Request.
