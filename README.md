@@ -1,5 +1,5 @@
 <div align="center">
-<img width="300"
+<img width="300" 
 src="screenshots/Trapheus-logo.png">
 </div>
 
@@ -39,7 +39,7 @@ Trapheus can be scheduled using a cloudwatch alarm rule or can be run using any 
 │   └── restore_state_machine.png
 ├── src
 │   ├── checkstatus
-│   │   ├── DBClusterStatusWaiter.py              <-- Python Waiter for checking the status of the cluster
+│   │   ├── DBClusterStatusWaiter.py              <-- Python Waiter(https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html#waiters) for checking the status of the cluster
 │   │   ├── get_dbcluster_status_function.py      <-- Python Lambda code for polling the status of a clusterised database
 │   │   ├── get_dbstatus_function.py              <-- Python Lambda code for polling the status of a non clusterised RDS instance
 │   │   └── waiter_acceptor_config.py             <-- Config module for the waiters
@@ -94,18 +94,53 @@ The app requires the following AWS resources to exist before installation:
 
 3. Have `sam` installed in the local machine. Can be installed following the [Installing the AWS SAM CLI](https://docs.aws.amazon.com/es_es/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) documentation.
 
-4. One or more instances of a RDS database that you wish to restore.
+4. A VPC (region specific). The same VPC/region should be used for both the RDS instance(s), to be used in Trapheus, and Trapheus' lambdas.  
+    - Region selection consideration. Regions that support:
+        - [Email receiving](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html#region-receive-email) . Check [Parameters](#parameters) -> 'RecipientEmail' for more.
+    - Example minimal VPC setup:  
+        - VPC console: 
+            - name: Trapheus-VPC-[region] (specify the [region] where you VPC is created - to easily keep track when you have Trapheus-VPCs in multiple regions) 
+            - [IPv4 CIDR block](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#vpc-sizing-ipv4): 10.0.0.0/16
+        - VPC console->Subnets page and create 2 private subnets:
+            - Subnet1: 
+                - VPC: Trapheus-VPC-[region]
+                - Availability Zone: choose one
+                - IPv4 CIDR block: 10.0.0.0/19
+            - Subnet2: 
+                - VPC: Trapheus-VPC-[region]
+                - Availability Zone: choose a different one than the Subnet1 AZ.
+                - IPv4 CIDR block: 10.0.32.0/19
+        - You have created a VPC with only two private subnets. If you are creating non-private subnets, for more check [the ratio between private, public subnets, private subnet with dedicated custom network ACL and spare capacity](https://docs.aws.amazon.com/quickstart/latest/vpc/architecture.html). 
 
+5. One or more instances of a RDS database that you wish to restore.
+    - Example minimal *free* RDS setup:
+        - Engine options: MySQL
+        - Templates: Free tier
+        - Settings: enter password
+        - Connectivity: VPC: Trapheus-VPC-[region]
+        
+6. Configure [AWS SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
+    - Configure the SES sending email ([SES Console](https://console.aws.amazon.com/ses/)->Email Addresses). 
+        - A SES email alert is configured to notify the user about any failures in the state machine. The sender email parameter is needed to configure the email id through which the alert is sent out.
+    - Configure the SES receiving emails ([SES Console](https://console.aws.amazon.com/ses/)->Rule Sets)
+        - A list of [recipient email addresses](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-concepts.html) that should receive the failure email alerts.
+        - If the Rule Set is grayed out, then [the region doesn't support receiving emails](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html#region-receive-email).
+        
+7. Create the S3 bucket where the system is going to store the cloud formation templates:
+    - Proposed Name: trapheus-cfn-s3-[account-id]-[region] . It is recommended that the name contains your:
+        - account-id, as the bucket names need to be global (prevents someone else having the same name)
+        - region, to easily keep track when you have trapheus-s3 buckets in multiple regions
 
 ## Parameters
 
 The following are the parameters for creating the cloudformation template:
 
-1. `vpcID` : [Required] The VPC id (region specific) under which the various lambdas will be configured. The RDS instances, for which the state machine will be used, should be in the same VPC as well. 
-2. `Subnets` : [Required] A comma separated list of private subnet ids (region specific) in the chosen VPC, used to configure the VPC config for all the lambdas
-3. `SenderEmail` : [Required] A SES email alert is configured to notify the user about any failures in the state machine. The sender email parameter is needed to configure the email id through which the alert is sent out. Please ensure the same is configured in SES
-4. `RecipientEmail` : [Required] Comma separated list of recipient email addresses that should receive the failure email alerts
-5. `UseVPCAndSubnets` : [Optional] Whether to use the vpc and subnets to create a security group and link the security group and vpc to the lambdas. When UseVPCAndSubnets left out (default) or set to 'true', lambdas are connected to a VPC in your account, and by default the function can't access the RDS (or other services) if VPC doesn't provide access (either by routing outbound traffic to a [NAT gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) in a public subnet, or having a [VPC endpoint](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html), both of which incur cost or require more setup). If set to 'false', the [lambdas will run in a default Lambda owned VPC that has access to RDS (and other AWS services)](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html#vpc-internet).  
+1. `--s3-bucket` : [Optional] The name of the CloudFormation template S3 bucket from the [Pre-Requisites](#pre-requisites). 
+2. `vpcID` : [Required] The id of the VPC from the [Pre-Requisites](#pre-requisites). The lambdas from the Trapheus state machine will be created in this VPC. 
+3. `Subnets` : [Required] A comma separated list of private subnet ids (region specific) from the [Pre-Requisites](#pre-requisites) VPC.
+4. `SenderEmail` : [Required] The SES sending email configured in the [Pre-Requisites](#pre-requisites)
+5. `RecipientEmail` : [Required] Comma separated list of recipient email addresses configured in [Pre-Requisites](#pre-requisites).
+6. `UseVPCAndSubnets` : [Optional] Whether to use the vpc and subnets to create a security group and link the security group and vpc to the lambdas. When UseVPCAndSubnets left out (default) or set to 'true', lambdas are connected to a VPC in your account, and by default the function can't access the RDS (or other services) if VPC doesn't provide access (either by routing outbound traffic to a [NAT gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) in a public subnet, or having a [VPC endpoint](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html), both of which incur cost or require more setup). If set to 'false', the [lambdas will run in a default Lambda owned VPC that has access to RDS (and other AWS services)](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html#vpc-internet).
 
 ## Instructions
 
@@ -114,9 +149,11 @@ The following are the parameters for creating the cloudformation template:
 To setup the Trapheus in your AWS account, follow the steps below:
 
 1. Clone the Trapheus git repository
-3. Execute `sam package --template-file template.yaml --output-template-file deploy.yaml --s3-bucket <s3 bucket name from corresponding AWS account and region>` from the Trapheus repo.
-4. Execute `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail>` to deploy the stack using the above mentioned parameters.  
-4.1. In order to have the minimal Lambda-RDS access configuration and less costs ([UseVPCAndSubnets description above](#parameters) for more), add the `UseVPCAndSubnets=false` at the end of the sam deploy command or:  
+2. From the Trapheus repo execute:  
+`sam package --template-file template.yaml --output-template-file deploy.yaml --s3-bucket <s3 bucket name from corresponding AWS account and region>`
+3. To deploy the stack using the above mentioned parameters execute:   
+`sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail>`  
+3.1. In order to have the minimal Lambda-RDS access configuration and less costs ([UseVPCAndSubnets description above](#parameters) for more), add the `UseVPCAndSubnets=false` at the end of the sam deploy command or:  
 `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> UseVPCAndSubnets=false`  
 Typically, linking your own VPC to the lambdas and not setting addition NAT gateway or VPC endpoint configuration will result in a ["Connect timeout on endpoint URL: "https://rds.[region].amazonaws.com/"" or "Task timed out after 3.00 seconds" issue](https://docs.aws.amazon.com/lambda/latest/dg/troubleshooting-networking.html).
 
@@ -152,12 +189,20 @@ The state machine can do one of the following tasks:
 1. if `task` is set to `create_snapshot`, the state machine creates/updates a snapshot for the given RDS instance or cluster using the snapshot identifier: *identifier*-snapshot and then executes the pipeline
 2. if `task` is set to `db_restore`, the state machine does a restore on the given RDS instance, without updating a snapshot, assuming there is an existing snapshot with an identifier: *identifier*-snapshot
 
+**Cost considerations**
+
+After done with development or using the tool:  
+
+1. if you don't need the RDS instance when not coding or using the tool (for instance, it is a test RDS), consider stopping or deleting the database. You can always recreate it when you need it.
+2. if you don't need the past Cloud Formation templates, it is recommended you empty the CFN S3 bucket.
+
 **Tear down**
 
 To tear down your application and remove all resources associated with the Trapheus DB Restore state machine, follow these steps:
 
 1. Log into the [Amazon CloudFormation Console](https://console.aws.amazon.com/cloudformation/home?#) and find the stack you created.
 2. Delete the stack. Note that stack deletion will fail if rds-snapshots-<YOUR_ACCOUNT_NO> s3 bucket is not empty, so first delete the snapshots' exports in the bucket.
+3. Delete the AWS resources from the [Pre-Requisites](#pre-requisites). Removal of SES, the CFN S3 bucket (empty it if not deleting) and VPC is optional as you won't see charges, but can re-use them later for a quick start.
 
 ## How it Works
 
