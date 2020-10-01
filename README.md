@@ -121,11 +121,8 @@ The app requires the following AWS resources to exist before installation:
         - Connectivity: VPC: Trapheus-VPC-[region]
         
 6. Configure [AWS SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
-    - Configure the SES sending email ([SES Console](https://console.aws.amazon.com/ses/)->Email Addresses). 
-        - A SES email alert is configured to notify the user about any failures in the state machine. The sender email parameter is needed to configure the email id through which the alert is sent out.
-    - Configure the SES receiving emails ([SES Console](https://console.aws.amazon.com/ses/)->Rule Sets)
-        - A list of [recipient email addresses](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-concepts.html) that should receive the failure email alerts.
-        - If the Rule Set is grayed out, then [the region doesn't support receiving emails](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html#region-receive-email).
+    - Configure the SES sender and receiver email ([SES Console](https://console.aws.amazon.com/ses/)->Email Addresses). 
+        - A SES email alert is configured to notify the user about any failures in the state machine. The sender email parameter is needed to configure the email id through which the alert is sent out. The receiver email parameter is needed to set the email id to which the alert is sent.
         
 7. Create the S3 bucket where the system is going to store the cloud formation templates:
     - Proposed Name: trapheus-cfn-s3-[account-id]-[region] . It is recommended that the name contains your:
