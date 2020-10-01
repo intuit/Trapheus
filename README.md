@@ -12,6 +12,7 @@ src="screenshots/Trapheus-logo.png">
 - [Instructions](#instructions)
 - [How it Works](#how-it-works)
   - [AWS Step Functions State Machine](#aws-step-functions-state-machine)
+- [Contributing to Trapheus](#contributing-to-trapheus)
 
 
 With Trapheus, it becomes easy to get and restore database instances from snapshots into any dev, staging or production environments. Trapheus supports individual RDS Snapshot as well as cluster snapshot restore operations. 
