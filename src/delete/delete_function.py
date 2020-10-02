@@ -6,6 +6,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 def lambda_delete_dbinstance(event, context):
     """Handles deletion of a RDS db instance"""
     logger.info('## starting execution of lambda_delete_dbinstance')
