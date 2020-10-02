@@ -9,7 +9,7 @@ def lambda_create_dbinstance_snapshot(event, context):
     rds = boto3.client('rds', region)
     result = {}
     instance_id = event['identifier']
-    snapshot_id = util.get_snapshot_id(event)
+    snapshot_id = get_snapshot_id(event)
     try:
         rds.create_db_snapshot(
             DBSnapshotIdentifier = snapshot_id,
@@ -21,3 +21,10 @@ def lambda_create_dbinstance_snapshot(event, context):
         return result
     except Exception as error:
         util.eval_snapshot_exception(error, instance_id, rds)
+
+def get_snapshot_id(event):
+    instance_id = event['identifier']
+    if "snapshot_id" not in event:
+        return instance_id + constants.SNAPSHOT_POSTFIX
+    snapshot_id = event['snapshot_id']
+    return snapshot_id
