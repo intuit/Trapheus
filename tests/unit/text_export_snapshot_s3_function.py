@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
 import mock_import
 import constants
-import utility
+import utility as util
 from export import export_snapshot_s3_function
 
 os.environ["Region"] = "us-west-2"
@@ -20,7 +20,7 @@ class TestExportSnapshotS3Function(TestCase):
     def setUp(self):
         self.event = create_event()
         self.instance_id = self.event['identifier']
-        self.snapshot_id = self.event['identifier'] + constants.SNAPSHOT_POSTFIX
+        self.snapshot_id = util.get_snapshot_id(self.event)
         self.mock_snapshot_arn = 'testarn'
         self.mocked_describe_db_snapshots_good = {
             'ResponseMetadata': {

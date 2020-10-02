@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/snapshot')))
 import mock_import
 import snapshot_function
+import utility
 
 class TestResourceProvider(unittest.TestCase):
     def test_snapshot_success(self):
@@ -18,6 +19,16 @@ class TestResourceProvider(unittest.TestCase):
         data = snapshot_function.lambda_create_dbinstance_snapshot(event, {})
         self.assertEqual(data.get("taskname"), "SnapshotCreation")
         self.assertEqual(data.get("identifier"), "database-1")
+        self.assertEqual(data.get("snapshot_id"), "database-1-snapshot")
+
+        event = create_event_with_snapshot_id()
+        data = snapshot_function.lambda_create_dbinstance_snapshot(event, {})
+        self.assertEqual(data.get("taskname"), "SnapshotCreation")
+        self.assertEqual(data.get("identifier"), "database-1")
+        self.assertEqual(data.get("snapshot_id"), "snapshot-1")
+
+        snapshot_id = utility.get_snapshot_id(event)
+        self.assertEqual(snapshot_id, "snapshot-1")
 
     def test_snapshot_rateexceeded_failure(self):
         os.environ["Region"] = "us-west-2"
@@ -63,4 +74,8 @@ class TestResourceProvider(unittest.TestCase):
 
 def create_event():
     event = { "identifier": "database-1"}
+    return event
+
+def create_event_with_snapshot_id():
+    event = { "identifier": "database-1", "snapshot_id": "snapshot-1"}
     return event

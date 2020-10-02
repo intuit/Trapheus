@@ -23,12 +23,13 @@ class TestResourceProvider(unittest.TestCase):
         mock_waiter = Mock()
         mock_response.get_waiter.return_value = mock_waiter
         mock_waiter.wait.side_effect = mock_waiter
-        event = {"output": {"taskname": "Delete", "identifier": "database-1"}}
+        event = {"output": {"taskname": "Delete", "identifier": "database-1", "snapshot_id": "snapshot-1"}}
         context = ContextManager(20)
         data = get_dbstatus_function.lambda_get_dbinstance_status(event, context)
         self.assertEqual(data.get("taskname"), "Delete")
         self.assertEqual(data.get("identifier"), "database-1")
         self.assertEqual(data.get("task"), "TASK_COMPLETE")
+        self.assertEqual(data.get("snapshot_id"), "snapshot-1")
 
     def test_get_dbstatus_delete_failure(self):
         os.environ["Region"] = "us-west-2"
@@ -40,7 +41,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_response.get_waiter.return_value = mock_waiter
         waiter_error = Exception("Waiter database-1 Max attempts exceeded")
         mock_waiter.wait.side_effect = waiter_error
-        event = {"output": {"taskname": "Delete", "identifier": "database-1"}}
+        event = {"output": {"taskname": "Delete", "identifier": "database-1","snapshot_id": "snapshot-1"}}
         context = ContextManager(50)
         try:
             get_dbstatus_function.lambda_get_dbinstance_status(event, context)
@@ -56,12 +57,13 @@ class TestResourceProvider(unittest.TestCase):
         mock_waiter = Mock()
         mock_response.get_waiter.return_value = mock_waiter
         mock_waiter.wait.side_effect = mock_waiter
-        event = {"output": {"taskname": "Rename", "identifier": "database-1"}}
+        event = {"output": {"taskname": "Rename", "identifier": "database-1", "snapshot_id": "snapshot-1", "snapshot_id": "snapshot-1"}}
         context = ContextManager(45)
         data = get_dbstatus_function.lambda_get_dbinstance_status(event, context)
         self.assertEqual(data.get("taskname"), "Rename")
         self.assertEqual(data.get("identifier"), "database-1")
         self.assertEqual(data.get("task"), "TASK_COMPLETE")
+        self.assertEqual(data.get("snapshot_id"), "snapshot-1")
 
     def test_get_dbstatus_snapshot_success(self):
         os.environ["Region"] = "us-west-2"
@@ -72,12 +74,13 @@ class TestResourceProvider(unittest.TestCase):
         mock_waiter = Mock()
         mock_response.get_waiter.return_value = mock_waiter
         mock_waiter.wait.side_effect = mock_waiter
-        event = {"output": {"taskname": "SnapshotCreation", "identifier": "database-1"}}
+        event = {"output": {"taskname": "SnapshotCreation", "identifier": "database-1", "snapshot_id": "snapshot-1"}}
         context = ContextManager(45)
         data = get_dbstatus_function.lambda_get_dbinstance_status(event, context)
         self.assertEqual(data.get("taskname"), "SnapshotCreation")
         self.assertEqual(data.get("identifier"), "database-1")
         self.assertEqual(data.get("task"), "TASK_COMPLETE")
+        self.assertEqual(data.get("snapshot_id"), "snapshot-1")
 
     def test_get_dbstatus_snapshot_failure(self):
         os.environ["Region"] = "us-west-2"
@@ -89,7 +92,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_response.get_waiter.return_value = mock_waiter
         waiter_error = Exception("Waiter encountered a terminal failure state")
         mock_waiter.wait.side_effect = waiter_error
-        event = {"output": {"taskname": "SnapshotCreation", "identifier": "database-1"}}
+        event = {"output": {"taskname": "SnapshotCreation", "identifier": "database-1", "snapshot_id": "snapshot-1"}}
         context = ContextManager(45)
         data = get_dbstatus_function.lambda_get_dbinstance_status(event, context)
         self.assertEqual(data.get("taskname"), "SnapshotCreation")
@@ -107,7 +110,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_response.get_waiter.return_value = mock_waiter
         waiter_error = Exception("Waiter encountered a terminal failure state")
         mock_waiter.wait.side_effect = waiter_error
-        event = {"output": {"taskname": "Restore", "identifier": "database-1"}}
+        event = {"output": {"taskname": "Restore", "identifier": "database-1", "snapshot_id": "snapshot-1"}}
         context = ContextManager(55)
         data = get_dbstatus_function.lambda_get_dbinstance_status(event, context)
         self.assertEqual(data.get("taskname"), "Restore")
@@ -126,7 +129,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_response.get_waiter.return_value = mock_waiter
         waiter_error = Exception("Waiter database-1 not found")
         mock_waiter.wait.side_effect = waiter_error
-        event = {"output": {"taskname": "Restore", "identifier": "database-1"}}
+        event = {"output": {"taskname": "Restore", "identifier": "database-1", "snapshot_id": "snapshot-1"}}
         context = ContextManager(25)
         try:
             get_dbstatus_function.lambda_get_dbinstance_status(event, context)
@@ -142,7 +145,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_response.get_waiter.return_value = mock_waiter
         waiter_error = Exception("Waiter database-1 Max attempts exceeded")
         mock_waiter.wait.side_effect = waiter_error
-        event = {"output": {"taskname": "Restore", "identifier": "database-1"}}
+        event = {"output": {"taskname": "Restore", "identifier": "database-1", "snapshot_id": "snapshot-1"}}
         context = ContextManager(40)
         try:
             get_dbstatus_function.lambda_get_dbinstance_status(event, context)
