@@ -61,6 +61,36 @@ class TestResourceProvider(unittest.TestCase):
         except Exception as ex:
             self.assertEqual(str(ex), "DBInstanceIdentifier:database-1 \nTimeoutException")
 
+    def test_snapshot_id_not_provided_success(self):
+        os.environ["Region"] = "us-west-2"
+        factory_patch = patch('snapshot_function.boto3.client')
+        mock_factory_boto_client = factory_patch.start()
+        mock_response = Mock(name='response')
+        mock_factory_boto_client.return_value = mock_response
+        mock_response.return_value = {"taskname": "SnapshotCreation", "identifier": "database-1", "snapshot_id": "database-1-snapshot"}
+        event = create_event()
+        data = snapshot_function.lambda_create_dbinstance_snapshot(event, {})
+        self.assertEqual(data.get("taskname"), "SnapshotCreation")
+        self.assertEqual(data.get("identifier"), "database-1")
+        self.assertEqual(data.get("snapshot_id"), "database-1-snapshot")
+
+    def test_snapshot_id_provided_success(self):
+        os.environ["Region"] = "us-west-2"
+        factory_patch = patch('snapshot_function.boto3.client')
+        mock_factory_boto_client = factory_patch.start()
+        mock_response = Mock(name='response')
+        mock_factory_boto_client.return_value = mock_response
+        mock_response.return_value = {"taskname": "SnapshotCreation", "identifier": "database-1", "snapshot_id": "database-1-snapshot"}
+        event = create_event_with_snapshot_id()
+        data = snapshot_function.lambda_create_dbinstance_snapshot(event, {})
+        self.assertEqual(data.get("taskname"), "SnapshotCreation")
+        self.assertEqual(data.get("identifier"), "database-1")
+        self.assertEqual(data.get("snapshot_id"), "database-1-snapshot")
+
 def create_event():
+    event = { "identifier": "database-1"}
+    return event
+
+def create_event_with_snapshot_id():
     event = { "identifier": "database-1"}
     return event
