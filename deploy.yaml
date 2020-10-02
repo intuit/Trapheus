@@ -1,0 +1,921 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Trapheus
+
+  Restoration of a RDS instance or cluster from a snapshot using a Lambda state machine.
+
+  '
+Globals:
+  Function:
+    Runtime: python3.7
+    Timeout: 900
+    Environment:
+      Variables:
+        Region:
+          Fn::Sub: ${AWS::Region}
+Parameters:
+  ProjectName:
+    Default: trapheus
+    Description: The name of the artifacts bucket
+    Type: String
+  vpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: choose the VPC under which all lambdas will be configured
+  Subnets:
+    Type: String
+    Description: The comma separated list of SubnetIds in your Virtual Private Cloud
+      (VPC)
+  SenderEmail:
+    Type: String
+    Description: sender email account for failure alert
+  RecipientEmail:
+    Type: String
+    Description: comma separated list of recipient email ids for failure alerts
+  SlackWebhookUrls:
+    Type: String
+    Default: https://hooks.slack.com
+    Description: comma seperated list of slack webhooks for failure alerts
+  UseVPCAndSubnets:
+    Type: String
+    Description: Wether to use VPC and Subnets in Lambda-s.
+    Default: 'true'
+Conditions:
+  UseVPCAndSubnetsCondition:
+    Fn::Equals:
+    - Ref: UseVPCAndSubnets
+    - 'true'
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+        - Effect: Allow
+          Principal:
+            Service: export.rds.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: SnapshotExportPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Resource: '*'
+            Action:
+            - iam:PassRole
+          - Effect: Allow
+            Resource:
+            - Fn::Sub: arn:aws:s3:::rds-snapshots-${AWS::AccountId}
+            - Fn::Sub: arn:aws:s3:::rds-snapshots-${AWS::AccountId}/*
+            Action:
+            - s3:PutObject
+            - s3:DeleteObject
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+      - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      - arn:aws:iam::aws:policy/AmazonSESFullAccess
+      - arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      - arn:aws:iam::aws:policy/AWSStepFunctionsReadOnlyAccess
+      - arn:aws:iam::aws:policy/AWSLambdaExecute
+  StatesExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - Fn::Sub: states.${AWS::Region}.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: StatesExecutionPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource: '*'
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: UseVPCAndSubnetsCondition
+    Properties:
+      GroupDescription: security group added to VPC config of every lambda used
+      GroupName: my-sg
+      VpcId:
+        Ref: vpcId
+  CommonLambdaLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: lambda-utility
+      Description: Dependencies on util methods used in lambdas of the state machine
+      ContentUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/8fac59ca38569adb29d7819c2c24eefc
+      CompatibleRuntimes:
+      - python3.7
+      - python3.6
+      LicenseInfo: MIT
+  RenameLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-rename-dbinstance
+      Description: Lambda functions required to execute rename of a database instance.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/80199c97bf0584ea5a92e8495f668f0f
+      Handler: rename_function.lambda_rename_dbinstance
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  DbInstanceStatusLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-get-dbinstance-status-sf
+      Description: Lambda function which provides information on status of db instance
+        post any operation.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/30c148b39c6d69103e4327a8e769b079
+      Handler: get_dbstatus_function.lambda_get_dbinstance_status
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  DBRestoreLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-restore-dbinstance-sf
+      Description: Lambda functions required to execute database restore.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/93cac4de375d659e8b89ff69fc25ea90
+      Handler: restore_function.lambda_restore_dbinstance
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  DeleteInstanceLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-delete-dbinstance-sf
+      Description: Lambda functions required to execute database instance deletion.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/6478d22a033fc82d76e753a248c47fb8
+      Handler: delete_function.lambda_delete_dbinstance
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  DBSnapshotLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-dbsnapshot-sf
+      Description: Lambda functions required to take snapshot of a database instance.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/46ee2addccbebee410e48d6fe9dd1101
+      Handler: snapshot_function.lambda_create_dbinstance_snapshot
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  EmailAlertLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-send-emailalert-sf
+      Description: Lambda functions required to enable alerts in case of any failure
+        of state machine.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/a647833bf1f006fc50b4b0894182c307
+      Handler: email_function.lambda_handler
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+      Environment:
+        Variables:
+          SenderEmail:
+            Fn::Sub: ${SenderEmail}
+          RecipientEmail:
+            Fn::Sub: ${RecipientEmail}
+  SlackAlertLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-send-slackalert-sf
+      Description: Lambda functions required to enable slack alerts in case of any
+        failure of state machine.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/22174b1f7def181a5ae7dd5ec008ac96
+      Handler: slack_notification.lambda_handler
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+      Environment:
+        Variables:
+          SLACK_WEBHOOK:
+            Fn::Sub: ${SlackWebhookUrls}
+  ClusterRenameLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-dbcluster-rename-sf
+      Description: Lambda functions required to execute database cluster rename.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/80199c97bf0584ea5a92e8495f668f0f
+      Handler: cluster_rename_function.lambda_rename_dbcluster
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  ClusterRestoreLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-dbcluster-restore-sf
+      Description: Lambda functions required to execute database cluster restore.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/93cac4de375d659e8b89ff69fc25ea90
+      Handler: cluster_restore_function.lambda_restore_dbcluster
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  ClusterStatusLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-dbcluster-status-sf
+      Description: Lambda function which provides information on status of db cluster
+        post any operation.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/30c148b39c6d69103e4327a8e769b079
+      Handler: get_dbcluster_status_function.lambda_get_cluster_status
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  ClusterDeleteLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-dbcluster-delete-sf
+      Description: Lambda functions required to execute deletion of database cluster.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/6478d22a033fc82d76e753a248c47fb8
+      Handler: cluster_delete_function.lambda_delete_dbcluster
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  ClusterSnapshotLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-function-dbcluster-snapshot-sf
+      Description: Lambda functions required to take snapshot of database cluster.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/46ee2addccbebee410e48d6fe9dd1101
+      Handler: cluster_snapshot_function.lambda_create_cluster_snapshot
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      VpcConfig:
+        Fn::If:
+        - UseVPCAndSubnetsCondition
+        - SecurityGroupIds:
+            Fn::Split:
+            - ','
+            - Fn::GetAtt:
+              - LambdaSecurityGroup
+              - GroupId
+          SubnetIds:
+            Fn::Split:
+            - ','
+            - Ref: Subnets
+        - Ref: AWS::NoValue
+  SnapshotExportKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Symmetric CMK to export snapshot to s3
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: snapshot-export-key
+        Statement:
+        - Sid: Enable IAM User Permissions
+          Effect: Allow
+          Principal:
+            AWS:
+              Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+          Action: kms:*
+          Resource: '*'
+        - Sid: Allow administration of the key
+          Effect: Allow
+          Principal:
+            AWS:
+              Fn::GetAtt:
+              - LambdaExecutionRole
+              - Arn
+          Action:
+          - kms:Create*
+          - kms:Describe*
+          - kms:Enable*
+          - kms:List*
+          - kms:Put*
+          - kms:Update*
+          - kms:Revoke*
+          - kms:Disable*
+          - kms:Get*
+          - kms:Delete*
+          - kms:ScheduleKeyDeletion
+          - kms:CancelKeyDeletion
+          - kms:TagResource
+          - kms:UntagResource
+          Resource: '*'
+  SnapshotsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: rds-snapshots-${AWS::AccountId}
+  SnapshotExportLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${ProjectName}-snapshot-export-sf
+      Description: Lambda functions required to start export task of RDS snapshot
+        to s3.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/5df4a4ecf004bdec8967fa92df15e3e2
+      Handler: export_snapshot_s3_function.lambda_export_rds_snapshot_to_s3
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      Environment:
+        Variables:
+          SNAPSHOT_EXPORT_TASK_ROLE:
+            Fn::GetAtt:
+            - LambdaExecutionRole
+            - Arn
+          SNAPSHOT_EXPORT_TASK_KEY:
+            Ref: SnapshotExportKmsKey
+      VpcConfig:
+        SecurityGroupIds:
+          Fn::Split:
+          - ','
+          - Fn::GetAtt:
+            - LambdaSecurityGroup
+            - GroupId
+        SubnetIds:
+          Fn::Split:
+          - ','
+          - Ref: Subnets
+  ClusterSnapshotExportLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${ProjectName}-cluster-snapshot-export-sf
+      Description: Lambda functions required to start export task of RDS snapshot
+        to s3.
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      CodeUri: s3://trapheus-cfn-s3-923167450151-us-east-virginia/5df4a4ecf004bdec8967fa92df15e3e2
+      Handler: export_cluster_snapshot_s3_function.lambda_export_rds_cluster_snapshot_to_s3
+      MemorySize: 128
+      Layers:
+      - Ref: CommonLambdaLayer
+      Timeout: 900
+      Environment:
+        Variables:
+          SNAPSHOT_EXPORT_TASK_ROLE:
+            Fn::GetAtt:
+            - LambdaExecutionRole
+            - Arn
+          SNAPSHOT_EXPORT_TASK_KEY:
+            Ref: SnapshotExportKmsKey
+      VpcConfig:
+        SecurityGroupIds:
+          Fn::Split:
+          - ','
+          - Fn::GetAtt:
+            - LambdaSecurityGroup
+            - GroupId
+        SubnetIds:
+          Fn::Split:
+          - ','
+          - Ref: Subnets
+  DBRestoreStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString:
+        Fn::Sub:
+        - "{\n  \"StartAt\": \"ShouldRestoreClusterOrInstance\",\n  \"States\": {\n\
+          \    \"ShouldRestoreClusterOrInstance\": {\n      \"Type\": \"Choice\",\n\
+          \        \"Choices\": [{\n          \"Variable\": \"$.isCluster\",\n   \
+          \       \"BooleanEquals\": false,\n          \"Next\": \"ShouldTakeDbSnapshot\"\
+          \n        }],\n        \"Default\": \"ShouldTakeClusterSnapshot\"\n    },\n\
+          \    \"ShouldTakeClusterSnapshot\": {\n      \"Type\": \"Choice\",\n   \
+          \     \"Choices\": [{\n          \"Variable\": \"$.task\",\n          \"\
+          StringEquals\": \"create_snapshot\",\n          \"Next\": \"ClusterSnapshotCreate\"\
+          \n        }],\n        \"Default\": \"ClusterRename\"\n    },\n    \"ClusterSnapshotCreate\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${ClusterSnapshotLambdaArn}\"\
+          ,\n      \"Next\": \"GetClusterSnapshotStatus\",\n      \"ResultPath\":\
+          \ \"$.output\",\n      \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"\
+          , \"RetryClusterSnapshotException\"],\n        \"IntervalSeconds\": 10,\n\
+          \        \"MaxAttempts\": 5,\n        \"BackoffRate\": 2.0\n       }],\n\
+          \      \"Catch\": [\n        {\n          \"ErrorEquals\": [ \"States.ALL\"\
+          \ ],\n          \"Next\": \"SendFailureAlert\"\n        }\n      ]\n   \
+          \ },\n    \"GetClusterSnapshotStatus\": {\n      \"Type\": \"Task\",\n \
+          \     \"Resource\": \"${ClusterStatusLambdaArn}\",\n      \"Next\": \"IsClusterSnapshotAvailable\"\
+          ,\n      \"Retry\": [{\n        \"ErrorEquals\": [\"InstanceUnavailableException\"\
+          ],\n        \"IntervalSeconds\": 5,\n        \"MaxAttempts\": 5,\n     \
+          \   \"BackoffRate\": 2.0\n       },\n       {\n        \"ErrorEquals\":\
+          \ [\"RateExceededException\"],\n        \"IntervalSeconds\": 10,\n     \
+          \   \"MaxAttempts\": 5,\n        \"BackoffRate\": 2.0\n       }],\n    \
+          \   \"Catch\": [\n        {\n          \"ErrorEquals\": [ \"States.ALL\"\
+          \ ],\n          \"Next\": \"SendFailureAlert\"\n        }\n      ]\n   \
+          \ },\n    \"IsClusterSnapshotAvailable\": {\n      \"Type\": \"Choice\"\
+          ,\n      \"Choices\": [{\n        \"Variable\": \"$.task\",\n        \"\
+          StringEquals\": \"TASK_COMPLETE\",\n        \"Next\": \"StartClusterSnapshotExportTask\"\
+          \n      },\n      {\n        \"Variable\": \"$.task\",\n        \"StringEquals\"\
+          : \"TASK_FAILED\",\n        \"Next\": \"SendFailureAlert\"\n      }],\n\
+          \      \"Default\": \"GetClusterSnapshotStatus\"\n    },\n    \"StartClusterSnapshotExportTask\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${ClusterSnapshotExportLambdaArn}\"\
+          ,\n      \"Next\": \"ClusterRename\",\n      \"ResultPath\": \"$.output\"\
+          ,\n      \"Retry\": [{\n        \"ErrorEquals\": [\"Exception\", \"States.TaskFailed\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"ClusterRename\": {\n      \"Type\":\
+          \ \"Task\",\n      \"Resource\": \"${ClusterRenameLambdaArn}\",\n      \"\
+          Next\": \"GetClusterStatusPostRename\",\n      \"ResultPath\": \"$.output\"\
+          ,\n      \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetClusterStatusPostRename\": {\n  \
+          \    \"Type\": \"Task\",\n      \"Resource\": \"${ClusterStatusLambdaArn}\"\
+          ,\n      \"Next\": \"IsClusterAvailablePostRename\",\n      \"Retry\": [{\n\
+          \        \"ErrorEquals\": [\"InstanceUnavailableException\"],\n        \"\
+          IntervalSeconds\": 5,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\"\
+          : 2.0\n       },\n       {\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n       \"Catch\": [\n        {\n\
+          \          \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"\
+          SendFailureAlert\"\n        }\n      ]\n    },\n    \"IsClusterAvailablePostRename\"\
+          : {\n      \"Type\": \"Choice\",\n      \"Choices\": [{\n        \"Variable\"\
+          : \"$.task\",\n        \"StringEquals\": \"TASK_COMPLETE\",\n        \"\
+          Next\": \"RestoreClusterFromSnapshot\"\n      },\n      {\n        \"Variable\"\
+          : \"$.task\",\n        \"StringEquals\": \"TASK_FAILED\",\n        \"Next\"\
+          : \"SendFailureAlert\"\n      }],\n      \"Default\": \"GetClusterStatusPostRestore\"\
+          \n    },\n    \"RestoreClusterFromSnapshot\": {\n      \"Type\": \"Task\"\
+          ,\n      \"Resource\": \"${ClusterRestoreLambdaArn}\",\n      \"ResultPath\"\
+          : \"$.output\",\n      \"Next\": \"GetClusterStatusPostRestore\",\n    \
+          \  \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"],\n\
+          \        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n       \
+          \ \"BackoffRate\": 2.0\n      }],\n      \"Catch\": [\n        {\n     \
+          \     \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetClusterStatusPostRestore\": {\n \
+          \     \"Type\": \"Task\",\n      \"Resource\": \"${ClusterStatusLambdaArn}\"\
+          ,\n      \"Next\": \"IsClusterAvailablePostRestore\",\n      \"Retry\":\
+          \ [{\n        \"ErrorEquals\": [\"InstanceUnavailableException\"],\n   \
+          \     \"IntervalSeconds\": 5,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\"\
+          : 2.0\n       },\n       {\n        \"ErrorEquals\": [\"RateExceededException\"\
+          , \"Lambda.Unknown\"],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\"\
+          : 5,\n        \"BackoffRate\": 2.0\n       }],\n       \"Catch\": [\n  \
+          \      {\n          \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\"\
+          : \"SendFailureAlert\"\n        }\n      ]\n    },\n    \"IsClusterAvailablePostRestore\"\
+          : {\n      \"Type\": \"Choice\",\n      \"Choices\": [{\n        \"Variable\"\
+          : \"$.task\",\n        \"StringEquals\": \"TASK_COMPLETE\",\n        \"\
+          Next\": \"DeleteOriginalCluster\"\n      },\n      {\n        \"Variable\"\
+          : \"$.task\",\n        \"StringEquals\": \"TASK_FAILED\",\n        \"Next\"\
+          : \"SendFailureAlert\"\n      }],\n      \"Default\": \"GetClusterStatusPostRestore\"\
+          \n    },\n    \"DeleteOriginalCluster\": {\n      \"Type\": \"Task\",\n\
+          \      \"Resource\": \"${ClusterDeleteLambdaArn}\",\n      \"ResultPath\"\
+          : \"$.output\",\n      \"Next\": \"GetClusterStatusPostDelete\",\n     \
+          \ \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"],\n\
+          \        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n       \
+          \ \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n    \
+          \      \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetClusterStatusPostDelete\": {\n  \
+          \    \"Type\": \"Task\",\n      \"Resource\": \"${ClusterStatusLambdaArn}\"\
+          ,\n      \"Next\": \"isClusterDeleted\",\n      \"Retry\": [{\n        \"\
+          ErrorEquals\": [\"RateExceededException\"],\n        \"IntervalSeconds\"\
+          : 10,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\": 2.0\n     \
+          \ }],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [ \"States.ALL\"\
+          \ ],\n          \"Next\": \"SendFailureAlert\"\n        }\n      ]\n   \
+          \ },\n    \"isClusterDeleted\": {\n      \"Type\": \"Choice\",\n      \"\
+          Choices\": [{\n        \"Variable\": \"$.task\",\n        \"StringEquals\"\
+          : \"TASK_COMPLETE\",\n        \"Next\": \"RestorePipelineComplete\"\n  \
+          \    },\n      {\n        \"Variable\": \"$.task\",\n        \"StringEquals\"\
+          : \"TASK_FAILED\",\n        \"Next\": \"SendFailureAlert\"\n      }],\n\
+          \      \"Default\": \"GetClusterStatusPostDelete\"\n    },\n    \"RevertOldClusterRename\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${ClusterRenameLambdaArn}\"\
+          ,\n      \"Next\": \"GetClusterStatusPostRenameRevert\",\n      \"ResultPath\"\
+          : \"$.output\",\n      \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetClusterStatusPostRenameRevert\":\
+          \ {\n      \"Type\": \"Task\",\n      \"Resource\": \"${ClusterStatusLambdaArn}\"\
+          ,\n      \"Next\": \"RestorePipelineComplete\",\n      \"Retry\": [{\n \
+          \       \"ErrorEquals\": [\"InstanceUnavailableException\"],\n        \"\
+          IntervalSeconds\": 5,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\"\
+          : 2.0\n       },\n       {\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n       \"Catch\": [\n        {\n\
+          \          \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"\
+          SendFailureAlert\"\n        }\n      ]\n    },\n    \"ShouldTakeDbSnapshot\"\
+          : {\n      \"Type\": \"Choice\",\n      \"Choices\": [{\n        \"Variable\"\
+          : \"$.task\",\n        \"StringEquals\": \"create_snapshot\",\n        \"\
+          Next\": \"DbSnapshotCreate\"\n      }],\n      \"Default\": \"DbInstanceRename\"\
+          \n    },\n    \"DbSnapshotCreate\": {\n      \"Type\": \"Task\",\n     \
+          \ \"Resource\": \"${DBSnapshotLambdaArn}\",\n      \"Next\": \"GetDbSnapshotStatus\"\
+          ,\n      \"ResultPath\": \"$.output\",\n      \"Retry\": [{\n        \"\
+          ErrorEquals\": [\"RateExceededException\", \"RetryDBSnapshotException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetDbSnapshotStatus\": {\n      \"Type\"\
+          : \"Task\",\n      \"Resource\": \"${DBStatusLambdaArn}\",\n      \"Next\"\
+          : \"IsDbSnapshotAvailable\",\n      \"Retry\": [{\n        \"ErrorEquals\"\
+          : [\"InstanceUnavailableException\"],\n        \"IntervalSeconds\": 5,\n\
+          \        \"MaxAttempts\": 5,\n        \"BackoffRate\": 2.0\n       },\n\
+          \       {\n        \"ErrorEquals\": [\"RateExceededException\"],\n     \
+          \   \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\"\
+          : 2.0\n       }],\n       \"Catch\": [\n        {\n          \"ErrorEquals\"\
+          : [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\n      \
+          \  }\n      ]\n    },\n    \"IsDbSnapshotAvailable\": {\n      \"Type\"\
+          : \"Choice\",\n      \"Choices\": [{\n        \"Variable\": \"$.task\",\n\
+          \        \"StringEquals\": \"TASK_COMPLETE\",\n        \"Next\": \"StartSnapshotExportTask\"\
+          \n      },\n      {\n        \"Variable\": \"$.task\",\n        \"StringEquals\"\
+          : \"TASK_FAILED\",\n        \"Next\": \"SendFailureAlert\"\n      }],\n\
+          \      \"Default\": \"GetDbSnapshotStatus\"\n    },\n    \"StartSnapshotExportTask\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${DBSnapshotExportLambdaArn}\"\
+          ,\n      \"Next\": \"DbInstanceRename\",\n      \"ResultPath\": \"$.output\"\
+          ,\n      \"Retry\": [{\n        \"ErrorEquals\": [\"Exception\", \"States.TaskFailed\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"DbInstanceRename\": {\n      \"Type\"\
+          : \"Task\",\n      \"Resource\": \"${DBRenameLambdaArn}\",\n      \"Next\"\
+          : \"GetDbInstanceStatusPostRename\",\n      \"ResultPath\": \"$.output\"\
+          ,\n      \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetDbInstanceStatusPostRename\": {\n\
+          \      \"Type\": \"Task\",\n      \"Resource\": \"${DBStatusLambdaArn}\"\
+          ,\n      \"Next\": \"IsDbInstanceAvailablePostRename\",\n      \"Retry\"\
+          : [{\n        \"ErrorEquals\": [\"InstanceUnavailableException\"],\n   \
+          \     \"IntervalSeconds\": 5,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\"\
+          : 2.0\n       },\n       {\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n       \"Catch\": [\n        {\n\
+          \          \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"\
+          SendFailureAlert\"\n        }\n      ]\n    },\n    \"IsDbInstanceAvailablePostRename\"\
+          : {\n      \"Type\": \"Choice\",\n      \"Choices\": [{\n        \"Variable\"\
+          : \"$.task\",\n        \"StringEquals\": \"TASK_COMPLETE\",\n        \"\
+          Next\": \"RestoreDbInstanceFromSnapshot\"\n      },\n      {\n        \"\
+          Variable\": \"$.task\",\n        \"StringEquals\": \"TASK_FAILED\",\n  \
+          \      \"Next\": \"SendFailureAlert\"\n      }],\n      \"Default\": \"\
+          GetDbInstanceStatusPostRename\"\n    },\n    \"RestoreDbInstanceFromSnapshot\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${DBRestoreLambdaArn}\"\
+          ,\n      \"ResultPath\": \"$.output\",\n      \"Next\": \"GetDbInstanceStatusPostRestore\"\
+          ,\n       \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetDbInstanceStatusPostRestore\": {\n\
+          \      \"Type\": \"Task\",\n      \"Resource\": \"${DBStatusLambdaArn}\"\
+          ,\n      \"Next\": \"IsDbInstanceAvailablePostRestore\",\n      \"Retry\"\
+          : [{\n        \"ErrorEquals\": [\"InstanceUnavailableException\"],\n   \
+          \     \"IntervalSeconds\": 5,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\"\
+          : 2.0\n       },\n       {\n        \"ErrorEquals\": [\"RateExceededException\"\
+          , \"Lambda.Unknown\"],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\"\
+          : 5,\n        \"BackoffRate\": 2.0\n       }],\n       \"Catch\": [\n  \
+          \      {\n          \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\"\
+          : \"SendFailureAlert\"\n        }\n      ]\n    },\n    \"IsDbInstanceAvailablePostRestore\"\
+          : {\n      \"Type\": \"Choice\",\n      \"Choices\": [{\n        \"Variable\"\
+          : \"$.task\",\n        \"StringEquals\": \"TASK_COMPLETE\",\n        \"\
+          Next\": \"DeleteOriginalDbInstance\"\n      },\n      {\n        \"Variable\"\
+          : \"$.task\",\n        \"StringEquals\": \"TASK_FAILED\",\n        \"Next\"\
+          : \"SendFailureAlert\"\n      }],\n      \"Default\": \"GetDbInstanceStatusPostRestore\"\
+          \n    },\n    \"DeleteOriginalDbInstance\": {\n      \"Type\": \"Task\"\
+          ,\n      \"Resource\": \"${DBDeleteLambdaArn}\",\n      \"ResultPath\":\
+          \ \"$.output\",\n      \"Next\": \"GetDbInstanceStatusPostDelete\",\n  \
+          \    \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetDbInstanceStatusPostDelete\": {\n\
+          \      \"Type\": \"Task\",\n      \"Resource\": \"${DBStatusLambdaArn}\"\
+          ,\n      \"Next\": \"isDbInstanceDeleted\",\n      \"Retry\": [{\n     \
+          \   \"ErrorEquals\": [\"RateExceededException\"],\n        \"IntervalSeconds\"\
+          : 10,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\": 2.0\n     \
+          \ }],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [ \"States.ALL\"\
+          \ ],\n          \"Next\": \"SendFailureAlert\"\n        }\n      ]\n   \
+          \ },\n    \"isDbInstanceDeleted\": {\n      \"Type\": \"Choice\",\n    \
+          \  \"Choices\": [{\n        \"Variable\": \"$.task\",\n        \"StringEquals\"\
+          : \"TASK_COMPLETE\",\n        \"Next\": \"RestorePipelineComplete\"\n  \
+          \    },\n      {\n        \"Variable\": \"$.task\",\n        \"StringEquals\"\
+          : \"TASK_FAILED\",\n        \"Next\": \"SendFailureAlert\"\n      }],\n\
+          \      \"Default\": \"GetDbInstanceStatusPostDelete\"\n    },\n    \"SendFailureAlert\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${EmailAlertLambdaArn}\"\
+          ,\n      \"Next\": \"SendSlackFailureAlert\"\n    },\n    \"SendSlackFailureAlert\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${SlackAlertLambdaArn}\"\
+          ,\n      \"Next\": \"CheckForRenameReversal\"\n    },\n    \"CheckForRenameReversal\"\
+          : {\n      \"Type\": \"Choice\",\n      \"Choices\": [{\n        \"Variable\"\
+          : \"$.Error\",\n        \"StringEquals\": \"InstanceRestoreException\",\n\
+          \        \"Next\": \"RevertOldInstanceRename\"\n      },\n      {\n    \
+          \    \"Variable\": \"$.Error\",\n        \"StringEquals\": \"ClusterRestoreException\"\
+          ,\n        \"Next\": \"RevertOldClusterRename\"\n      }],\n      \"Default\"\
+          : \"RestorePipelineComplete\"\n    },\n    \"RevertOldInstanceRename\":\
+          \ {\n      \"Type\": \"Task\",\n      \"Resource\": \"${DBRenameLambdaArn}\"\
+          ,\n      \"Next\": \"GetDbInstanceStatusPostRenameRevert\",\n      \"ResultPath\"\
+          : \"$.output\",\n      \"Retry\": [{\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n      \"Catch\": [\n        {\n \
+          \         \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"SendFailureAlert\"\
+          \n        }\n      ]\n    },\n    \"GetDbInstanceStatusPostRenameRevert\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${DBStatusLambdaArn}\"\
+          ,\n      \"Next\": \"RestorePipelineComplete\",\n      \"Retry\": [{\n \
+          \       \"ErrorEquals\": [\"InstanceUnavailableException\"],\n        \"\
+          IntervalSeconds\": 5,\n        \"MaxAttempts\": 5,\n        \"BackoffRate\"\
+          : 2.0\n       },\n       {\n        \"ErrorEquals\": [\"RateExceededException\"\
+          ],\n        \"IntervalSeconds\": 10,\n        \"MaxAttempts\": 5,\n    \
+          \    \"BackoffRate\": 2.0\n       }],\n       \"Catch\": [\n        {\n\
+          \          \"ErrorEquals\": [ \"States.ALL\" ],\n          \"Next\": \"\
+          SendFailureAlert\"\n        }\n      ]\n    },\n    \"RestorePipelineComplete\"\
+          : {\n       \"Type\": \"Pass\",\n       \"End\": true\n    }\n  }\n}"
+        - ClusterRenameLambdaArn:
+            Fn::GetAtt:
+            - ClusterRenameLambdaFunction
+            - Arn
+          ClusterStatusLambdaArn:
+            Fn::GetAtt:
+            - ClusterStatusLambdaFunction
+            - Arn
+          ClusterSnapshotLambdaArn:
+            Fn::GetAtt:
+            - ClusterSnapshotLambdaFunction
+            - Arn
+          ClusterRestoreLambdaArn:
+            Fn::GetAtt:
+            - ClusterRestoreLambdaFunction
+            - Arn
+          ClusterDeleteLambdaArn:
+            Fn::GetAtt:
+            - ClusterDeleteLambdaFunction
+            - Arn
+          ClusterSnapshotExportLambdaArn:
+            Fn::GetAtt:
+            - ClusterSnapshotExportLambdaFunction
+            - Arn
+          DBRenameLambdaArn:
+            Fn::GetAtt:
+            - RenameLambdaFunction
+            - Arn
+          DBStatusLambdaArn:
+            Fn::GetAtt:
+            - DbInstanceStatusLambdaFunction
+            - Arn
+          DBSnapshotLambdaArn:
+            Fn::GetAtt:
+            - DBSnapshotLambdaFunction
+            - Arn
+          DBRestoreLambdaArn:
+            Fn::GetAtt:
+            - DBRestoreLambdaFunction
+            - Arn
+          DBDeleteLambdaArn:
+            Fn::GetAtt:
+            - DeleteInstanceLambdaFunction
+            - Arn
+          DBSnapshotExportLambdaArn:
+            Fn::GetAtt:
+            - SnapshotExportLambdaFunction
+            - Arn
+          EmailAlertLambdaArn:
+            Fn::GetAtt:
+            - EmailAlertLambdaFunction
+            - Arn
+          SlackAlertLambdaArn:
+            Fn::GetAtt:
+            - SlackAlertLambdaFunction
+            - Arn
+      RoleArn:
+        Fn::GetAtt:
+        - StatesExecutionRole
+        - Arn
