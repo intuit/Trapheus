@@ -6,7 +6,6 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-
 def lambda_delete_dbinstance(event, context):
     """Handles deletion of a RDS db instance"""
     logger.info('## starting execution of lambda_delete_dbinstance')
@@ -15,12 +14,6 @@ def lambda_delete_dbinstance(event, context):
     result = {}
     instance_id = event['identifier'] + constants.TEMP_POSTFIX
 
-    logger.info('## ENVIRONMENT VARIABLES')
-    logger.info(region)
-    logger.info('## EVENT')
-    logger.info(event)
-    logger.info('## INSTANCE ID')
-    logger.info(instance_id)
     try:
         rds.delete_db_instance(
             DBInstanceIdentifier = instance_id,
@@ -38,4 +31,3 @@ def lambda_delete_dbinstance(event, context):
             raise custom_exceptions.RateExceededException(error_message)
         else:
             raise custom_exceptions.DeletionException(error_message)
-    
