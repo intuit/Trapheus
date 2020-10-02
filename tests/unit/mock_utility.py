@@ -39,18 +39,31 @@ def get_identifier_from_error(event):
 
 def get_modified_identifier(identifier):
     response = {}
-    temp_substr = identifier.rfind(constants.TEMP_POSTFIX)
-    db_instance_id = identifier[0:temp_substr] \
-        if temp_substr > 0 \
-        else identifier
+    db_instance_id = get_modified_value(identifier)
     db_snapshot_id = db_instance_id + constants.SNAPSHOT_POSTFIX
     response["instance_id"] = db_instance_id
     response["snapshot_id"] = db_snapshot_id
     return response
 
-def eval_snapshot_exception(error, identifier, rds_client):
+def get_modified_response(event):
+    response = {}
+    identifier = event['identifier']
+    db_instance_id = get_modified_value(identifier)
+    response["instance_id"] = db_instance_id
+    response["snapshot_id"] = get_modified_value(get_snapshot_id(event))
+    return response
+
+def get_modified_value(value):
+    temp_substr = value.rfind(constants.TEMP_POSTFIX)
+    modified_value = value[0:temp_substr] \
+        if temp_substr > 0 \
+        else value
+    return modified_value
+
+def eval_snapshot_exception(error, identifier, rds_client,snapshot_id=None):
     error_message = constants.IDENTIFIER + identifier + ' \n' + str(error)
-    snapshot_id = identifier + constants.SNAPSHOT_POSTFIX
+    if snapshot_id is None:
+        snapshot_id = identifier + constants.SNAPSHOT_POSTFIX
     if constants.RATE_EXCEEDED in str(error):
         raise custom_exceptions.RateExceededException(error_message)
     elif constants.CLUSTER_SNAPSHOT_EXISTS in str(error):
@@ -70,6 +83,9 @@ def eval_snapshot_exception(error, identifier, rds_client):
     else:
         raise custom_exceptions.SnapshotCreationException(error_message)
 
+def eval_snapshot_exception_with_snapshot_id(error, identifier, rds_client, snapshot_id):
+    eval_snapshot_exception(error, identifier, rds_client, snapshot_id)
+
 def get_waiter_max_attempts(context):
     # converting remaining time from milliseconds to seconds
     remaining_time = context.get_remaining_time_in_millis() / constants.DIVISOR
@@ -83,3 +99,11 @@ def get_error_message(identifier, error):
 
 def get_aws_account_id():
     return 1231231234
+
+def get_snapshot_id(event, instance_id=None):
+    if instance_id is None:
+        instance_id = event['identifier']
+    if "snapshot_id" not in event:
+        return instance_id + constants.SNAPSHOT_POSTFIX
+    snapshot_id = event['snapshot_id']
+    return snapshot_id

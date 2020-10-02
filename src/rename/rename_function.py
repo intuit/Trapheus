@@ -10,7 +10,6 @@ def lambda_rename_dbinstance(event, context):
     rds = boto3.client('rds', region)
     result = {}
     original_instance_identifier = ''
-    modified_instance_identifier = ''
     try:
         if event.get('Error') == 'RestoreException' and \
                 'Identifier' in event.get('Cause'):
@@ -18,10 +17,12 @@ def lambda_rename_dbinstance(event, context):
             response = util.get_identifier_from_error(event)
             modified_instance_identifier = response["modified_identifier"]
             original_instance_identifier = response["original_identifier"]
+            snapshot_id = util.get_snapshot_id(response, original_instance_identifier)
 
         else:
             original_instance_identifier = event['identifier']
             modified_instance_identifier = event['identifier'] + '-temp'
+            snapshot_id = util.get_snapshot_id(event)
 
         rds.modify_db_instance(
             DBInstanceIdentifier = original_instance_identifier,
@@ -30,6 +31,7 @@ def lambda_rename_dbinstance(event, context):
 
         result['taskname'] = constants.RENAME
         result['identifier'] = modified_instance_identifier
+        result['snapshot_id'] = snapshot_id
         return result
 
     except Exception as error:

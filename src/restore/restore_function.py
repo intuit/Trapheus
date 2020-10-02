@@ -9,7 +9,7 @@ def lambda_restore_dbinstance(event, context):
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
-    response = util.get_modified_identifier(event['identifier'])
+    response = util.get_modified_response(event)
     try:
         describe_db_response = rds.describe_db_instances(
             DBInstanceIdentifier = event['identifier']
@@ -26,6 +26,7 @@ def lambda_restore_dbinstance(event, context):
         )
         result['taskname'] = constants.DB_RESTORE
         result['identifier'] = response["instance_id"]
+        result['snapshot_id'] = response["snapshot_id"]
         return result
     except Exception as error:
         error_message = util.get_error_message(response["instance_id"], error)

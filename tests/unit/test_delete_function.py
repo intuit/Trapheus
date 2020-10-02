@@ -18,6 +18,13 @@ class TestResourceProvider(unittest.TestCase):
         data = delete_function.lambda_delete_dbinstance(event, {})
         self.assertEqual(data.get("taskname"), "Delete")
         self.assertEqual(data.get("identifier"), "database-1-temp")
+        self.assertEqual(data.get("snapshot_id"), "database-1-snapshot")
+
+        event = create_event_with_snapshot_id()
+        data = delete_function.lambda_delete_dbinstance(event, {})
+        self.assertEqual(data.get("taskname"), "Delete")
+        self.assertEqual(data.get("identifier"), "database-1-temp")
+        self.assertEqual(data.get("snapshot_id"), "snapshot-1")
 
     def test_delete_rateexceeded_failure(self):
         os.environ["Region"] = "us-west-2"
@@ -49,4 +56,8 @@ class TestResourceProvider(unittest.TestCase):
 
 def create_event():
     event = { "identifier": "database-1"}
+    return event
+
+def create_event_with_snapshot_id():
+    event = { "identifier": "database-1", "snapshot_id": "snapshot-1"}
     return event

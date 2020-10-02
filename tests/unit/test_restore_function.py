@@ -20,6 +20,12 @@ class TestResourceProvider(unittest.TestCase):
         data = restore_function.lambda_restore_dbinstance(event, {})
         self.assertEqual(data.get("taskname"), "Restore")
         self.assertEqual(data.get("identifier"), "database-1")
+        self.assertEqual(data.get("snapshot_id"), "database-1-snapshot")
+
+        event = create_event_with_snapshot_id()
+        data = restore_function.lambda_restore_dbinstance(event, {})
+        self.assertEqual(data.get("taskname"), "Restore")
+        self.assertEqual(data.get("snapshot_id"), "snapshot-1")
 
     def test_restore_rateexceeded_failure(self):
         os.environ["Region"] = "us-west-2"
@@ -51,4 +57,8 @@ class TestResourceProvider(unittest.TestCase):
 
 def create_event():
     event = { "identifier": "database-1"}
+    return event
+
+def create_event_with_snapshot_id():
+    event = { "identifier": "database-1", "snapshot_id": "snapshot-1"}
     return event

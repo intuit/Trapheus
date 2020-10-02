@@ -10,21 +10,23 @@ def lambda_get_dbinstance_status(event, context):
     result = {}
     taskname = event['output']['taskname']
     identifier = event['output']['identifier']
+    snapshot_id = util.get_snapshot_id(event['output'])
     try:
-        result["task"] = eval_dbinstance_status(rds, context, taskname, identifier)
+        result["task"] = eval_dbinstance_status(rds, context, taskname, identifier, snapshot_id)
         result['identifier'] = identifier
         result['taskname'] = taskname
+        result['snapshot_id'] = snapshot_id
         return result
     except Exception as error:
         return util.eval_exception(error, identifier, taskname)
 
-def eval_dbinstance_status(rds_client, context, taskname, identifier):
+def eval_dbinstance_status(rds_client, context, taskname, identifier, snapshot_id):
     max_attempts = util.get_waiter_max_attempts(context)
     if taskname == constants.SNAPSHOT:
         waiter = rds_client.get_waiter('db_snapshot_available')
         waiter.wait(
             DBInstanceIdentifier = identifier,
-            DBSnapshotIdentifier = (identifier + constants.SNAPSHOT_POSTFIX),
+            DBSnapshotIdentifier = (snapshot_id),
             WaiterConfig = {
                 'Delay': constants.DELAY_INTERVAL,
                 'MaxAttempts': max_attempts
