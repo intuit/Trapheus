@@ -1,4 +1,4 @@
-Please ensure your pull request adheres to the following guidelines:
+Please ensure your issue adheres to the following guidelines:
 
 - [ ] Use the following format: `* [owner/repo](link)`
 - [ ] Link additions should be added to the bottom of the relevant category.
