@@ -980,7 +980,8 @@ Resources:
                                 "StringEquals": "ClusterRestoreException",
                                 "Next": "RevertOldClusterRename"
                               }
-                            ]
+                            ],
+                            "Default": "NoRollback"
                           },
                           "RevertOldInstanceRename": {
                             "Type": "Task",
@@ -1100,6 +1101,10 @@ Resources:
                           "SendSlackRollbackFailureAlert": {
                             "Type": "Task",
                             "Resource": "${SlackAlertLambdaArn}",
+                            "End": true
+                          },
+                          "NoRollback": {
+                            "Type": "Pass",
                             "End": true
                           }
                         }
