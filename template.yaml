@@ -33,7 +33,7 @@ Parameters:
     Description: comma separated list of recipient email ids for failure alerts
   SlackWebhookUrls:
     Type: String
-    Default : "https://hooks.slack.com"
+    Default: "https://hooks.slack.com"
     Description: comma seperated list of slack webhooks for failure alerts
 
 Resources:
@@ -455,7 +455,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -478,7 +478,7 @@ Resources:
                  "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -492,7 +492,7 @@ Resources:
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
-                  "Next": "SendFailureAlert"
+                  "Next": "FailedState"
                 }],
                 "Default": "GetClusterSnapshotStatus"
               },
@@ -510,7 +510,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -528,7 +528,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -551,7 +551,7 @@ Resources:
                  "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -565,7 +565,7 @@ Resources:
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
-                  "Next": "SendFailureAlert"
+                  "Next": "FailedState"
                 }],
                 "Default": "GetClusterStatusPostRestore"
               },
@@ -583,7 +583,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -606,7 +606,7 @@ Resources:
                  "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -620,7 +620,7 @@ Resources:
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
-                  "Next": "SendFailureAlert"
+                  "Next": "FailedState"
                 }],
                 "Default": "GetClusterStatusPostRestore"
               },
@@ -638,7 +638,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -655,7 +655,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -669,50 +669,9 @@ Resources:
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
-                  "Next": "SendFailureAlert"
+                  "Next": "FailedState"
                 }],
                 "Default": "GetClusterStatusPostDelete"
-              },
-              "RevertOldClusterRename": {
-                "Type": "Task",
-                "Resource": "${ClusterRenameLambdaArn}",
-                "Next": "GetClusterStatusPostRenameRevert",
-                "ResultPath": "$.output",
-                "Retry": [{
-                  "ErrorEquals": ["RateExceededException"],
-                  "IntervalSeconds": 10,
-                  "MaxAttempts": 5,
-                  "BackoffRate": 2.0
-                 }],
-                "Catch": [
-                  {
-                    "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
-                  }
-                ]
-              },
-              "GetClusterStatusPostRenameRevert": {
-                "Type": "Task",
-                "Resource": "${ClusterStatusLambdaArn}",
-                "Next": "RestorePipelineComplete",
-                "Retry": [{
-                  "ErrorEquals": ["InstanceUnavailableException"],
-                  "IntervalSeconds": 5,
-                  "MaxAttempts": 5,
-                  "BackoffRate": 2.0
-                 },
-                 {
-                  "ErrorEquals": ["RateExceededException"],
-                  "IntervalSeconds": 10,
-                  "MaxAttempts": 5,
-                  "BackoffRate": 2.0
-                 }],
-                 "Catch": [
-                  {
-                    "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
-                  }
-                ]
               },
               "ShouldTakeDbSnapshot": {
                 "Type": "Choice",
@@ -737,7 +696,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -760,7 +719,7 @@ Resources:
                  "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -774,7 +733,7 @@ Resources:
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
-                  "Next": "SendFailureAlert"
+                  "Next": "FailedState"
                 }],
                 "Default": "GetDbSnapshotStatus"
               },
@@ -792,7 +751,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -810,7 +769,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -833,7 +792,7 @@ Resources:
                  "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -847,7 +806,7 @@ Resources:
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
-                  "Next": "SendFailureAlert"
+                  "Next": "FailedState"
                 }],
                 "Default": "GetDbInstanceStatusPostRename"
               },
@@ -865,7 +824,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -888,7 +847,7 @@ Resources:
                  "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -902,7 +861,7 @@ Resources:
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
-                  "Next": "SendFailureAlert"
+                  "Next": "FailedState"
                 }],
                 "Default": "GetDbInstanceStatusPostRestore"
               },
@@ -920,7 +879,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -937,7 +896,7 @@ Resources:
                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
+                    "Next": "FailedState"
                   }
                 ]
               },
@@ -951,75 +910,171 @@ Resources:
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
-                  "Next": "SendFailureAlert"
+                  "Next": "FailedState"
                 }],
                 "Default": "GetDbInstanceStatusPostDelete"
               },
-              "SendFailureAlert": {
-                "Type": "Task",
-                "Resource": "${EmailAlertLambdaArn}",
-                "Next": "SendSlackFailureAlert"
-              },
-              "SendSlackFailureAlert": {
-                "Type": "Task",
-                "Resource": "${SlackAlertLambdaArn}",
-                "Next": "CheckForRenameReversal"
-              },
-              "CheckForRenameReversal": {
-                "Type": "Choice",
-                "Choices": [{
-                  "Variable": "$.Error",
-                  "StringEquals": "InstanceRestoreException",
-                  "Next": "RevertOldInstanceRename"
-                },
-                {
-                  "Variable": "$.Error",
-                  "StringEquals": "ClusterRestoreException",
-                  "Next": "RevertOldClusterRename"
-                }],
-                "Default": "RestorePipelineComplete"
-              },
-              "RevertOldInstanceRename": {
-                "Type": "Task",
-                "Resource": "${DBRenameLambdaArn}",
-                "Next": "GetDbInstanceStatusPostRenameRevert",
-                "ResultPath": "$.output",
-                "Retry": [{
-                  "ErrorEquals": ["RateExceededException"],
-                  "IntervalSeconds": 10,
-                  "MaxAttempts": 5,
-                  "BackoffRate": 2.0
-                 }],
-                "Catch": [
-                  {
-                    "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
-                  }
-                ]
-              },
-              "GetDbInstanceStatusPostRenameRevert": {
-                "Type": "Task",
-                "Resource": "${DBStatusLambdaArn}",
-                "Next": "RestorePipelineComplete",
-                "Retry": [{
-                  "ErrorEquals": ["InstanceUnavailableException"],
-                  "IntervalSeconds": 5,
-                  "MaxAttempts": 5,
-                  "BackoffRate": 2.0
-                 },
-                 {
-                  "ErrorEquals": ["RateExceededException"],
-                  "IntervalSeconds": 10,
-                  "MaxAttempts": 5,
-                  "BackoffRate": 2.0
-                 }],
-                 "Catch": [
-                  {
-                    "ErrorEquals": [ "States.ALL" ],
-                    "Next": "SendFailureAlert"
-                  }
-                ]
-              },
+              "FailedState": {
+                    "Type": "Parallel",
+                    "Next": "RestorePipelineComplete",
+                    "Branches": [
+                      {
+                        "StartAt": "SendFailureAlert",
+                        "States": {
+                          "SendFailureAlert": {
+                            "Type": "Task",
+                            "Resource": "${EmailAlertLambdaArn}",
+                            "Next": "SendSlackFailureAlert"
+                          },
+                          "SendSlackFailureAlert": {
+                            "Type": "Task",
+                            "Resource": "${SlackAlertLambdaArn}",
+                            "End": true
+                          }
+                        }
+                      },
+                      {
+                        "StartAt": "CheckForRenameReversal",
+                        "States": {
+                          "CheckForRenameReversal": {
+                            "Type": "Choice",
+                            "Choices": [
+                              {
+                                "Variable": "$.Error",
+                                "StringEquals": "InstanceRestoreException",
+                                "Next": "RevertOldInstanceRename"
+                              },
+                              {
+                                "Variable": "$.Error",
+                                "StringEquals": "ClusterRestoreException",
+                                "Next": "RevertOldClusterRename"
+                              }
+                            ]
+                          },
+                          "RevertOldInstanceRename": {
+                            "Type": "Task",
+                            "Resource": "${DBRenameLambdaArn}",
+                            "Next": "GetDbInstanceStatusPostRenameRevert",
+                            "ResultPath": "$.output",
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "RateExceededException"
+                                ],
+                                "IntervalSeconds": 10,
+                                "MaxAttempts": 5,
+                                "BackoffRate": 2
+                              }
+                            ],
+                            "Catch": [
+                              {
+                                "ErrorEquals": [
+                                  "States.ALL"
+                                ],
+                                "Next": "SendRollbackFailureAlert"
+                              }
+                            ]
+                          },
+                          "RevertOldClusterRename": {
+                            "Type": "Task",
+                            "Resource": "${ClusterRenameLambdaArn}",
+                            "Next": "GetClusterStatusPostRenameRevert",
+                            "ResultPath": "$.output",
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "RateExceededException"
+                                ],
+                                "IntervalSeconds": 10,
+                                "MaxAttempts": 5,
+                                "BackoffRate": 2
+                              }
+                            ],
+                            "Catch": [
+                              {
+                                "ErrorEquals": [
+                                  "States.ALL"
+                                ],
+                                "Next": "SendRollbackFailureAlert"
+                              }
+                            ]
+                          },
+                          "GetDbInstanceStatusPostRenameRevert": {
+                            "Type": "Task",
+                            "Resource": "${DBStatusLambdaArn}",
+                            "End": true,
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "InstanceUnavailableException"
+                                ],
+                                "IntervalSeconds": 5,
+                                "MaxAttempts": 5,
+                                "BackoffRate": 2
+                              },
+                              {
+                                "ErrorEquals": [
+                                  "RateExceededException"
+                                ],
+                                "IntervalSeconds": 10,
+                                "MaxAttempts": 5,
+                                "BackoffRate": 2
+                              }
+                            ],
+                            "Catch": [
+                              {
+                                "ErrorEquals": [
+                                  "States.ALL"
+                                ],
+                                "Next": "SendRollbackFailureAlert"
+                              }
+                            ]
+                          },
+                          "GetClusterStatusPostRenameRevert": {
+                            "Type": "Task",
+                            "Resource": "${ClusterStatusLambdaArn}",
+                            "End": true,
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "InstanceUnavailableException"
+                                ],
+                                "IntervalSeconds": 5,
+                                "MaxAttempts": 5,
+                                "BackoffRate": 2
+                              },
+                              {
+                                "ErrorEquals": [
+                                  "RateExceededException"
+                                ],
+                                "IntervalSeconds": 10,
+                                "MaxAttempts": 5,
+                                "BackoffRate": 2
+                              }
+                            ],
+                            "Catch": [
+                              {
+                                "ErrorEquals": [
+                                  "States.ALL"
+                                ],
+                                "Next": "SendRollbackFailureAlert"
+                              }
+                            ]
+                          },
+                          "SendRollbackFailureAlert": {
+                            "Type": "Task",
+                            "Resource": "${EmailAlertLambdaArn}",
+                            "Next": "SendSlackRollbackFailureAlert"
+                          },
+                          "SendSlackRollbackFailureAlert": {
+                            "Type": "Task",
+                            "Resource": "${SlackAlertLambdaArn}",
+                            "End": true
+                          }
+                        }
+                      }
+                    ]
+                  },
               "RestorePipelineComplete": {
                  "Type": "Pass",
                  "End": true
@@ -1027,19 +1082,19 @@ Resources:
             }
           }
         - {
-            ClusterRenameLambdaArn: !GetAtt ClusterRenameLambdaFunction.Arn,
-            ClusterStatusLambdaArn: !GetAtt ClusterStatusLambdaFunction.Arn,
-            ClusterSnapshotLambdaArn: !GetAtt ClusterSnapshotLambdaFunction.Arn,
-            ClusterRestoreLambdaArn: !GetAtt ClusterRestoreLambdaFunction.Arn,
-            ClusterDeleteLambdaArn: !GetAtt ClusterDeleteLambdaFunction.Arn,
-            ClusterSnapshotExportLambdaArn: !GetAtt ClusterSnapshotExportLambdaFunction.Arn,
-            DBRenameLambdaArn: !GetAtt RenameLambdaFunction.Arn,
-            DBStatusLambdaArn: !GetAtt DbInstanceStatusLambdaFunction.Arn,
-            DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
-            DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
-            DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
-            DBSnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn,
-            EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
-            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
-          }
+          ClusterRenameLambdaArn: !GetAtt ClusterRenameLambdaFunction.Arn,
+          ClusterStatusLambdaArn: !GetAtt ClusterStatusLambdaFunction.Arn,
+          ClusterSnapshotLambdaArn: !GetAtt ClusterSnapshotLambdaFunction.Arn,
+          ClusterRestoreLambdaArn: !GetAtt ClusterRestoreLambdaFunction.Arn,
+          ClusterDeleteLambdaArn: !GetAtt ClusterDeleteLambdaFunction.Arn,
+          ClusterSnapshotExportLambdaArn: !GetAtt ClusterSnapshotExportLambdaFunction.Arn,
+          DBRenameLambdaArn: !GetAtt RenameLambdaFunction.Arn,
+          DBStatusLambdaArn: !GetAtt DbInstanceStatusLambdaFunction.Arn,
+          DBSnapshotLambdaArn: !GetAtt DBSnapshotLambdaFunction.Arn,
+          DBRestoreLambdaArn: !GetAtt DBRestoreLambdaFunction.Arn,
+          DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
+          DBSnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn,
+          EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
+          SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
+        }
       RoleArn: !GetAtt StatesExecutionRole.Arn
