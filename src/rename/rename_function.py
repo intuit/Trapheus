@@ -3,9 +3,14 @@ import boto3
 import constants
 import custom_exceptions
 import utility as util
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def lambda_rename_dbinstance(event, context):
     """Handles rename of a DB instance"""
+    logger.info('## starting function execution ...')
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
@@ -16,6 +21,8 @@ def lambda_rename_dbinstance(event, context):
                 'Identifier' in event.get('Cause'):
             #rename revert scenario in case of db restore failure
             response = util.get_identifier_from_error(event)
+            logger.info('## RESPONSE RESULT')
+            logger.info(response)
             modified_instance_identifier = response["modified_identifier"]
             original_instance_identifier = response["original_identifier"]
 
@@ -30,6 +37,9 @@ def lambda_rename_dbinstance(event, context):
 
         result['taskname'] = constants.RENAME
         result['identifier'] = modified_instance_identifier
+        logger.info('## FUNCTION RESULT')
+        logger.info(result)
+        logger.info('## ending function execution')
         return result
 
     except Exception as error:

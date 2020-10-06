@@ -1,9 +1,14 @@
 import os
 import constants
 import boto3
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     """Handles email alerts for any failure scenario in db instance or cluster state machine"""
+    logger.info('## starting function execution ...')
     SENDER = os.environ['SenderEmail']
     RECIPIENTS = os.environ['RecipientEmail'].split(',')
     AWS_REGION = os.environ['Region']
@@ -25,6 +30,8 @@ def lambda_handler(event, context):
 
     CHARSET = "UTF-8"
     client = boto3.client('ses',region_name=AWS_REGION)
+    logger.info('## HTML BODY AND CHARSET')
+    logger.info({BODY_HTML, CHARSET})
 
     # Try to send the email.
     try:
@@ -47,10 +54,15 @@ def lambda_handler(event, context):
             },
             Source=SENDER
         )
+        logger.info('## RESPONSE RESULT')
+        logger.info(response)
     # Display an error if something goes wrong.
     except Exception as e:
         raise Exception(e)
     else:
         result['message'] = response['MessageId']
 
+    logger.info('## FUNCTION RESULT')
+    logger.info(result)
+    logger.info('## ending function execution')
     return result
