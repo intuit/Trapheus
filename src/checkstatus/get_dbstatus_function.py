@@ -31,8 +31,6 @@ def eval_dbinstance_status(rds_client, context, taskname, identifier):
     max_attempts = util.get_waiter_max_attempts(context)
     if taskname == constants.SNAPSHOT:
         waiter = rds_client.get_waiter('db_snapshot_available')
-        logger.info('## WAITER')
-        logger.info(waiter)
         waiter.wait(
             DBInstanceIdentifier = identifier,
             DBSnapshotIdentifier = (identifier + constants.SNAPSHOT_POSTFIX),
@@ -54,3 +52,4 @@ def eval_dbinstance_status(rds_client, context, taskname, identifier):
         )
     logger.info('## ending eval_dbinstance_status() function execution')
     return constants.TASK_COMPLETE
+    

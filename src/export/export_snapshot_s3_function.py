@@ -10,7 +10,6 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-
 def lambda_export_rds_snapshot_to_s3(event, context):
     """start export task of RDS snapshot to S3 bucket"""
     logger.info('## starting function execution ...')
