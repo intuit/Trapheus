@@ -23,53 +23,39 @@ class TestSlackNotification(unittest.TestCase):
         mock_resp.status_code = status
         return mock_resp
 
-    def test_send_to_slack_response_success(self):
-        factory_patch = patch('slack_notification.requests')
-        mock_requests = factory_patch.start()
+    @patch("slack_notification.requests")
+    def test_send_to_slack_response_success(self, mock_requests):
         mock_response = self._mock_response()
         mock_requests.post.return_value = mock_response
         slack_notification.send_to_slack(["webhook1", "webhook2"], {})
         self.assertEqual(mock_response.raise_for_status.call_count, 2)
-        factory_patch.stop()
 
-    def test_send_to_slack_response_failure(self):
-        factory_patch = patch('slack_notification.requests')
-        mock_requests = factory_patch.start()
+    @patch("slack_notification.requests")
+    def test_send_to_slack_response_failure(self, mock_requests):
         mock_response = self._mock_response(status=500, raise_for_status=HTTPError("Invalid Url"))
         mock_requests.post.return_value = mock_response
         self.assertRaises(HTTPError, slack_notification.send_to_slack, ["webhook1"], {})
-        factory_patch.stop()
 
-    def test_send_to_slack_no_webhooks(self):
-        factory_patch = patch('slack_notification.requests')
-        mock_requests = factory_patch.start()
+    @patch("slack_notification.requests")
+    def test_send_to_slack_no_webhooks(self, mock_requests):
         mock_response = self._mock_response()
         mock_requests.post.return_value = mock_response
         slack_notification.send_to_slack([], {})
         self.assertFalse(mock_response.raise_for_status.called)
-        factory_patch.stop()
 
-    def test_lambda_handler_success(self):
+    @patch("slack_notification.send_to_slack")
+    def test_lambda_handler_success(self, mock_send_to_stack):
         os.environ["SLACK_WEBHOOK"] = "webhook1,webhook2"
-        factory_patch = patch('slack_notification.send_to_slack')
-        mock_send_to_stack = factory_patch.start()
         event = {"status": "status", "taskname" : "taskname"}
         slack_notification.lambda_handler(event, {})
-
         expected_message = {"Error": "tasknameError", "Cause": "status"}
-
         mock_send_to_stack.assert_called_once_with(["webhook1","webhook2"], expected_message)
-        factory_patch.stop()
 
-    def test_lambda_handler_Error(self):
+    @patch("slack_notification.send_to_slack")
+    def test_lambda_handler_Error(self, mock_send_to_stack):
         os.environ["SLACK_WEBHOOK"] = "webhook1,webhook2,webhook3"
-        factory_patch = patch('slack_notification.send_to_slack')
-        mock_send_to_stack = factory_patch.start()
         event = {"Error": "Error", "Cause": "Error-Cause"}
         slack_notification.lambda_handler(event, {})
-
         expected_message = {"Error": "Error", "Cause": "Error-Cause"}
-
         mock_send_to_stack.assert_called_once_with(["webhook1", "webhook2","webhook3"], expected_message)
-        factory_patch.stop()
 
