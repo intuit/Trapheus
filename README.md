@@ -61,6 +61,8 @@ Trapheus can be scheduled using a cloudwatch alarm rule or can be run using any 
 │   ├── restore
 │   │   ├── cluster_restore_function.py          <-- Python Lambda code for retoring a clusterised database.
 │   │   └── restore_function.py                  <-- Python Lambda code for restoring a non-clusterised RDS instance
+│   ├── slackNotification
+│   │   └── slack_notification.py                <-- Python Lambda code for sending out a failure alert to configured webhook(s) on Slack.
 │   └── snapshot
 │       ├── cluster_snapshot_function.py         <-- Python Lambda code for creating a snapshot of a clusterised database.
 │       └── snapshot_function.py                 <-- Python Lambda code for creating a snapshot of a non-clusterised RDS instance.
