@@ -89,5 +89,6 @@ def get_instance_snapshot_arn(snapshot_name, region):
     return 'testarn'
 
 
-# def supports_snapshot_export_region(region):
-#     return False
+def eval_export_exception(export_snapshot_supported_region):
+    if export_snapshot_supported_region == "" or export_snapshot_supported_region.isspace():
+        raise custom_exceptions.ExportSnapshotSupportedRegionNotProvidedException(f'Provide the ExportSnapshotSupportedRegion parameter. Currently is: {export_snapshot_supported_region} https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html')
