@@ -2,6 +2,7 @@ import os
 import boto3
 import constants
 import custom_exceptions
+import utility as util
 
 def lambda_delete_dbinstance(event, context):
     """Handles deletion of a RDS db instance"""
