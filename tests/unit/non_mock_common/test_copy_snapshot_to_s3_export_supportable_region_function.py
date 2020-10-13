@@ -10,7 +10,6 @@ from export.copy_across_regions import copy_snapshot_to_s3_export_supportable_re
 export_snapshot_supported_region = "eu-west-1"
 mock_status = 'mock_status'
 os.environ["Region"] = "us-west-2"
-os.environ["ExportSnapshotSupportedRegion"] = export_snapshot_supported_region
 os.environ['SNAPSHOT_COPY_EXPORT_TASK_KEY'] = "test_copy_key"
 copy_db_snapshot_response = {
     'DBSnapshot': {
@@ -39,7 +38,10 @@ class TestCheckRegionSupportSnapshotExportToS3Function(TestCase):
     @patch("utility.get_instance_snapshot_arn", return_value="testarn")
     @patch("export.copy_across_regions.copy_snapshot_to_s3_export_supportable_region_function.copy_db_snapshot",
            return_value=copy_db_snapshot_response)
-    def test_lambda_copy_snapshot_to_s3_export_supportable_region_success(self, mock_copy_db_snapshot):
+    def test_lambda_copy_snapshot_to_s3_export_supportable_region_success(self
+                                                                          , mock_get_instance_snapshot_arn
+                                                                          , mock_copy_db_snapshot):
+        os.environ["ExportSnapshotSupportedRegion"] = export_snapshot_supported_region
         result = copy_snapshot_to_s3_export_supportable_region_function. \
             lambda_copy_snapshot_to_s3_export_supportable_region(self.event, {})
         self.assertEqual(result['status'], mock_status)
