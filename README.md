@@ -190,8 +190,8 @@ The state machine can do one of the following tasks:
 
 After done with development or using the tool:  
 
-1. if you don't need the RDS instance when not coding or using the tool (for instance, it is a test RDS), consider stopping or deleting the database. You can always recreate it when you need it.
-2. if you don't need the past Cloud Formation templates, it is recommended you empty the CFN S3 bucket.
+1. If you don't need the RDS instance when not coding or using the tool (for instance, it is a test RDS), consider stopping or deleting the database. You can always recreate it when you need it.
+2. If you don't need the past Cloud Formation templates, it is recommended you empty the CFN S3 bucket.
 
 **Tear down**
 
