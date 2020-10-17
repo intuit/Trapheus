@@ -1,5 +1,5 @@
 <div align="center">
-<img width="300" 
+<img width="250" 
 src="screenshots/Trapheus.png">
 </div>
 <div align="center"><a href="https://circleci.com/gh/intuit/Trapheus"><img src="https://circleci.com/gh/intuit/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
