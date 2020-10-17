@@ -3,6 +3,7 @@ import constants
 import custom_exceptions
 import boto3
 
+
 def eval_exception(error, identifier, taskname):
     result = {}
     error_message = constants.IDENTIFIER + identifier + ' \n' + str(error)
@@ -107,11 +108,11 @@ def supports_snapshot_export_region(region):
     try:
         rds.describe_export_tasks()
     except Exception as error:
-        return "InvalidParameterCombination) when calling the DescribeExportTasks operation: This operation is not currently supported." not in str(error)
+        return constants.INVALID_PARAMETER_COMBINATION_ERROR_MESSAGE not in str(error)
     return True
 
 
 def eval_export_exception(export_snapshot_supported_region):
-    if export_snapshot_supported_region == "" or export_snapshot_supported_region.isspace():
+    if not export_snapshot_supported_region or export_snapshot_supported_region.isspace():
         raise custom_exceptions.ExportSnapshotSupportedRegionNotProvidedException(f'Provide the ExportSnapshotSupportedRegion parameter. Currently is: {export_snapshot_supported_region} https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html')
 

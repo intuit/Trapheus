@@ -15,8 +15,8 @@ SNAPSHOT = "SnapshotCreation"
 DB_RESTORE = "Restore"
 CLUSTER_RESTORE = "ClusterRestore"
 EXPORT_SNAPSHOT = "SnapshotExport"
-EXPORT_SNAPSHOT_SUPPORT = "SnapshotExportSupportedTask"
-COPY_SNAPSHOT = "SnapshotCopyTask"
+EXPORT_SNAPSHOT_SUPPORT = "SnapshotExportSupported"
+COPY_SNAPSHOT = "SnapshotCopy"
 
 TASK_ERROR_MAP = {
     'Rename' : custom_exceptions.RenameException,
@@ -36,9 +36,12 @@ CLUSTER_SNAPSHOT_EXISTS = "DBClusterSnapshotAlreadyExistsFault"
 WAITER_FAILURE = "Waiter encountered a terminal failure state"
 RATE_EXCEEDED = "Rate exceeded"
 WAITER_MAX = "Max attempts exceeded"
-EXPORT_FROM_REGION_THAT_SUPPORTS_SNAPSHOT_EXPORT_TO_S3 = "export_from_region_that_supports_snapshot_export_to_s3_task"
+EXPORT_SNAPSHOT_TO_S3_IN_REGION_THAT_SUPPORTS_SNAPSHOT_EXPORT_TO_S3 = "Case of exporting snapshot to s3 in a region " \
+                                                                      "that supports snapshot export to s3."
 REGION_SUPPORTS_SNAPSHOT_EXPORT_TO_S3 = "region_supports_snapshot_export_to_s3"
 DB_SNAPSHOT_NOT_FOUND_FAULT = "An error occurred (DBSnapshotNotFound) when calling the DescribeDBSnapshots operation: DBSnapshot"
+INVALID_PARAMETER_COMBINATION_ERROR_MESSAGE = "InvalidParameterCombination) when calling the DescribeExportTasks " \
+                                              "operation: This operation is not currently supported."
 
 TASK_FAILED = "TASK_FAILED"
 TASK_COMPLETE = "TASK_COMPLETE"

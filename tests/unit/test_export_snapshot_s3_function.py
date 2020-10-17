@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
-import mock_import
+
 import constants
 from export import export_snapshot_s3_function
 
@@ -52,7 +52,7 @@ class TestExportSnapshotS3Function(TestCase):
 
     @patch("export.export_snapshot_s3_function.boto3")
     def test_lambda_export_rds_snapshot_to_s3_from_supporting_region_called_with_correct_region(self, mock_boto3, _):
-        self.event = create_event(constants.EXPORT_FROM_REGION_THAT_SUPPORTS_SNAPSHOT_EXPORT_TO_S3)
+        self.event = create_event(constants.EXPORT_SNAPSHOT_TO_S3_IN_REGION_THAT_SUPPORTS_SNAPSHOT_EXPORT_TO_S3)
         export_snapshot_s3_function.lambda_export_rds_snapshot_to_s3(self.event, {})
         mock_boto3.client.assert_called_with('rds', "eu-west-1")
 

@@ -9,7 +9,7 @@ import utility as util
 
 def lambda_export_rds_snapshot_to_s3(event, context):
     """start export task of RDS snapshot to S3 bucket"""
-    if event['taskname'] == constants.EXPORT_FROM_REGION_THAT_SUPPORTS_SNAPSHOT_EXPORT_TO_S3:
+    if event['taskname'] == constants.EXPORT_SNAPSHOT_TO_S3_IN_REGION_THAT_SUPPORTS_SNAPSHOT_EXPORT_TO_S3:
         region = os.environ['ExportSnapshotSupportedRegion']
         kms_key_id = os.environ['SNAPSHOT_COPY_EXPORT_TASK_KEY']
     else:

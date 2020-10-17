@@ -12,17 +12,16 @@ def lambda_check_region_support_snapshot_export_to_s3(event, context):
 
     if utility.supports_snapshot_export_region(region):
         result['taskname'] = constants.EXPORT_SNAPSHOT_SUPPORT
-    elif snapshot_present_in_snapshot_export_to_s3_supporting_region(instance_id,
-                                                                     os.environ['ExportSnapshotSupportedRegion']):
-        result['taskname'] = constants.EXPORT_FROM_REGION_THAT_SUPPORTS_SNAPSHOT_EXPORT_TO_S3
+    elif is_snapshot_available(instance_id, os.environ['ExportSnapshotSupportedRegion']):
+        result['taskname'] = constants.EXPORT_SNAPSHOT_TO_S3_IN_REGION_THAT_SUPPORTS_SNAPSHOT_EXPORT_TO_S3
     else:
         result['taskname'] = constants.COPY_SNAPSHOT
 
     return result
 
 
-def snapshot_present_in_snapshot_export_to_s3_supporting_region(instance_id, region):
-    """checks whether the region, that supports snapshot export to s3, contains the snapshot to be exported to s3"""
+def is_snapshot_available(instance_id, region):
+    """checks whether the region contains the snapshot to be exported to s3"""
     snapshot_id = instance_id + constants.SNAPSHOT_POSTFIX
     try:
         return "" != utility.get_instance_snapshot_arn(snapshot_id, region)
