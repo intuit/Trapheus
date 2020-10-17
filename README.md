@@ -1,9 +1,11 @@
 <div align="center">
 <img width="300" 
-src="screenshots/Trapheus-logo.png">
+src="screenshots/Trapheus.png">
 </div>
 
+</div>
 <div align="center"><a href="https://circleci.com/gh/intuit/Trapheus"><img src="https://circleci.com/gh/intuit/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
+<a href = "https://coveralls.io/github/intuit/Trapheus?branch=master"><img src= "https://coveralls.io/repos/github/intuit/Trapheus/badge.svg?branch=master" alt = "Coverage"/></a>
 </div>
 
 - [AWS RDS Snapshot Restoration](#Trapheus)
