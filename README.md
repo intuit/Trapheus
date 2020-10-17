@@ -1,6 +1,6 @@
 <div align="center">
 <img width="300" 
-src="screenshots/Trapheus-logo.png">
+src="screenshots/Trapheus.png">
 </div>
 
 </div>
