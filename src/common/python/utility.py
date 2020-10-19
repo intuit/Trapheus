@@ -103,6 +103,22 @@ def get_instance_snapshot_arn(snapshot_name, region):
         raise Exception(f"Snapshot is not available yet, status is {snap_status}")
 
 
+def get_cluster_snapshot_arn(snapshot_name, region):
+    """returns cluster snapshot arn if in available state"""
+    rds = boto3.client('rds', region)
+    snapshots_response = rds.describe_db_cluster_snapshots(DBClusterSnapshotIdentifier=snapshot_name)
+    assert snapshots_response['ResponseMetadata'][
+               'HTTPStatusCode'] == 200, f"Error fetching cluster snapshots: {snapshots_response}"
+    snapshots = snapshots_response['DBClusterSnapshots']
+    assert len(snapshots) == 1, f"No snapshot matches name {snapshot_name}"
+    snap = snapshots[0]
+    snap_status = snap.get('Status')
+    if snap_status == 'available':
+        return snap['DBClusterSnapshotArn']
+    else:
+        raise Exception(f"Snapshot is not available yet, status is {snap_status}")
+
+
 def supports_snapshot_export_region(region):
     rds = boto3.client('rds', region)
     try:

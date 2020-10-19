@@ -40,6 +40,28 @@ class TestExportSnapshotS3Function(TestCase):
                 },
             ]
         }
+        self.mocked_describe_cluster_snapshots_good = {
+            'ResponseMetadata': {
+                'HTTPStatusCode': 200
+            },
+            'DBClusterSnapshots': [
+                {
+                    'Status': 'available',
+                    'DBClusterSnapshotArn': self.mock_snapshot_arn,
+                },
+            ]
+        }
+        self.mocked_describe_cluster_snapshots_creating = {
+            'ResponseMetadata': {
+                'HTTPStatusCode': 200
+            },
+            'DBClusterSnapshots': [
+                {
+                    'Status': 'creating',
+                    'DBClusterSnapshotArn': self.mock_snapshot_arn,
+                },
+            ]
+        }
 
     @patch("common.python.utility.boto3.client")
     def test_get_snapshot_arn_good(self, mock_client, _):
@@ -65,6 +87,32 @@ class TestExportSnapshotS3Function(TestCase):
         mock_rds.describe_db_snapshots.return_value = self.mocked_describe_db_snapshots_creating
         with self.assertRaises(Exception) as err:
             _ = utility.get_instance_snapshot_arn(self.snapshot_id, self.region)
+            self.assertEqual(err.exception, "Snapshot is not available yet, status is creating")
+
+    @patch("common.python.utility.boto3.client")
+    def test_get_cluster_snapshot_arn_good(self, mock_client, _):
+        mock_rds = mock_client.return_value
+        mock_rds.describe_db_cluster_snapshots.return_value = self.mocked_describe_cluster_snapshots_good
+        res = utility.get_cluster_snapshot_arn(self.snapshot_id, self.region)
+        self.assertEqual(res, self.mock_snapshot_arn)
+
+    @patch("common.python.utility.boto3.client")
+    def test_get_cluster_snapshot_arn_error(self, mock_client, _):
+        """when snapshot not found"""
+        mock_rds = mock_client.return_value
+        err_msg = "Snapshot not found"
+        mock_rds.describe_db_cluster_snapshots.side_effect = Exception(err_msg)
+        with self.assertRaises(Exception) as err:
+            _ = utility.get_cluster_snapshot_arn(self.snapshot_id, self.region)
+            self.assertEqual(err.exception, err_msg)
+
+    @patch("common.python.utility.boto3.client")
+    def test_get_cluster_snapshot_arn_notavailable(self, mock_client, _):
+        """when snapshot is in creating state"""
+        mock_rds = mock_client.return_value
+        mock_rds.describe_db_cluster_snapshots.return_value = self.mocked_describe_cluster_snapshots_creating
+        with self.assertRaises(Exception) as err:
+            _ = utility.get_cluster_snapshot_arn(self.snapshot_id, self.region)
             self.assertEqual(err.exception, "Snapshot is not available yet, status is creating")
 
 

@@ -50,6 +50,7 @@ Parameters:
 Conditions:
   UseVPCAndSubnetsCondition: !Equals [ !Ref UseVPCAndSubnets, "true" ]
   HasExportSnapshotSupportedRegion: !Not [ !Equals [ !Ref ExportSnapshotSupportedRegion, "" ]]
+  DoesntHaveExportSnapshotSupportedRegion: !Not [HasExportSnapshotSupportedRegion]
 
 Resources:
   LambdaExecutionRole:
@@ -337,6 +338,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Environment:
+        Variables:
+          ExportSnapshotSupportedRegion: !Ref ExportSnapshotSupportedRegion
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -418,11 +422,9 @@ Resources:
 
   SnapshotsBucket:
     Type: AWS::S3::Bucket
+    Condition: DoesntHaveExportSnapshotSupportedRegion
     Properties:
-      BucketName: !If [HasExportSnapshotSupportedRegion,
-                    !Join [ "", [ !Sub "rds-snapshots-${AWS::AccountId}-",!Ref ExportSnapshotSupportedRegion ] ] ,
-                    !Sub "rds-snapshots-${AWS::AccountId}-${AWS::Region}"
-                  ]
+      BucketName: !Sub "rds-snapshots-${AWS::AccountId}-${AWS::Region}"
 
   SnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -464,11 +466,15 @@ Resources:
       Timeout: 900
       Environment:
         Variables:
+          ExportSnapshotSupportedRegion: !Ref ExportSnapshotSupportedRegion
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
           SNAPSHOT_EXPORT_TASK_KEY: !Ref SnapshotExportKmsKey
+          SNAPSHOT_COPY_EXPORT_TASK_KEY: !Ref SnapshotCopyExportKmsKey
       VpcConfig:
-        SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
-        SubnetIds: !Split [ "," , !Ref Subnets ]
+        !If [ UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue" ]
 
   CheckRegionSupportSnapshotExportToS3LambdaFunction:
     Type: AWS::Serverless::Function
@@ -492,6 +498,28 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } ,  !Ref "AWS::NoValue"  ]
 
+  CheckRegionSupportClusterSnapshotExportToS3LambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-check-region-support-cluster-snapshot-export-to-S3-sf
+      Description: Lambda functions required to check whether region supports RDS cluster snapshot export to s3.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/export/copy_across_regions/
+      Handler: check_region_support_cluster_snapshot_export_to_s3_function.lambda_check_region_support_cluster_snapshot_export_to_s3
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Environment:
+        Variables:
+          ExportSnapshotSupportedRegion: !Ref ExportSnapshotSupportedRegion
+      VpcConfig:
+        !If [ UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } ,  !Ref "AWS::NoValue" ]
+
   SnapshotCopyToExportToS3SupportedRegionLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -514,6 +542,29 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } ,  !Ref "AWS::NoValue"  ]
+
+  ClusterSnapshotCopyToExportToS3SupportedRegionLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-clust-snapshot-copy-to-export-to-S3-supported-region-sf
+      Description: Lambda functions required to copy RDS cluster snapshot to export to s3 supported region.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/export/copy_across_regions/
+      Handler: copy_cluster_snapshot_to_s3_export_supportable_region_function.lambda_copy_cluster_snapshot_to_s3_export_supportable_region
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Environment:
+        Variables:
+          ExportSnapshotSupportedRegion: !Ref ExportSnapshotSupportedRegion
+          SNAPSHOT_COPY_EXPORT_TASK_KEY: !Ref SnapshotCopyExportKmsKey
+      VpcConfig:
+        !If [ UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } ,  !Ref "AWS::NoValue" ]
 
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -560,6 +611,24 @@ Resources:
                   }
                 ]
               },
+              "ClusterSnapshotCopy": {
+                "Type": "Task",
+                "Resource": "${ClusterSnapshotCopyToExportToS3SupportedRegionLambdaArn}",
+                "Next": "GetClusterSnapshotStatus",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["RateExceededException", "RetryClusterSnapshotException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "SendFailureAlert"
+                  }
+                ]
+              },
               "GetClusterSnapshotStatus": {
                 "Type": "Task",
                 "Resource": "${ClusterStatusLambdaArn}",
@@ -588,7 +657,7 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "StartClusterSnapshotExportTask"
+                  "Next": "CheckRegionSupportClusterSnapshotExportToS3"
                 },
                 {
                   "Variable": "$.task",
@@ -596,6 +665,31 @@ Resources:
                   "Next": "SendFailureAlert"
                 }],
                 "Default": "GetClusterSnapshotStatus"
+              },
+              "CheckRegionSupportClusterSnapshotExportToS3": {
+                "Type": "Task",
+                "Resource": "${CheckRegionSupportClusterSnapshotExportToS3LambdaArn}",
+                "Next": "DoesRegionSupportClusterSnapshotExportToS3",
+                "ResultPath": "$"
+              },
+              "DoesRegionSupportClusterSnapshotExportToS3": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.taskname",
+                  "StringEquals": "SnapshotExportSupported",
+                  "Next": "StartClusterSnapshotExportTask"
+                },
+                {
+                  "Variable": "$.taskname",
+                  "StringEquals": "Case of exporting snapshot to s3 in a region that supports snapshot export to s3.",
+                  "Next": "StartClusterSnapshotExportTask"
+                },
+                {
+                  "Variable": "$.taskname",
+                  "StringEquals": "SnapshotCopy",
+                  "Next": "ClusterSnapshotCopy"
+                }],
+                "Default": "StartClusterSnapshotExportTask"
               },
               "StartClusterSnapshotExportTask": {
                 "Type": "Task",
@@ -907,17 +1001,17 @@ Resources:
                 "Type": "Choice",
                 "Choices": [{
                   "Variable": "$.taskname",
-                  "StringEquals": "SnapshotExportSupportedTask",
+                  "StringEquals": "SnapshotExportSupported",
                   "Next": "StartSnapshotExportTask"
                 },
                 {
                   "Variable": "$.taskname",
-                  "StringEquals": "export_from_region_that_supports_snapshot_export_to_s3_task",
+                  "StringEquals": "Case of exporting snapshot to s3 in a region that supports snapshot export to s3.",
                   "Next": "StartSnapshotExportTask"
                 },
                 {
                   "Variable": "$.taskname",
-                  "StringEquals": "SnapshotCopyTask",
+                  "StringEquals": "SnapshotCopy",
                   "Next": "DbSnapshotCopy"
                 }],
                 "Default": "StartSnapshotExportTask"
@@ -1186,6 +1280,8 @@ Resources:
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
             SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
             CheckRegionSupportSnapshotExportToS3LambdaArn: !GetAtt CheckRegionSupportSnapshotExportToS3LambdaFunction.Arn,
-            SnapshotCopyToExportToS3SupportedRegionLambdaArn: !GetAtt SnapshotCopyToExportToS3SupportedRegionLambdaFunction.Arn
+            SnapshotCopyToExportToS3SupportedRegionLambdaArn: !GetAtt SnapshotCopyToExportToS3SupportedRegionLambdaFunction.Arn,
+            CheckRegionSupportClusterSnapshotExportToS3LambdaArn: !GetAtt CheckRegionSupportClusterSnapshotExportToS3LambdaFunction.Arn,
+            ClusterSnapshotCopyToExportToS3SupportedRegionLambdaArn: !GetAtt ClusterSnapshotCopyToExportToS3SupportedRegionLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn

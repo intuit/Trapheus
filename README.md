@@ -129,7 +129,7 @@ The app requires the following AWS resources to exist before installation:
         - Settings: enter password
         - Connectivity: VPC: Trapheus-VPC-[region]
         
-In case your region doesn't support exporting a RDS snapshot to S3 (check here https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html) you also need to:  
+In case your region doesn't support exporting a RDS snapshot to S3 (check here https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html) you also need to do the below steps:  
 
 7. Create a KmsKeyId in a rds snapshot export to s3 supported region with role policy: 
 ```
@@ -179,6 +179,11 @@ Make sure you change the:
 <awsAccountId> with your aws account id.  
 <LambdaExecutionRole.Arn> with the arn of the LambdaExecutionRole (check the resources of the CF stack) (after you create you stack - check Instructions->Setup).  
 Once KmsKeyId created, remember (y)ou would need to use later on) the aws generated "Key ID: " (located in the breadcrumb/top of the screen).
+
+8. Create a snapshot bucket in a rds snapshot export to s3 supported region with the name:  
+rds-snapshots-[awsAccountId]-[ExportSnapshotSupportedRegion]  
+For example: for an awsAccountId = 123456789012 and region = Ireland (eu-west-1)  :  
+rds-snapshots-123456789012-eu-west-1
 
 ## Parameters
 
@@ -317,7 +322,8 @@ Prepare your environment. Install tools as needed.
 1. Run the test suite in the repo to ensure existing flows are not breaking.
     ```bash
        cd Trapheus
-       python -m pytest tests/ -v #to execute the complete test suite
+       python -m pytest tests/ -v #to execute the test suite without the non_mock_common tests
+       python -m pytest tests/non_mock_common/ -v #to execute the the non_mock_common part of the test suite
        python -m pytest tests/unit/test_get_dbstatus_function.py -v #to execute any individual test
     ```
 1. Stage edited files.

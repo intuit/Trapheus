@@ -6,10 +6,11 @@ import DBClusterStatusWaiter
 
 def lambda_get_cluster_status(event, context):
     """Method to obtain status of a RDS db cluster post actions such as snapshot creation, rename, restore or delete"""
-    region = os.environ['Region']
+    taskname = event['output']['taskname']
+    region = os.environ['ExportSnapshotSupportedRegion'] if taskname == constants.COPY_SNAPSHOT \
+        else os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
-    taskname = event['output']['taskname']
     identifier = event['output']['identifier']
     try:
         result['task'] = eval_cluster_status(rds, context, taskname, identifier)
@@ -24,7 +25,7 @@ def lambda_get_cluster_status(event, context):
 
 def eval_cluster_status(rds_client, context, taskname, identifier):
     max_attempts = util.get_waiter_max_attempts(context)
-    if taskname == constants.SNAPSHOT:
+    if taskname in [constants.SNAPSHOT, constants.COPY_SNAPSHOT]:
         waiter = rds_client.get_waiter('db_cluster_snapshot_available')
         waiter.wait(
             DBClusterIdentifier = identifier,
