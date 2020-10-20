@@ -6,8 +6,7 @@ import utility as util
 def lambda_get_dbinstance_status(event, context):
     """Method to obtain status of a RDS instance post actions such as snapshot creation, rename, restore or delete"""
     taskname = event['output']['taskname']
-    region = os.environ['ExportSnapshotSupportedRegion'] if taskname == constants.COPY_SNAPSHOT \
-        else os.environ['Region']
+    region = get_region(taskname)
     rds = boto3.client('rds', region)
     result = {}
     identifier = event['output']['identifier']
@@ -18,6 +17,11 @@ def lambda_get_dbinstance_status(event, context):
         return result
     except Exception as error:
         return util.eval_exception(error, identifier, taskname)
+
+
+def get_region(taskname):
+    return os.environ['ExportSnapshotSupportedRegion'] if taskname == constants.COPY_SNAPSHOT else os.environ['Region']
+
 
 def eval_dbinstance_status(rds_client, context, taskname, identifier):
     max_attempts = util.get_waiter_max_attempts(context)
