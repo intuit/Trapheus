@@ -83,6 +83,7 @@ Trapheus can be scheduled using a cloudwatch alarm rule or can be run using any 
         ├── test_get_dbstatus_function.py
         ├── test_rename_function.py
         ├── test_restore_function.py
+        ├── test_slack_notification.py
         └── test_snapshot_function.py
 
 ```
