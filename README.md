@@ -1,9 +1,11 @@
 <div align="center">
 <img width="300" 
-src="screenshots/Trapheus-logo.png">
+src="screenshots/Trapheus.png">
 </div>
-
 <div align="center"><a href="https://circleci.com/gh/intuit/Trapheus"><img src="https://circleci.com/gh/intuit/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
+<a href = "https://coveralls.io/github/intuit/Trapheus?branch=master"><img src= "https://coveralls.io/repos/github/intuit/Trapheus/badge.svg?branch=master" alt = "Coverage"/></a>
+  <a href="http://www.serverless.com"><img src="http://public.serverless.com/badges/v3.svg" alt="serverless badge"/></a>
+  <a href="https://github.com/intuit/Trapheus/releases"><img src="https://img.shields.io/github/v/release/intuit/trapheus.svg" alt="release badge"/></a>
 </div>
 
 - [AWS RDS Snapshot Restoration](#Trapheus)
@@ -61,6 +63,8 @@ Trapheus can be scheduled using a cloudwatch alarm rule or can be run using any 
 │   ├── restore
 │   │   ├── cluster_restore_function.py          <-- Python Lambda code for retoring a clusterised database.
 │   │   └── restore_function.py                  <-- Python Lambda code for restoring a non-clusterised RDS instance
+│   ├── slackNotification
+│   │   └── slack_notification.py                <-- Python Lambda code for sending out a failure alert to configured webhook(s) on Slack.
 │   └── snapshot
 │       ├── cluster_snapshot_function.py         <-- Python Lambda code for creating a snapshot of a clusterised database.
 │       └── snapshot_function.py                 <-- Python Lambda code for creating a snapshot of a non-clusterised RDS instance.
@@ -81,6 +85,7 @@ Trapheus can be scheduled using a cloudwatch alarm rule or can be run using any 
         ├── test_get_dbstatus_function.py
         ├── test_rename_function.py
         ├── test_restore_function.py
+        ├── test_slack_notification.py
         └── test_snapshot_function.py
 
 ```
@@ -138,6 +143,7 @@ The following are the parameters for creating the cloudformation template:
 4. `SenderEmail` : [Required] The SES sending email configured in the [Pre-Requisites](#pre-requisites)
 5. `RecipientEmail` : [Required] Comma separated list of recipient email addresses configured in [Pre-Requisites](#pre-requisites).
 6. `UseVPCAndSubnets` : [Optional] Whether to use the vpc and subnets to create a security group and link the security group and vpc to the lambdas. When UseVPCAndSubnets left out (default) or set to 'true', lambdas are connected to a VPC in your account, and by default the function can't access the RDS (or other services) if VPC doesn't provide access (either by routing outbound traffic to a [NAT gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) in a public subnet, or having a [VPC endpoint](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html), both of which incur cost or require more setup). If set to 'false', the [lambdas will run in a default Lambda owned VPC that has access to RDS (and other AWS services)](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html#vpc-internet).
+7. `SlackWebhookUrls` : [Optional] Comma separated list of slack webhooks for failure alerts.
 
 ## Instructions
 
@@ -150,9 +156,12 @@ To setup the Trapheus in your AWS account, follow the steps below:
 `sam package --template-file template.yaml --output-template-file deploy.yaml --s3-bucket <s3 bucket name from corresponding AWS account and region>`
 3. To deploy the stack using the above mentioned parameters execute:   
 `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail>`  
-3.1. In order to have the minimal Lambda-RDS access configuration and less costs ([UseVPCAndSubnets description above](#parameters) for more), add the `UseVPCAndSubnets=false` at the end of the sam deploy command or:  
+  3.1. In order to have the minimal Lambda-RDS access configuration and less costs ([UseVPCAndSubnets description above](#parameters) for more), add the `UseVPCAndSubnets=false` at the end of the sam deploy command or:  
 `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> UseVPCAndSubnets=false`  
-Typically, linking your own VPC to the lambdas and not setting addition NAT gateway or VPC endpoint configuration will result in a ["Connect timeout on endpoint URL: "https://rds.[region].amazonaws.com/"" or "Task timed out after 3.00 seconds" issue](https://docs.aws.amazon.com/lambda/latest/dg/troubleshooting-networking.html).
+Typically, linking your own VPC to the lambdas and not setting addition NAT gateway or VPC endpoint configuration will result in a ["Connect timeout on endpoint URL: "https://rds.[region].amazonaws.com/"" or "Task timed out after 3.00 seconds" issue](https://docs.aws.amazon.com/lambda/latest/dg/troubleshooting-networking.html).  
+  3.2. <a name="slack-setup"></a>[Optional] To add slack notification for failure alerts, add the parameter `SlackWebhookUrls` to the end of the deploy command like so:  
+`sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> --SlackWebhookUrls=<comma-separated-slack-webhook-urls>`  
+More information about setting up slack webhooks can be found [here](https://api.slack.com/messaging/webhooks)
 
 **TO BE NOTED**:
 The CFT creates the following resources: 
@@ -228,7 +237,7 @@ Wait for successful completion of the rename step to be able to use the provided
 6. Once the restore is complete and the db-instance or db-cluster is available, the final step is to **Delete** the initially renamed instance or cluster(along with its instances) which was retained for failure handling purposes.
 Executed using lambdas created for deletion purposes, once the deletion is successful, the pipeline is complete.
 
-7. At any step, the retries with backoff and failure alerts are handled in every step of the state machine. If there is an occurrence of a failure, an SES email alert is sent as configured during the setup.
+7. At any step, the retries with backoff and failure alerts are handled in every step of the state machine. If there is an occurrence of a failure, an SES email alert is sent as configured during the setup. Optionally, if `SlackWebhookUrls` was provided in the [setup](#slack-setup), failure notifications will also be sent to the appropriate channels.
 
 8. If the restore step fails, as part of failure handling, the **Step-4** of instance/cluster rename is reverted to ensure that the original db-instance or db cluster is available for use.
 
