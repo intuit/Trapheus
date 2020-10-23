@@ -26,7 +26,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_response = Mock(name='response')
         mock_factory_boto_client.return_value = mock_response
         mock_response.return_value = {"taskname": "Rename", "identifier": "database-1"}
-        event = {"Error": "RestoreException", "Cause": "Identifier:database-1 \n ThrottlingError: Rate exceeded"}
+        event = {"Error": "InstanceRestoreException", "Cause": "Identifier:database-1 \n ThrottlingError: Rate exceeded"}
         data = rename_function.lambda_rename_dbinstance(event, {})
         self.assertEqual(data.get("taskname"), "Rename")
         self.assertEqual(data.get("identifier"), "database-1")
