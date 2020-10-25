@@ -50,7 +50,7 @@ Parameters:
 Conditions:
   UseVPCAndSubnetsCondition: !Equals [ !Ref UseVPCAndSubnets, "true" ]
   HasExportSnapshotSupportedRegion: !Not [ !Equals [ !Ref ExportSnapshotSupportedRegion, "" ]]
-  DoesntHaveExportSnapshotSupportedRegion: !Not [HasExportSnapshotSupportedRegion]
+  DoesntHaveExportSnapshotSupportedRegion: !Not [Condition: HasExportSnapshotSupportedRegion]
 
 Resources:
   LambdaExecutionRole:
@@ -675,13 +675,14 @@ Resources:
               "DoesRegionSupportClusterSnapshotExportToS3": {
                 "Type": "Choice",
                 "Choices": [{
-                  "Variable": "$.taskname",
-                  "StringEquals": "SnapshotExportSupported",
-                  "Next": "StartClusterSnapshotExportTask"
-                },
-                {
-                  "Variable": "$.taskname",
-                  "StringEquals": "Case of exporting snapshot to s3 in a region that supports snapshot export to s3.",
+                  "Or": [{
+                      "Variable": "$.taskname",
+                      "StringEquals": "StartClusterSnapshotExportTask"
+                    },
+                    {
+                      "Variable": "$.taskname",
+                      "StringEquals": "Case of exporting snapshot to s3 in a region that supports snapshot export to s3."
+                  }],
                   "Next": "StartClusterSnapshotExportTask"
                 },
                 {
@@ -1009,7 +1010,7 @@ Resources:
                       "StringEquals": "Case of exporting snapshot to s3 in a region that supports snapshot export to s3."
                   }],
                   "Next": "StartSnapshotExportTask"
-                }
+                },
                 {
                   "Variable": "$.taskname",
                   "StringEquals": "SnapshotCopy",
