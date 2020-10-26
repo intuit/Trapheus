@@ -12,6 +12,7 @@ src="screenshots/Trapheus.png">
 - [Pre-Requisites](#pre-requisites)
 - [Parameters](#parameters)
 - [Instructions](#instructions)
+- [Execution](#execution)
 - [How it Works](#how-it-works)
   - [AWS Step Functions State Machine](#aws-step-functions-state-machine)
 - [Contributing to Trapheus](#contributing-to-trapheus)
@@ -172,7 +173,7 @@ The CFT creates the following resources:
 5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to.
 6. KMS key: is required to start export task of snapshot to s3
 
-**Execution**
+## Execution
 
 To execute the step function, follow the steps below:
 1. Navigate to the State machine definition from the *Resources* tab in the cloudformation stack.
