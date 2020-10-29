@@ -127,7 +127,7 @@ The app requires the following AWS resources to exist before installation:
         - You have created a VPC with only two private subnets. If you are creating non-private subnets, check [the ratio between private, public subnets, private subnet with dedicated custom network ACL and spare capacity](https://docs.aws.amazon.com/quickstart/latest/vpc/architecture.html). 
 
 6. One or more instances of an RDS database that you wish to restore.
-    - Example of minimal *free* RDS setup:
+    - Example minimal *free* RDS setup:
         - Engine options: MySQL
         - Templates: Free tier
         - Settings: enter password
