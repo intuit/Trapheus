@@ -19,7 +19,7 @@ src="screenshots/Trapheus.png">
 
 
 With Trapheus, it becomes easy to get and restore database instances from snapshots into any dev, staging or production environments. Trapheus supports individual RDS Snapshot as well as cluster snapshot restore operations. 
-Trapheus is modelled as a state machine, with the help of AWS step functions, that executes different steps in order to restore an existing database from a snapshot. 
+Trapheus is modelled as a state machine, with the help of AWS step functions, that executes different steps in order to restore an existing database from a snapshot. When restoring the database, Trapheus simply renames the database making it lot faster than the usual SQL dump.
 Trapheus can be scheduled using a cloudwatch alarm rule or can be run using any of the supported AWS step function triggers.
 
 **Important:** this application uses various AWS services and there are costs associated with these services after the Free Tier usage - please see the [AWS  pricing page](https://aws.amazon.com/pricing/) for details.
