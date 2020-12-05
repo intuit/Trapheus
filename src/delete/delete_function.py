@@ -8,10 +8,8 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-
 def lambda_delete_dbinstance(event, context):
     """Handles deletion of a RDS db instance"""
-    logger.info('## starting function execution ...')
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
@@ -24,9 +22,7 @@ def lambda_delete_dbinstance(event, context):
         )
         result['taskname'] = constants.DELETE
         result['identifier'] = instance_id
-        logger.info('## FUNCTION RESULT')
-        logger.info(result)
-        logger.info('## ending function execution')
+        logger.info("function lambda_delete_dbinstance execution result: {}".format(result))
         return result
     except Exception as error:
         error_message = util.get_error_message(instance_id, error)

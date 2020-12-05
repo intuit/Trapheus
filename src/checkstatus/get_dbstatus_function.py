@@ -9,7 +9,6 @@ logger.setLevel(logging.INFO)
 
 def lambda_get_dbinstance_status(event, context):
     """Method to obtain status of a RDS instance post actions such as snapshot creation, rename, restore or delete"""
-    logger.info('## starting function execution ...')
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
@@ -19,15 +18,13 @@ def lambda_get_dbinstance_status(event, context):
         result["task"] = eval_dbinstance_status(rds, context, taskname, identifier)
         result['identifier'] = identifier
         result['taskname'] = taskname
-        logger.info('## FUNCTION RESULT')
-        logger.info(result)
-        logger.info('## ending function execution')
+        logger.info("function lambda_get_dbinstance_status execution result: {}".format(result))
         return result
     except Exception as error:
         return util.eval_exception(error, identifier, taskname)
 
 def eval_dbinstance_status(rds_client, context, taskname, identifier):
-    logger.info('## starting eval_dbinstance_status() function execution ...')
+    logger.info('starting function eval_dbinstance_status execution')
     max_attempts = util.get_waiter_max_attempts(context)
     if taskname == constants.SNAPSHOT:
         waiter = rds_client.get_waiter('db_snapshot_available')
@@ -50,6 +47,6 @@ def eval_dbinstance_status(rds_client, context, taskname, identifier):
                 'MaxAttempts': max_attempts
             }
         )
-    logger.info('## ending eval_dbinstance_status() function execution')
+    logger.info('ending function eval_dbinstance_status execution')
     return constants.TASK_COMPLETE
     

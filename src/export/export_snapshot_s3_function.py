@@ -12,7 +12,6 @@ logger.setLevel(logging.INFO)
 
 def lambda_export_rds_snapshot_to_s3(event, context):
     """start export task of RDS snapshot to S3 bucket"""
-    logger.info('## starting function execution ...')
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     result = {}
@@ -31,12 +30,11 @@ def lambda_export_rds_snapshot_to_s3(event, context):
             IamRoleArn=os.environ['SNAPSHOT_EXPORT_TASK_ROLE'],
             KmsKeyId=os.environ['SNAPSHOT_EXPORT_TASK_KEY'],
         )
+        logger.info("function start_export_task execution result: {}".format(response))
         result['taskname'] = constants.EXPORT_SNAPSHOT
         result['identifier'] = instance_id
         result['status'] = response['Status']
-        logger.info('## FUNCTION RESULT')
-        logger.info(result)
-        logger.info('## ending function execution')
+        logger.info("function lambda_export_rds_snapshot_to_s3 execution result: {}".format(result))
         return result
     except Exception as error:
         raise Exception(error)
@@ -44,12 +42,11 @@ def lambda_export_rds_snapshot_to_s3(event, context):
 
 def get_instance_snapshot_arn(snapshot_name):
     """returns instance snapshot arn if in available state"""
-    logger.info('## starting get_instance_snapshot_arn() function execution ...')
+    logger.info('starting function get_instance_snapshot_arn execution')
     region = os.environ['Region']
     rds = boto3.client('rds', region)
     snapshots_response = rds.describe_db_snapshots(DBSnapshotIdentifier=snapshot_name)
-    logger.info('## SNAPSHOTS_RESPONSE')
-    logger.info(snapshots_response)
+    logger.info("function describe_db_snapshots execution result: {}".format(snapshots_response))
     assert snapshots_response['ResponseMetadata'][
                'HTTPStatusCode'] == 200, f"Error fetching DB snapshots: {snapshots_response}"
     snapshots = snapshots_response['DBSnapshots']
@@ -57,9 +54,8 @@ def get_instance_snapshot_arn(snapshot_name):
     snap = snapshots[0]
     snap_status = snap.get('Status')
     if snap_status == 'available':
-        logger.info('## FUNCTION RESULT')
-        logger.info(snap['DBSnapshotArn'])
-        logger.info('## ending get_instance_snapshot_arn() function execution')
+        logger.info("function get_instance_snapshot_arn execution result: {}".format(snap['DBSnapshotArn']))
+        logger.info('ending function get_instance_snapshot_arn execution')
         return snap['DBSnapshotArn']
     else:
         raise Exception(f"Snapshot is not available yet, status is {snap_status}")
