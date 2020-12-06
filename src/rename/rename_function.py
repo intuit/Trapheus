@@ -28,10 +28,11 @@ def lambda_rename_dbinstance(event, context):
             original_instance_identifier = event['identifier']
             modified_instance_identifier = event['identifier'] + '-temp'
 
-        rds.modify_db_instance(
+        modify_response = rds.modify_db_instance(
             DBInstanceIdentifier = original_instance_identifier,
             ApplyImmediately = True,
             NewDBInstanceIdentifier = modified_instance_identifier)
+        logger.info("function modify_response execution result: {}".format(modify_response))
 
         result['taskname'] = constants.RENAME
         result['identifier'] = modified_instance_identifier
