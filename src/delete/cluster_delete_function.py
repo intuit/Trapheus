@@ -2,6 +2,7 @@ import os
 import boto3
 import constants
 import custom_exceptions
+import utility as util
 
 def lambda_delete_dbcluster(event, context):
     """Handles deletion of a DB cluster and its corresponding readers and writers"""

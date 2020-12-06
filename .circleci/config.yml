@@ -14,9 +14,11 @@ jobs:
             pip install mock
             pip install boto3
             pip install coverage
+            pip install coveralls
             $HOME/.local/bin/coverage run --source src/ -m pytest tests/ -v
             $HOME/.local/bin/coverage report
             $HOME/.local/bin/coverage html 
+            coveralls
           name: Test
       - store_artifacts:
           path: htmlcov    

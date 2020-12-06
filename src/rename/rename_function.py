@@ -16,7 +16,7 @@ def lambda_rename_dbinstance(event, context):
     original_instance_identifier = ''
     modified_instance_identifier = ''
     try:
-        if event.get('Error') == 'RestoreException' and \
+        if event.get('Error') == 'InstanceRestoreException' and \
                 'Identifier' in event.get('Cause'):
             #rename revert scenario in case of db restore failure
             response = util.get_identifier_from_error(event)
