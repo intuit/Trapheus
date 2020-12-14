@@ -106,6 +106,27 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource: "*"
 
+  CWEventStatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - !Sub events.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: CWEventStatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "states:StartExecution"
+                Resource: !GetAtt DBRestoreStateMachine.Arn
+
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: UseVPCAndSubnetsCondition
@@ -1118,3 +1139,29 @@ Resources:
             SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
+
+  DBRestoreStateMachineEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Trigger the DBRestoreStateMachine
+      Name: !Sub ${ProjectName}-DBRestoreStateMachine-rule
+      ScheduleExpression: "cron(0 8 ? * FRI *)" # Runs every FRIDAY at 8:00 AM UTC
+#      ScheduleExpression: "rate(7 days)" # Runs every 7 days
+      State:  DISABLED # ENABLED
+      Targets:
+        - Arn: !GetAtt DBRestoreStateMachine.Arn
+          RoleArn: !GetAtt CWEventStatesExecutionRole.Arn
+          Id: !Sub ${ProjectName}-rds-indentifier-X
+          Input: '{
+                      "identifier": "indentifier-X",
+                      "task": "create_snapshot",
+                      "isCluster": false
+                  }'
+        - Arn: !GetAtt DBRestoreStateMachine.Arn
+          RoleArn: !GetAtt CWEventStatesExecutionRole.Arn
+          Id: !Sub ${ProjectName}-rds-indentifier-Y
+          Input: '{
+                      "identifier": "indentifier-Y",
+                      "task": "create_snapshot",
+                      "isCluster": true
+                  }'
