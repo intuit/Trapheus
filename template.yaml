@@ -1146,8 +1146,7 @@ Resources:
       Description: Trigger the DBRestoreStateMachine
       Name: !Sub ${ProjectName}-DBRestoreStateMachine-rule
       ScheduleExpression: "cron(0 8 ? * FRI *)" # Runs every FRIDAY at 8:00 AM UTC
-#      ScheduleExpression: "rate(7 days)" # Runs every 7 days
-      State:  DISABLED # ENABLED
+      State:  DISABLED # Change value to ENABLED to enable the scheduled rule
       Targets:
         - Arn: !GetAtt DBRestoreStateMachine.Arn
           RoleArn: !GetAtt CWEventStatesExecutionRole.Arn
