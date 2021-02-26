@@ -1150,17 +1150,17 @@ Resources:
       Targets:
         - Arn: !GetAtt DBRestoreStateMachine.Arn
           RoleArn: !GetAtt CWEventStatesExecutionRole.Arn
-          Id: !Sub ${ProjectName}-rds-indentifier-X
+          Id: !Sub ${ProjectName}-rds-identifier-X
           Input: '{
-                      "identifier": "indentifier-X",
+                      "identifier": "identifier-X",
                       "task": "create_snapshot",
                       "isCluster": false
                   }'
         - Arn: !GetAtt DBRestoreStateMachine.Arn
           RoleArn: !GetAtt CWEventStatesExecutionRole.Arn
-          Id: !Sub ${ProjectName}-rds-indentifier-Y
+          Id: !Sub ${ProjectName}-rds-identifier-Y
           Input: '{
-                      "identifier": "indentifier-Y",
+                      "identifier": "identifier-Y",
                       "task": "create_snapshot",
                       "isCluster": true
                   }'

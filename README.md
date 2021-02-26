@@ -166,7 +166,7 @@ More information about setting up Slack webhooks can be found [here](https://api
 
 #### To set up the step function execution through a scheduled run using CloudWatch rule, follow the steps below:
 
-1. Go to DBRestoreStateMachineEventRule section in the template.yaml of the Trapheuse repo.
+1. Go to DBRestoreStateMachineEventRule section in the template.yaml of the Trapheus repo.
 2. We have set it as a scheduled cron rule to run every FRIDAY at 8:00 AM UTC. You can change it to your preferred schedule frequency by updating the **ScheduleExpression** property's value accordingly. Examples:
     * To run it every 7 days,
         `ScheduleExpression: "rate(7 days)"`
