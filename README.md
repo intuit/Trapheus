@@ -149,9 +149,9 @@ The following are the parameters for creating the cloudformation template:
 
 ## Instructions
 
-**Setup**
+### Setup
 
-To setup the Trapheus in your AWS account, follow the steps below:
+#### To setup the Trapheus in your AWS account, follow the steps below:
 
 1. Clone the Trapheus Git repository
 2. From the Trapheus repo execute:  
@@ -165,6 +165,24 @@ Typically, linking your own VPC to the lambdas and not setting addition NAT gate
 `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> --SlackWebhookUrls=<comma-separated-slack-webhook-urls>`  
 More information about setting up Slack webhooks can be found [here](https://api.slack.com/messaging/webhooks)
 
+#### To set up the step function execution through a scheduled run using CloudWatch rule, follow the steps below:
+
+1. Go to DBRestoreStateMachineEventRule section in the template.yaml of the Trapheus repo.
+2. We have set it as a scheduled cron rule to run every FRIDAY at 8:00 AM UTC. You can change it to your preferred schedule frequency by updating the **ScheduleExpression** property's value accordingly. Examples:
+    * To run it every 7 days,
+        `ScheduleExpression: "rate(7 days)"`
+    * To run it every FRIDAY at 8:00 AM UTC,
+        `ScheduleExpression: "cron(0 8 ? * FRI *)"`
+    
+    Click [here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) for all details on how to set ScheduleExpression. 
+3. Sample targets given in the template file under **Targets** property for your reference has to be updated:
+    
+    a. Change **Input** property according to your Input property values, accordingly give a better ID for your target by updating the **Id** property.
+    
+    b. Based on the number of targets for which you want to set the schedule, add or remove the targets.
+4. Change the **State** property value to **ENABLED**
+5. Lastly, package and redeploy the stack following steps 2 and 3 in [Trapheus setup](#to-setup-the-trapheus-in-your-aws-account-follow-the-steps-below)
+
 **TO BE NOTED**:
 The CFT creates the following resources: 
 1. **DBRestoreStateMachine** Step function state machine
@@ -173,6 +191,8 @@ The CFT creates the following resources:
 4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas
 5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to
 6. KMS key: is required to start export task of snapshot to s3
+7. DBRestoreStateMachineEventRule: A Cloudwatch rule in disabled state, that can be used following above [instructions](#to-set-up-the-step-function-execution-through-a-scheduled-run-using-cloudwatch-rule-follow-the-steps-below) based on user requirement
+8. CWEventStatesExecutionRole: IAM role used by DBRestoreStateMachineEventRule CloudWatch rule, to allow execution of the state machine from CloudWatch
 
 ## Execution
 
