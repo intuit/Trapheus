@@ -1,53 +1,70 @@
 import os
 import unittest
-from mock import patch,Mock
+from unittest.mock import patch
+
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/delete')))
-import mock_import
-import cluster_delete_function
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
+import constants
+import custom_exceptions
+from delete import cluster_delete_function
 
+os.environ["Region"] = "us-west-2"
+
+@patch("delete.cluster_delete_function.boto3.client")
 class TestResourceProvider(unittest.TestCase):
-    def test_delete_success(self):
-        os.environ["Region"] = "us-west-2"
-        factory_patch = patch('cluster_delete_function.boto3.client')
-        mock_factory_boto_client = factory_patch.start()
-        mock_response = Mock(name='response')
-        mock_factory_boto_client.return_value = mock_response
-        mock_response.return_value = {"taskname": "Delete", "identifier": "database-1-temp"}
-        mock_response.describe_db_clusters.return_value = {"DBClusters": [{"DBClusterIdentifier": "database-1-temp", "DBClusterMembers": [{"DBInstanceIdentifier": "database-1-instance-1-temp", "IsClusterWriter": True, "PromotionTier": 123}]}]}
-        mock_response.delete_db_instance.return_value = {}
-        event = create_event()
-        data = cluster_delete_function.lambda_delete_dbcluster(event, {})
-        self.assertEqual(data.get("taskname"), "Delete")
-        self.assertEqual(data.get("identifier"), "database-1-temp")
 
-    def test_delete_rateexceeded_failure(self):
-        os.environ["Region"] = "us-west-2"
-        factory_patch = patch('cluster_delete_function.boto3.client')
-        mock_factory_boto_client = factory_patch.start()
-        mock_response = Mock(name='response')
-        mock_factory_boto_client.return_value = mock_response
-        mock_factory_boto_client.side_effect = Exception("DBClusterIdentifier:database-1-temp \nthrottling error: Rate exceeded")
-        mock_response.side_effect = Exception("DBClusterIdentifier:database-1-temp \nthrottling error: Rate exceeded")
-        event = create_event()
-        try:
-            cluster_delete_function.lambda_delete_dbcluster(event, {})
-        except Exception as ex:
-            self.assertEqual(str(ex), "DBClusterIdentifier:database-1-temp \nthrottling error: Rate exceeded")
+    def setUp(self):
+        self.event = create_event()
+        self.cluster_id = self.event['identifier'] + constants.TEMP_POSTFIX
+        self.mocked_rate_exceeded_exception = custom_exceptions.RateExceededException("Identifier:database-1-temp \nthrottling error: Rate exceeded")
+        self.mocked_cluster_not_found_exception = custom_exceptions.DeletionException("Identifier:database-1-temp \nDBClusterNotFound")
+        self.mocked_instance_not_found_exception = custom_exceptions.DeletionException("Identifier:database-1-temp \nInstanceDeletionFailure")
+        self.mocked_describe_db_clusters = {
+            'ResponseMetadata': {
+                'HTTPStatusCode': 200
+            },
+            'DBClusters': [{
+                "DBClusterIdentifier": "database-1-temp",
+                "DBClusterMembers": [{
+                    "DBInstanceIdentifier": "database-1-instance-1-temp",
+                    "IsClusterWriter": True,
+                    "PromotionTier": 123
+                }]
+            }]
+        }
 
-    def test_delete_failure(self):
-        os.environ["Region"] = "us-west-2"
-        factory_patch = patch('cluster_delete_function.boto3.client')
-        mock_factory_boto_client = factory_patch.start()
-        mock_response = Mock(name='response')
-        mock_factory_boto_client.return_value = mock_response
-        mock_factory_boto_client.side_effect = Exception("DBClusterIdentifier:database-1-temp \nDBClusterNotFound")
-        mock_response.side_effect = Exception("DBClusterIdentifier:database-1-temp \nDBClusterNotFound")
-        event = create_event()
-        try:
-            cluster_delete_function.lambda_delete_dbcluster(event, {})
-        except Exception as ex:
-            self.assertEqual(str(ex), "DBClusterIdentifier:database-1-temp \nDBClusterNotFound")
+    def test_delete_success(self, mock_client):
+        mock_rds = mock_client.return_value
+        mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
+        mock_rds.delete_db_instance.return_value = {}
+        data = cluster_delete_function.lambda_delete_dbcluster(self.event, {})
+        self.assertEqual(data['taskname'], "Delete")
+        self.assertEqual(data['identifier'], self.cluster_id)
+
+    def test_delete_rateexceeded_failure(self, mock_client):
+        mock_rds = mock_client.return_value
+        mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
+        mock_rds.delete_db_cluster.side_effect = Exception("throttling error: Rate exceeded")
+        with self.assertRaises(custom_exceptions.RateExceededException) as err:
+            _ = cluster_delete_function.lambda_delete_dbcluster(self.event, {})
+            self.assertEqual(err, self.mocked_rate_exceeded_exception)
+
+    def test_cluster_delete_failure(self, mock_client):
+        mock_rds = mock_client.return_value
+        mock_rds.describe_db_clusters.return_value = {}
+        mock_rds.delete_db_cluster.side_effect = Exception("DBClusterNotFound")
+        with self.assertRaises(custom_exceptions.DeletionException) as err:
+            _ = cluster_delete_function.lambda_delete_dbcluster(self.event, {})
+            self.assertEqual(err, self.mocked_cluster_not_found_exception)
+
+    def test_instance_delete_failure(self, mock_client):
+        mock_rds = mock_client.return_value
+        mock_rds.describe_db_clusters.return_value = {}
+        mock_rds.delete_db_cluster.side_effect = Exception("InstanceDeletionFailure")
+        with self.assertRaises(custom_exceptions.DeletionException) as err:
+            _ = cluster_delete_function.lambda_delete_dbcluster(self.event, {})
+            self.assertEqual(err, self.mocked_instance_not_found_exception)
 
 def create_event():
     event = { "identifier": "database-1"}
