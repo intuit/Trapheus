@@ -1,11 +1,11 @@
 import os
-import unittest
-from unittest.mock import patch
 import sys
+import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
 import constants
 import custom_exceptions
+from mock import patch
 from rename import rename_function
 
 os.environ["Region"] = "us-west-2"
@@ -13,7 +13,7 @@ os.environ["Region"] = "us-west-2"
 @patch("rename.rename_function.boto3.client")
 class TestResourceProvider(unittest.TestCase):
     def setUp(self):
-        self.event = create_event()
+        self.event = {"identifier": "database-1"}
         self.revert_event = {"Error": "InstanceRestoreException","Cause": "Identifier:database-1 \n ThrottlingError: Rate exceeded"}
         self.updated_instance_id = self.event['identifier'] + constants.TEMP_POSTFIX
         self.original_instance_id = self.event['identifier']
@@ -47,7 +47,3 @@ class TestResourceProvider(unittest.TestCase):
         with self.assertRaises(custom_exceptions.RenameException) as err:
             _ = rename_function.lambda_rename_dbinstance(self.event, {})
             self.assertEqual(err.exception, self.mocked_rate_exceeded_exception)
-
-def create_event():
-    event = { "identifier": "database-1"}
-    return event

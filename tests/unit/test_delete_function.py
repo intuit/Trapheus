@@ -1,19 +1,19 @@
 import os
-import unittest
-from unittest.mock import patch
 import sys
+import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
 import custom_exceptions
 import constants
 from delete import delete_function
+from mock import patch
 
 os.environ["Region"] = "us-west-2"
 
 @patch("delete.delete_function.boto3.client")
 class TestResourceProvider(unittest.TestCase):
     def setUp(self):
-        self.event = create_event()
+        self.event = {"identifier": "database-1"}
         self.instance_id = self.event['identifier'] + constants.TEMP_POSTFIX
         self.mocked_rate_exceeded_exception = custom_exceptions.RateExceededException("Identifier:database-1-temp \nthrottling error: Rate exceeded")
         self.mocked_instance_not_found_exception = custom_exceptions.SnapshotCreationException("Identifier:database-1-temp \nInstanceNotFoundFault")
@@ -38,7 +38,3 @@ class TestResourceProvider(unittest.TestCase):
         with self.assertRaises(custom_exceptions.DeletionException) as err:
             _ = delete_function.lambda_delete_dbinstance(self.event, {})
             self.assertEqual(err, self.mocked_instance_not_found_exception)
-
-def create_event():
-    event = { "identifier": "database-1"}
-    return event

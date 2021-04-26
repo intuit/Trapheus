@@ -1,10 +1,10 @@
 import os
-import unittest
-from mock import patch, Mock
-from requests.exceptions import HTTPError
 import sys
+import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/common/python')))
+from mock import patch, Mock
+from requests.exceptions import HTTPError
 from slackNotification import slack_notification
 
 class TestSlackNotification(unittest.TestCase):

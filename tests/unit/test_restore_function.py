@@ -1,10 +1,10 @@
 import os
-import unittest
-from unittest.mock import patch
 import sys
+import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
 import custom_exceptions
+from mock import patch
 from restore import restore_function
 
 os.environ["Region"] = "us-west-2"
@@ -12,7 +12,7 @@ os.environ["Region"] = "us-west-2"
 @patch("restore.restore_function.boto3.client")
 class TestResourceProvider(unittest.TestCase):
     def setUp(self):
-        self.event = create_event()
+        self.event = {"identifier": "database-1-temp"}
         self.restored_instance_id = "database-1"
         self.mocked_rate_exceeded_exception = custom_exceptions.RateExceededException("Identifier:database-1 \nthrottling error: Rate exceeded")
         self.mocked_instance_not_found_exception = custom_exceptions.InstanceRestoreException("Identifier:database-1 \nDBInstanceNotFound")
@@ -60,7 +60,3 @@ class TestResourceProvider(unittest.TestCase):
         with self.assertRaises(custom_exceptions.InstanceRestoreException) as err:
             _ = restore_function.lambda_restore_dbinstance(self.event, {})
             self.assertEqual(err.exception, self.mocked_duplicate_instance_exception)
-
-def create_event():
-    event = { "identifier": "database-1-temp"}
-    return event

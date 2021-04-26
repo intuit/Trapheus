@@ -1,21 +1,20 @@
 import os
-from unittest import TestCase
-from unittest.mock import patch
 import sys
+import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
 import constants
 from export import export_snapshot_s3_function
+from mock import patch
 
 os.environ["Region"] = "us-west-2"
 os.environ['SNAPSHOT_EXPORT_TASK_ROLE'] = "testrole"
 os.environ['SNAPSHOT_EXPORT_TASK_KEY'] = "testkey"
 
 @patch("export.export_snapshot_s3_function.boto3.client")
-class TestExportSnapshotS3Function(TestCase):
-
+class TestExportSnapshotS3Function(unittest.TestCase):
     def setUp(self):
-        self.event = create_event()
+        self.event = {"identifier": "database-1"}
         self.instance_id = self.event['identifier']
         self.snapshot_id = self.event['identifier'] + constants.SNAPSHOT_POSTFIX
         self.mock_snapshot_arn = 'testarn'
@@ -94,8 +93,3 @@ class TestExportSnapshotS3Function(TestCase):
             _ = export_snapshot_s3_function.get_instance_snapshot_arn(self.snapshot_id)
             self.assertEqual(err.exception, "Snapshot is not available yet, status is creating")
 
-
-
-def create_event():
-    event = {"identifier": "database-1"}
-    return event

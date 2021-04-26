@@ -1,10 +1,10 @@
 import os
-import unittest
-from unittest.mock import patch
 import sys
+import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
 import custom_exceptions
+from mock import patch
 from snapshot import snapshot_function
 
 os.environ["Region"] = "us-west-2"
@@ -12,7 +12,7 @@ os.environ["Region"] = "us-west-2"
 @patch("snapshot.snapshot_function.boto3.client")
 class TestResourceProvider(unittest.TestCase):
     def setUp(self):
-        self.event = create_event()
+        self.event = {"identifier": "database-1"}
         self.mocked_rate_exceeded_exception = custom_exceptions.RateExceededException("Identifier:database-1 \nthrottling error: Rate exceeded")
         self.mocked_instance_not_found_exception = custom_exceptions.SnapshotCreationException("Identifier:database-1 \nDBInstanceNotFoundFault")
         self.mocked_duplicate_snapshot_exception = custom_exceptions.RetryDBSnapshotException("Identifier:database-1 \nDBSnapshotAlreadyExists")
@@ -44,7 +44,3 @@ class TestResourceProvider(unittest.TestCase):
         with self.assertRaises(custom_exceptions.SnapshotCreationException) as err:
             _ = snapshot_function.lambda_create_dbinstance_snapshot(self.event, {})
             self.assertEqual(err.exception, self.mocked_cluster_not_found_exception)
-
-def create_event():
-    event = { "identifier": "database-1"}
-    return event

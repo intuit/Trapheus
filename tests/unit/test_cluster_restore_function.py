@@ -1,19 +1,18 @@
 import os
-import unittest
-from unittest.mock import patch
 import sys
+import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
 import custom_exceptions
+from mock import patch
 from restore import cluster_restore_function
 
 os.environ["Region"] = "us-west-2"
 
 @patch("restore.cluster_restore_function.boto3.client")
 class TestResourceProvider(unittest.TestCase):
-
     def setUp(self):
-        self.event = create_event()
+        self.event = {"identifier": "database-1-temp"}
         self.cluster_id = "database-1"
         self.mocked_rate_exceeded_exception = custom_exceptions.RateExceededException("Identifier:database-1 \nthrottling error: Rate exceeded")
         self.mocked_cluster_not_found_exception = custom_exceptions.ClusterRestoreException("Identifier:database-1 \nDBClusterNotFound")
@@ -93,7 +92,3 @@ class TestResourceProvider(unittest.TestCase):
         with self.assertRaises(custom_exceptions.ClusterRestoreException) as err:
             _ = cluster_restore_function.lambda_restore_dbcluster(self.event, {})
             self.assertEqual(err.exception, self.dbinstance_creation_exception)
-
-def create_event():
-    event = { "identifier": "database-1-temp"}
-    return event
