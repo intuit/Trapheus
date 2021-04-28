@@ -135,6 +135,16 @@ Resources:
       GroupName: my-sg
       VpcId: !Ref vpcId
 
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub 'trapheus-${AWS::AccountId}-${AWS::Region}'
+      Subscription:
+        - Protocol: lambda
+          Endpoint: !GetAtt DBRestoreLambdaFunction.Arn
+        - Protocol: lambda
+          Endpoint: !GetAtt RenameLambdaFunction.Arn
+
   CommonLambdaLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -466,6 +476,23 @@ Resources:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
 
+  EventSubscriptionLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-create-event-subscription-sf
+      Description: Lambda function for creating event subscriptions for the state machine.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      CodeUri: src/eventing/
+      Handler: create_event_subscription.lambda_create_event_subscription
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref SNSTopic
+
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
@@ -473,8 +500,14 @@ Resources:
         !Sub
         - |-
           {
-            "StartAt": "ShouldRestoreClusterOrInstance",
+            "StartAt": "RDSEventSubscription",
             "States": {
+              "RDSEventSubscription": {
+                "Type": "Task",
+                "Resource": "${EventSubscriptionLambdaArn}",
+                "Next": "ShouldRestoreClusterOrInstance",
+                "ResultPath": "$.output"
+              },
               "ShouldRestoreClusterOrInstance": {
                 "Type": "Choice",
                   "Choices": [{
@@ -1136,7 +1169,8 @@ Resources:
             DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
             DBSnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn,
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
-            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
+            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
+            EventSubscriptionLambdaArn: !GetAtt EventSubscriptionLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
 
