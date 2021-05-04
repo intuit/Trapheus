@@ -1,8 +1,8 @@
 import os
 import sys
 import unittest
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../../src')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../../src/common/python')))
 from emailalert import email_function
 from mock import patch
 
@@ -17,7 +17,7 @@ class TestResourceProvider(unittest.TestCase):
         self.event = {"Error": "RestoreError","Cause": "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded"}
         self.mock_email_response = {"MessageId": "Email sent successfully"}
 
-    def test_email_success1(self, mock_client):
+    def test_email_success_with_error_payload(self, mock_client):
         mock_ses = mock_client.return_value
         mock_ses.send_email.return_value = self.mock_email_response
         data = email_function.lambda_handler(self.event, {})
@@ -25,7 +25,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data["Cause"], "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded")
         self.assertEqual(data["message"], self.mock_email_response["MessageId"])
 
-    def test_email_success2(self, mock_client):
+    def test_email_success_with_status_payload(self, mock_client):
         mock_ses = mock_client.return_value
         mock_ses.send_email.return_value = self.mock_email_response
         event = {"taskname": "Restore","status": "inaccessible-encryption-credentials"}

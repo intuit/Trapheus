@@ -1,8 +1,8 @@
 import os
 import sys
 import unittest
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../src/common/python')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'../../../src')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'../../../src/common/python')))
 import custom_exceptions
 from mock import patch
 from snapshot import cluster_snapshot_function
