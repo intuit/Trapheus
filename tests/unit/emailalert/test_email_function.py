@@ -18,6 +18,8 @@ class TestResourceProvider(unittest.TestCase):
         self.mock_email_response = {"MessageId": "Email sent successfully"}
 
     def test_email_success_with_error_payload(self, mock_client):
+        # test successful send of email alert through ses
+        # with payload containing `Error` attribute
         mock_ses = mock_client.return_value
         mock_ses.send_email.return_value = self.mock_email_response
         data = email_function.lambda_handler(self.event, {})
@@ -26,6 +28,8 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data["message"], self.mock_email_response["MessageId"])
 
     def test_email_success_with_status_payload(self, mock_client):
+        # test successful send of email alert through ses
+        # with payload containing `status` attribute
         mock_ses = mock_client.return_value
         mock_ses.send_email.return_value = self.mock_email_response
         event = {"taskname": "Restore","status": "inaccessible-encryption-credentials"}
@@ -35,6 +39,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data.get("message"), self.mock_email_response["MessageId"])
     
     def test_email_failure(self, mock_client):
+        # test exception occurred during send of email alert through ses
         mock_ses = mock_client.return_value
         mock_ses.send_email.side_effect = Exception("Timeout Exception")
         with self.assertRaises(Exception) as err:

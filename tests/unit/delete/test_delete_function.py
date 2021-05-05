@@ -19,6 +19,7 @@ class TestResourceProvider(unittest.TestCase):
         self.mocked_instance_not_found_exception = custom_exceptions.SnapshotCreationException("Identifier:database-1-temp \nInstanceNotFoundFault")
 
     def test_delete_success(self, mock_client):
+        # test successful invocation for delete of a db instance
         mock_rds = mock_client.return_value
         mock_rds.delete_db_instance.return_value = {}
         data = delete_function.lambda_delete_dbinstance(self.event, {})
@@ -26,13 +27,15 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data['identifier'], self.instance_id)
 
     def test_delete_rateexceeded_failure(self, mock_client):
+        #test rate limiting exception while trying delete of db instance
         mock_rds = mock_client.return_value
         mock_rds.delete_db_instance.side_effect = Exception("throttling error: Rate exceeded")
         with self.assertRaises(custom_exceptions.RateExceededException) as err:
             _ = delete_function.lambda_delete_dbinstance(self.event, {})
             self.assertEqual(err, self.mocked_rate_exceeded_exception)
 
-    def test_delete_failure(self, mock_client):
+    def test_delete_instance_not_found_failure(self, mock_client):
+        #test instance not found exception while trying delete of db instance
         mock_rds = mock_client.return_value
         mock_rds.delete_db_instance.side_effect = Exception("InstanceNotFoundFault")
         with self.assertRaises(custom_exceptions.DeletionException) as err:

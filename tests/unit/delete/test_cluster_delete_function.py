@@ -33,6 +33,7 @@ class TestResourceProvider(unittest.TestCase):
         }
 
     def test_delete_success(self, mock_client):
+        # test successful delete of the db cluster
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
         mock_rds.delete_db_instance.return_value = {}
@@ -41,6 +42,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data['identifier'], self.cluster_id)
 
     def test_delete_rateexceeded_failure(self, mock_client):
+        #test rate limiting exception for delete operation
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
         mock_rds.delete_db_cluster.side_effect = Exception("throttling error: Rate exceeded")
@@ -49,6 +51,7 @@ class TestResourceProvider(unittest.TestCase):
             self.assertEqual(err, self.mocked_rate_exceeded_exception)
 
     def test_cluster_delete_failure(self, mock_client):
+        #test db cluster not found exception during delete operation
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = {}
         mock_rds.delete_db_cluster.side_effect = Exception("DBClusterNotFound")
@@ -57,6 +60,7 @@ class TestResourceProvider(unittest.TestCase):
             self.assertEqual(err, self.mocked_cluster_not_found_exception)
 
     def test_instance_delete_failure(self, mock_client):
+        #test capture of any exception occurring during delete operation
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = {}
         mock_rds.delete_db_cluster.side_effect = Exception("InstanceDeletionFailure")

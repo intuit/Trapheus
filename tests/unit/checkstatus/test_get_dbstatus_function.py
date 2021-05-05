@@ -27,6 +27,7 @@ class TestResourceProvider(unittest.TestCase):
         self.mock_snapshot_creation_failure_status = "Identifier:database-1 \nWaiter encountered a terminal failure state"
 
     def test_get_dbstatus_delete_success(self, mock_client):
+        # test successful delete of the db cluster
         mock_rds = mock_client.return_value
         mock_rds.get_waiter.return_value = self.mock_waiter
         event = {"output": {"taskname": "Delete", "identifier": "database-1"}}
@@ -37,6 +38,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data.get("task"), self.task_complete)
 
     def test_get_dbstatus_delete_failure(self, mock_client):
+        # test rds waiter max attempt limit post deleting a db cluster
         mock_rds = mock_client.return_value
         mock_waiter = self.mock_waiter
         mock_rds.get_waiter.return_value = mock_waiter
@@ -48,6 +50,7 @@ class TestResourceProvider(unittest.TestCase):
             self.assertEqual(err.exception, self.mock_rateexceeded_exception)
 
     def test_get_dbstatus_rename_success(self, mock_client):
+        #test availability status of db instance post rename operation
         mock_rds = mock_client.return_value
         mock_waiter = self.mock_waiter
         mock_rds.get_waiter.return_value = mock_waiter
@@ -59,6 +62,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data.get("task"), self.task_complete)
 
     def test_get_dbstatus_snapshot_success(self, mock_client):
+        #test successful availability of db snapshot post create operation
         mock_rds = mock_client.return_value
         mock_waiter = self.mock_waiter
         mock_rds.get_waiter.return_value = mock_waiter
@@ -70,6 +74,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data.get("task"), self.task_complete)
 
     def test_get_dbstatus_snapshot_failure(self, mock_client):
+        #test failure of rds waiter post db snapshot creation
         mock_rds = mock_client.return_value
         mock_waiter = self.mock_waiter
         mock_rds.get_waiter.return_value = mock_waiter
@@ -83,6 +88,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data.get("task"), self.task_failed)
 
     def test_get_dbstatus_restore_failed(self, mock_client):
+        #test failure of rds waiter post db instance restore operation
         mock_rds = mock_client.return_value
         mock_waiter = self.mock_waiter
         mock_rds.get_waiter.return_value = mock_waiter
@@ -96,6 +102,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data.get("task"), self.task_failed)
 
     def test_get_dbstatus_restore_instance_not_found(self, mock_client):
+        #test instance not found exception while checking status post any db instance operation
         mock_rds = mock_client.return_value
         mock_waiter = self.mock_waiter
         mock_rds.get_waiter.return_value = mock_waiter
@@ -107,6 +114,7 @@ class TestResourceProvider(unittest.TestCase):
             self.assertEqual(err.exception, self.mock_instance_not_found_failure)
 
     def test_get_dbstatus_restore_max_attempts_exceeded_failure(self, mock_client):
+        #test rate limiting while checking status post any operation
         mock_rds = mock_client.return_value
         mock_waiter = self.mock_waiter
         mock_rds.get_waiter.return_value = mock_waiter

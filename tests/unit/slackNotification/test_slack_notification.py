@@ -53,7 +53,7 @@ class TestSlackNotification(unittest.TestCase):
                                                    expected_message)
 
     @patch("slackNotification.slack_notification.send_to_slack")
-    def test_lambda_handler_Error(self, mock_send_to_slack):
+    def test_lambda_handler_Error(self, mock_send_3to_slack):
         os.environ["SLACK_WEBHOOK"] = "webhook1,webhook2,webhook3"
         event = {"Error": "Error", "Cause": "Error-Cause"}
         slack_notification.lambda_handler(event, {})

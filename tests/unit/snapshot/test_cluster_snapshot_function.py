@@ -17,7 +17,7 @@ class TestResourceProvider(unittest.TestCase):
         self.mocked_cluster_not_found_exception = custom_exceptions.SnapshotCreationException("Identifier:database-1 \nDBClusterNotFound")
         self.mocked_duplicate_snapshot_exception = custom_exceptions.RetryClusterSnapshotException("Identifier:database-1 \nDBClusterSnapshotAlreadyExistsFault")
 
-    def test_snapshot_success(self, mock_client):
+    def test_snapshot_create_success(self, mock_client):
         mock_rds = mock_client.return_value
         mock_rds.create_db_cluster_snapshot.return_value = {}
         data = cluster_snapshot_function.lambda_create_cluster_snapshot(self.event, {})

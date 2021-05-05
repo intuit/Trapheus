@@ -51,6 +51,9 @@ class TestResourceProvider(unittest.TestCase):
         }
 
     def test_get_dbstatus_delete_success(self, mock_client):
+        # test successful delete of the db cluster
+        # in case of successful delete, instance not found exception is caught
+        # and required status returned
         mock_rds = mock_client.return_value
         mock_rds.get_waiter.return_value = self.mock_waiter
         mock_rds = mock_client.return_value
@@ -68,6 +71,7 @@ class TestResourceProvider(unittest.TestCase):
 
     @patch('checkstatus.get_dbcluster_status_function.DBClusterStatusWaiter')
     def test_get_dbstatus_rename_success(self, mock_waiter_patch, mock_client):
+        #test availability status of db cluster post rename operation
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
         mock_waiter_client = mock_waiter_patch.start()
@@ -83,6 +87,7 @@ class TestResourceProvider(unittest.TestCase):
 
     @patch('checkstatus.get_dbcluster_status_function.DBClusterStatusWaiter')
     def test_get_dbstatus_rename_failure(self, mock_waiter_patch, mock_client):
+        #test expiry scenario of rds waiter post rename operation of db cluster
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
         mock_waiter_client = mock_waiter_patch.start()
@@ -97,6 +102,7 @@ class TestResourceProvider(unittest.TestCase):
             self.assertEqual(err.exception, self.mock_rateexceeded_exception)
 
     def test_get_dbstatus_snapshot_success(self, mock_client):
+        #test successful availability of cluster snapshot post create operation
         mock_rds = mock_client.return_value
         mock_rds.get_waiter.return_value = self.mock_waiter
 
@@ -108,6 +114,7 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data.get("task"), "TASK_COMPLETE")
 
     def test_get_dbstatus_snapshot_failure(self, mock_client):
+        #test failure of rds waiter post cluster snapshot creation
         mock_rds = mock_client.return_value
         mock_waiter = self.mock_waiter
         mock_rds.get_waiter.return_value = mock_waiter
@@ -120,6 +127,7 @@ class TestResourceProvider(unittest.TestCase):
 
     @patch('checkstatus.get_dbcluster_status_function.DBClusterStatusWaiter')
     def test_get_dbstatus_restore_failed(self, mock_waiter_patch, mock_client):
+        #test failure of rds waiter post cluster restore operation
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
         mock_waiter_client = mock_waiter_patch.start()
@@ -137,6 +145,7 @@ class TestResourceProvider(unittest.TestCase):
 
     @patch('checkstatus.get_dbcluster_status_function.DBClusterStatusWaiter')
     def test_cluster_unavailable(self, mock_waiter_patch, mock_client):
+        #test instance not found exception while checking status post any cluster operation
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
         mock_waiter_client = mock_waiter_patch.start()
@@ -153,6 +162,7 @@ class TestResourceProvider(unittest.TestCase):
 
     @patch('checkstatus.get_dbcluster_status_function.DBClusterStatusWaiter')
     def test_get_dbstatus_restore_max_attempts_exceeded(self, mock_waiter_patch, mock_client):
+        #test rate limiting while checking status post any cluster operation
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
         mock_waiter_client = mock_waiter_patch.start()

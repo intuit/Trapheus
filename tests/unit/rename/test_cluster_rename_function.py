@@ -60,6 +60,8 @@ class TestResourceProvider(unittest.TestCase):
     @patch("utility.get_modified_identifier", return_value={"instance_id" : "database-1-instance-1"})
     @patch("utility.get_identifier_from_error", return_value={"modified_identifier" : "database-1", "original_identifier": "database-1-temp"})
     def test_rename_revert_success(self, mock_get_identifier_from_error, mock_get_modified_identifier, mock_client):
+        # test revert of the initial rename operation
+        # incase of failure of restore operation
         mock_rds = mock_client.return_value
         mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters
         mock_rds.modify_db_cluster.return_value = self.mocked_modify_db_cluster

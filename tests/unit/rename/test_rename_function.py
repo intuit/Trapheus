@@ -28,6 +28,8 @@ class TestResourceProvider(unittest.TestCase):
         self.assertEqual(data["identifier"], self.updated_instance_id)
 
     def test_rename_revert_success(self, mock_client):
+        # test revert of the initial rename operation
+        # incase of failure of restore operation
         mock_rds = mock_client.return_value
         mock_rds.modify_db_instance.return_value = {}
         data = rename_function.lambda_rename_dbinstance(self.revert_event, {})
