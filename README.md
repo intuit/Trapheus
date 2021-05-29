@@ -47,18 +47,16 @@ The app requires the following AWS resources to exist before installation:
 
 1. `python3.7` installed on local machine following [this](https://www.python.org/downloads/).
 
-2. Have `sam` installed in the local machine. Can be installed following the [Installing the AWS SAM CLI](https://docs.aws.amazon.com/es_es/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) documentation.
-
-3. Configure [AWS SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
+2. Configure [AWS SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
     - Configure the SES sender and receiver email ([SES Console](https://console.aws.amazon.com/ses/)->Email Addresses).
         - An SES email alert is configured to notify the user about any failures in the state machine. The sender email parameter is needed to configure the email ID through which the alert is sent out. The receiver email parameter is needed to set the email ID to which the alert is sent.
 
-4. Create the S3 bucket where the system is going to store the cloud formation templates:
+3. Create the S3 bucket where the system is going to store the cloud formation templates:
     - Proposed Name: trapheus-cfn-s3-[account-id]-[region]. It is recommended that the name contains your:
         - account-id, as the bucket names need to be global (prevents someone else having the same name)
         - region, to easily keep track when you have trapheus-s3 buckets in multiple regions
 
-5. A VPC (region specific). The same VPC/region should be used for both the RDS instance(s), to be used in Trapheus, and Trapheus' lambdas.
+4. A VPC (region specific). The same VPC/region should be used for both the RDS instance(s), to be used in Trapheus, and Trapheus' lambdas.
     - Region selection consideration. Regions that support:
         - [Email receiving](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html#region-receive-email) . Check [Parameters](#parameters) -> 'RecipientEmail' for more.
     - Example minimal VPC setup:
@@ -76,7 +74,7 @@ The app requires the following AWS resources to exist before installation:
                 - IPv4 CIDR block: 10.0.32.0/19
         - You have created a VPC with only two private subnets. If you are creating non-private subnets, check [the ratio between private, public subnets, private subnet with dedicated custom network ACL and spare capacity](https://docs.aws.amazon.com/quickstart/latest/vpc/architecture.html).
 
-6. One or more instances of an RDS database that you wish to restore.
+5. One or more instances of an RDS database that you wish to restore.
     - Example minimal *free* RDS setup:
         - Engine options: MySQL
         - Templates: Free tier
