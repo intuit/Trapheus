@@ -109,7 +109,8 @@ The following are the parameters for creating the cloudformation template:
 #### To setup the Trapheus in your AWS account, follow the steps below:
 
 1. Clone the Trapheus Git repository
-2. From the Trapheus repo execute:  
+2. Setup the [AWS configurations and credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) file on your machine 
+3. From the Trapheus repo execute:  
    `sam package --template-file template.yaml --output-template-file deploy.yaml --s3-bucket <s3 bucket name from corresponding AWS account and region>`
 3. To deploy the stack using the above mentioned parameters execute:   
    `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail>`  
@@ -120,6 +121,10 @@ The following are the parameters for creating the cloudformation template:
    `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> --SlackWebhookUrls=<comma-separated-slack-webhook-urls>`  
    More information about setting up Slack webhooks can be found [here](https://api.slack.com/messaging/webhooks)
 
+<p align="center"><img src="screenshots/trapheus.gif?raw=true"/></p>
+
+> Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue.
+> 
 #### To set up the step function execution through a scheduled run using CloudWatch rule, follow the steps below:
 
 1. Go to DBRestoreStateMachineEventRule section in the template.yaml of the Trapheus repo.
