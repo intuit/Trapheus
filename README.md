@@ -110,7 +110,7 @@ The following are the parameters for creating the cloudformation template:
 
 1. Clone the Trapheus Git repository
 2. Setup the [AWS configurations and credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) file on your machine 
-3. Run ```pip install -r requirements.txt```
+3. Run ```pip install -r requirements.txt``` to install the dependency graph
 4. Run ```python install.py```
 
 <p align="center"><img src="screenshots/trapheus.gif?raw=true"/></p>
