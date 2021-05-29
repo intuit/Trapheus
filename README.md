@@ -15,6 +15,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
   <a href="https://github.com/intuit/Trapheus/wiki/Support"><img src="https://img.shields.io/badge/support-slack-blue" alt="support badge"/></a>
 </p>
 
+
 * **Important:** this application uses various AWS services and there are costs associated with these services after the Free Tier usage - please see the [AWS  pricing page](https://aws.amazon.com/pricing/) for details.
 
 
@@ -33,6 +34,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 - * [➤ How it Works](#-how-it-works)
 - * [➤ Contributing to Trapheus](#-contributing-to-trapheus)
 - * [➤ Contributors](#-contributors)   
+- * [➤ Show your support](#-show-your-support) 
 
 </details>
 
@@ -358,3 +360,21 @@ Prepare your environment. Install tools as needed.
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=intuit/Trapheus" />
 </a>
+
+## Author
+
+👤 **Rohit Kumar**
+
+* Website: https://rite2rohit88.medium.com/
+* Twitter: [@RohitKu78051778](https://twitter.com/RohitKu78051778)
+* Github: [@stationeros](https://github.com/stationeros)
+* LinkedIn: [@https:\/\/www.linkedin.com\/in\/rohit-kumar-93880920\/](https://linkedin.com/in/https:\/\/www.linkedin.com\/in\/rohit-kumar-93880920\/)
+<p>
+  <a href="https://twitter.com/RohitKu78051778" target="_blank">
+    <img alt="Twitter: RohitKu78051778" src="https://img.shields.io/twitter/follow/RohitKu78051778.svg?style=social" />
+  </a>
+</p>
+
+## ➤ Show your support
+
+Give a ⭐️ if this project helped you!
