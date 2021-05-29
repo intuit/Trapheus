@@ -113,7 +113,7 @@ The following are the parameters for creating the cloudformation template:
 3. Run ```pip install -r requirements.txt``` to install the dependency graph
 4. Run ```python install.py```
 
-<p align="center"><img src="screenshots/trapheus.gif?raw=true"/></p>
+<p align="center"><img src="screenshots/Trapheus.gif?raw=true"/></p>
 
 > Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue.
 
