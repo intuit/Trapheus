@@ -1,5 +1,5 @@
 <p align="center">
-<img width="250" height="220"
+<img width="300" height="280"
 src="screenshots/Trapheus.png">
 </p>
 <p align="center">
