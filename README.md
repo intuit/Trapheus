@@ -110,27 +110,13 @@ The following are the parameters for creating the cloudformation template:
 
 1. Clone the Trapheus Git repository
 2. Setup the [AWS configurations and credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) file on your machine 
-3. From the Trapheus repo execute:  
-   `sam package --template-file template.yaml --output-template-file deploy.yaml --s3-bucket <s3 bucket name from corresponding AWS account and region>`
-4. To deploy the stack using the above mentioned parameters execute:  
- 
-   `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail>` 
-   
-5. In order to have the minimal Lambda-RDS access configuration and less costs ([UseVPCAndSubnets description above](#parameters) for more), add the     `UseVPCAndSubnets=false` at the end of the sam deploy command or:  
-   
-   `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> UseVPCAndSubnets=false`
-   
-   Typically, linking your own VPC to the lambdas and not setting addition NAT gateway or VPC endpoint configuration will result in a ["Connect timeout on endpoint URL: "https://rds.[region].amazonaws.com/"" or "Task timed out after 3.00 seconds" issue](https://docs.aws.amazon.com/lambda/latest/dg/troubleshooting-networking.html).  
-   <a name="slack-setup"></a>[Optional] To add Slack notification for failure alerts, add the parameter `SlackWebhookUrls` to the end of the deploy command like so:  
-   
-   `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> --SlackWebhookUrls=<comma-separated-slack-webhook-urls>` 
-   
-   More information about setting up Slack webhooks can be found [here](https://api.slack.com/messaging/webhooks)
+3. Run ```pip install -r requirements.txt```
+4. Run ```python install.py```
 
 <p align="center"><img src="screenshots/trapheus.gif?raw=true"/></p>
 
 > Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue.
-> 
+
 #### To set up the step function execution through a scheduled run using CloudWatch rule, follow the steps below:
 
 1. Go to DBRestoreStateMachineEventRule section in the template.yaml of the Trapheus repo.
