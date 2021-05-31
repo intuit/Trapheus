@@ -42,6 +42,23 @@ Parameters:
 Conditions:
   UseVPCAndSubnetsCondition: !Equals [ !Ref UseVPCAndSubnets, "true" ]
 
+  # Route 53
+  ConfigureDns:
+    Description: Configure Route 53 DNS Alias for RDS? Be sure a matching record doesn't already exist.
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  Cname:
+    Description: "(Skip if Not Configuring Route 53) DNS Record to Update for the RDS Instance."
+    Type: String
+    Default: db.domain.com
+  R53HostedZoneName:
+    Description: "(Skip if Not Configuring Route 53) Hosted DNS Name."
+    Type: String
+    Default: domain.com
+
 Resources:
   LambdaExecutionRole:
     Type: "AWS::IAM::Role"
