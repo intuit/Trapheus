@@ -115,6 +115,20 @@ The following are the parameters for creating the cloudformation template:
 
 > Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue.
 
+The above will setup a CFT in your AWS account with the name provided during installation.
+
+**TO BE NOTED**:
+The CFT creates the following resources:
+1. **DBRestoreStateMachine** Step function state machine
+2. Multiple lambdas to execute various steps in the state machine
+3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
+4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas
+5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to
+6. KMS key: is required to start export task of snapshot to s3
+7. DBRestoreStateMachineEventRule: A Cloudwatch rule in disabled state, that can be used following above [instructions](#to-set-up-the-step-function-execution-through-a-scheduled-run-using-cloudwatch-rule-follow-the-steps-below) based on user requirement
+8. CWEventStatesExecutionRole: IAM role used by DBRestoreStateMachineEventRule CloudWatch rule, to allow execution of the state machine from CloudWatch
+
+
 #### To set up the step function execution through a scheduled run using CloudWatch rule, follow the steps below:
 
 1. Go to DBRestoreStateMachineEventRule section in the template.yaml of the Trapheus repo.
@@ -132,17 +146,6 @@ The following are the parameters for creating the cloudformation template:
    b. Based on the number of targets for which you want to set the schedule, add or remove the targets.
 4. Change the **State** property value to **ENABLED**
 5. Lastly, package and redeploy the stack following steps 2 and 3 in [Trapheus setup](#to-setup-the-trapheus-in-your-aws-account-follow-the-steps-below)
-
-**TO BE NOTED**:
-The CFT creates the following resources:
-1. **DBRestoreStateMachine** Step function state machine
-2. Multiple lambdas to execute various steps in the state machine
-3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
-4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas
-5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to
-6. KMS key: is required to start export task of snapshot to s3
-7. DBRestoreStateMachineEventRule: A Cloudwatch rule in disabled state, that can be used following above [instructions](#to-set-up-the-step-function-execution-through-a-scheduled-run-using-cloudwatch-rule-follow-the-steps-below) based on user requirement
-8. CWEventStatesExecutionRole: IAM role used by DBRestoreStateMachineEventRule CloudWatch rule, to allow execution of the state machine from CloudWatch
 
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#execution)
