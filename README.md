@@ -107,7 +107,7 @@ The following are the parameters for creating the cloudformation template:
 #### To setup the Trapheus in your AWS account, follow the steps below:
 
 1. Clone the Trapheus Git repository
-2. AWS Credentials configuration. Trapheus uses boto3 as client library to talk with Amazon Web Services. Feel free to [use any environment variables](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables) that boto3 supports to configure credentials can be used to supply the Auth.
+2. AWS Credentials configuration. Trapheus uses boto3 as client library to talk with Amazon Web Services. Feel free to [use any environment variables](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables) that boto3 supports to supply authentication credentials.
 3. Run ```pip install -r requirements.txt``` to install the dependency graph
 4. Run ```python install.py```
 
