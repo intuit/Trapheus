@@ -47,18 +47,16 @@ The app requires the following AWS resources to exist before installation:
 
 1. `python3.7` installed on local machine following [this](https://www.python.org/downloads/).
 
-2. Have `sam` installed in the local machine. Can be installed following the [Installing the AWS SAM CLI](https://docs.aws.amazon.com/es_es/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) documentation.
-
-3. Configure [AWS SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
+2. Configure [AWS SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
     - Configure the SES sender and receiver email ([SES Console](https://console.aws.amazon.com/ses/)->Email Addresses).
         - An SES email alert is configured to notify the user about any failures in the state machine. The sender email parameter is needed to configure the email ID through which the alert is sent out. The receiver email parameter is needed to set the email ID to which the alert is sent.
 
-4. Create the S3 bucket where the system is going to store the cloud formation templates:
+3. Create the S3 bucket where the system is going to store the cloud formation templates:
     - Proposed Name: trapheus-cfn-s3-[account-id]-[region]. It is recommended that the name contains your:
         - account-id, as the bucket names need to be global (prevents someone else having the same name)
         - region, to easily keep track when you have trapheus-s3 buckets in multiple regions
 
-5. A VPC (region specific). The same VPC/region should be used for both the RDS instance(s), to be used in Trapheus, and Trapheus' lambdas.
+4. A VPC (region specific). The same VPC/region should be used for both the RDS instance(s), to be used in Trapheus, and Trapheus' lambdas.
     - Region selection consideration. Regions that support:
         - [Email receiving](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html#region-receive-email) . Check [Parameters](#parameters) -> 'RecipientEmail' for more.
     - Example minimal VPC setup:
@@ -76,7 +74,7 @@ The app requires the following AWS resources to exist before installation:
                 - IPv4 CIDR block: 10.0.32.0/19
         - You have created a VPC with only two private subnets. If you are creating non-private subnets, check [the ratio between private, public subnets, private subnet with dedicated custom network ACL and spare capacity](https://docs.aws.amazon.com/quickstart/latest/vpc/architecture.html).
 
-6. One or more instances of an RDS database that you wish to restore.
+5. One or more instances of an RDS database that you wish to restore.
     - Example minimal *free* RDS setup:
         - Engine options: MySQL
         - Templates: Free tier
@@ -110,27 +108,27 @@ The following are the parameters for creating the cloudformation template:
 
 1. Clone the Trapheus Git repository
 2. Setup the [AWS configurations and credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) file on your machine 
-3. From the Trapheus repo execute:  
-   `sam package --template-file template.yaml --output-template-file deploy.yaml --s3-bucket <s3 bucket name from corresponding AWS account and region>`
-4. To deploy the stack using the above mentioned parameters execute:  
- 
-   `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail>` 
-   
-5. In order to have the minimal Lambda-RDS access configuration and less costs ([UseVPCAndSubnets description above](#parameters) for more), add the     `UseVPCAndSubnets=false` at the end of the sam deploy command or:  
-   
-   `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> UseVPCAndSubnets=false`
-   
-   Typically, linking your own VPC to the lambdas and not setting addition NAT gateway or VPC endpoint configuration will result in a ["Connect timeout on endpoint URL: "https://rds.[region].amazonaws.com/"" or "Task timed out after 3.00 seconds" issue](https://docs.aws.amazon.com/lambda/latest/dg/troubleshooting-networking.html).  
-   <a name="slack-setup"></a>[Optional] To add Slack notification for failure alerts, add the parameter `SlackWebhookUrls` to the end of the deploy command like so:  
-   
-   `sam deploy --template-file deploy.yaml --stack-name <user-defined-stack-name> --region <aws region> --capabilities CAPABILITY_NAMED_IAM --parameter-overrides vpcId=<vpcID> Subnets=<Subnets> SenderEmail=<SenderEmail> RecipientEmail=<RecipientEmail> --SlackWebhookUrls=<comma-separated-slack-webhook-urls>` 
-   
-   More information about setting up Slack webhooks can be found [here](https://api.slack.com/messaging/webhooks)
+3. Run ```pip install -r requirements.txt``` to install the dependency graph
+4. Run ```python install.py```
 
-<p align="center"><img src="screenshots/trapheus.gif?raw=true"/></p>
+<p align="center"><img src="screenshots/Trapheus.gif?raw=true"/></p>
 
 > Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue.
-> 
+
+The above will setup a CFT in your AWS account with the name provided during installation.
+
+**TO BE NOTED**:
+The CFT creates the following resources:
+1. **DBRestoreStateMachine** Step function state machine
+2. Multiple lambdas to execute various steps in the state machine
+3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
+4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas
+5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to
+6. KMS key: is required to start export task of snapshot to s3
+7. DBRestoreStateMachineEventRule: A Cloudwatch rule in disabled state, that can be used following above [instructions](#to-set-up-the-step-function-execution-through-a-scheduled-run-using-cloudwatch-rule-follow-the-steps-below) based on user requirement
+8. CWEventStatesExecutionRole: IAM role used by DBRestoreStateMachineEventRule CloudWatch rule, to allow execution of the state machine from CloudWatch
+
+
 #### To set up the step function execution through a scheduled run using CloudWatch rule, follow the steps below:
 
 1. Go to DBRestoreStateMachineEventRule section in the template.yaml of the Trapheus repo.
@@ -148,17 +146,6 @@ The following are the parameters for creating the cloudformation template:
    b. Based on the number of targets for which you want to set the schedule, add or remove the targets.
 4. Change the **State** property value to **ENABLED**
 5. Lastly, package and redeploy the stack following steps 2 and 3 in [Trapheus setup](#to-setup-the-trapheus-in-your-aws-account-follow-the-steps-below)
-
-**TO BE NOTED**:
-The CFT creates the following resources:
-1. **DBRestoreStateMachine** Step function state machine
-2. Multiple lambdas to execute various steps in the state machine
-3. LambdaExecutionRole: used across all lambdas to perform multiple tasks across RDS
-4. StatesExecutionRole: IAM role with permissions for executing the state machine and invoking lambdas
-5. S3 bucket: rds-snapshots-<your_account_id> where snapshots will be exported to
-6. KMS key: is required to start export task of snapshot to s3
-7. DBRestoreStateMachineEventRule: A Cloudwatch rule in disabled state, that can be used following above [instructions](#to-set-up-the-step-function-execution-through-a-scheduled-run-using-cloudwatch-rule-follow-the-steps-below) based on user requirement
-8. CWEventStatesExecutionRole: IAM role used by DBRestoreStateMachineEventRule CloudWatch rule, to allow execution of the state machine from CloudWatch
 
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#execution)
