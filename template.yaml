@@ -39,8 +39,6 @@ Parameters:
     Type: String
     Description: Whether to use VPC and Subnets in Lambda-s.
     Default : "true"
-Conditions:
-  UseVPCAndSubnetsCondition: !Equals [ !Ref UseVPCAndSubnets, "true" ]
 
   # Route 53
   ConfigureDns:
@@ -58,6 +56,10 @@ Conditions:
     Description: "(Skip if Not Configuring Route 53) Hosted DNS Name."
     Type: String
     Default: domain.com
+
+Conditions:
+  UseVPCAndSubnetsCondition: !Equals [ !Ref UseVPCAndSubnets, "true" ]
+  ConfigureRoute53: !Equals [ !Ref ConfigureDns, 'true' ]
 
 Resources:
   LambdaExecutionRole:
@@ -100,6 +102,16 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         - arn:aws:iam::aws:policy/AWSStepFunctionsReadOnlyAccess
         - arn:aws:iam::aws:policy/AWSLambdaExecute
+
+  RecordSet:
+    Condition: ConfigureRoute53
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Join [ "", [ !Ref R53HostedZoneName, "." ] ]
+      Comment: CNAME Redirect to the RDS
+      Name: !Join [ "", [ !Ref Cname, "." ] ]
+      Type: CNAME
+      TTL: 300
 
   StatesExecutionRole:
     Type: "AWS::IAM::Role"
