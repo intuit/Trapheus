@@ -113,7 +113,7 @@ The following are the parameters for creating the cloudformation template:
 
 <p align="center"><img src="screenshots/Trapheus.gif?raw=true"/></p>
 
-> Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue.
+> Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue or join me live in [Discord](https://discord.gg/mxBwDZH3Mr)
 
 The above will setup a CFT in your AWS account with the name provided during installation.
 
