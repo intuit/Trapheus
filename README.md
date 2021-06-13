@@ -375,4 +375,6 @@ Prepare your environment. Install tools as needed.
 
 ## ➤ Show your support
 
-Give a ⭐️ if this project helped you!
+Give a ⭐️ if this project helped you
+
+<a href="https://www.buymeacoffee.com/stationeros" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" width="150" ></a>
