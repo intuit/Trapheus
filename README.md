@@ -366,7 +366,7 @@ Prepare your environment. Install tools as needed.
 * Website: https://rite2rohit88.medium.com/
 * Twitter: [@RohitKu78051778](https://twitter.com/RohitKu78051778)
 * Github: [@stationeros](https://github.com/stationeros)
-* LinkedIn: [@https:\/\/www.linkedin.com\/in\/rohit-kumar-93880920\/](https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile)
+* LinkedIn: [@Rohit Kumar](https://www.linkedin.com/in/rohit-kumar-93880920/)
 <p>
   <a href="https://twitter.com/RohitKu78051778" target="_blank">
     <img alt="Twitter: RohitKu78051778" src="https://img.shields.io/twitter/follow/RohitKu78051778.svg?style=social" />
