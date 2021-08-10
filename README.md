@@ -358,13 +358,3 @@ Prepare your environment. Install tools as needed.
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=intuit/Trapheus" />
 </a>
-
-## Author
-
-👤 **Namita Devadas**
-
-* Twitter: [@DevadasNamita](https://twitter.com/DevadasNamita?s=20)
-* Github: [@namitad](https://github.com/namitad)
-* LinkedIn: [@Namita Devadas](https://www.linkedin.com/in/namita-devadas-289279141)
-
-
