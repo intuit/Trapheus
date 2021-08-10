@@ -359,13 +359,7 @@ Prepare your environment. Install tools as needed.
   <img src="https://contrib.rocks/image?repo=intuit/Trapheus" />
 </a>
 
-## Authors
-👤 **Rohit Kumar**
-
-* Website: https://rite2rohit88.medium.com/
-* Twitter: [@RohitKu78051778](https://twitter.com/RohitKu78051778)
-* Github: [@stationeros](https://github.com/stationeros)
-* LinkedIn: [@Rohit Kumar](https://www.linkedin.com/in/rohit-kumar-93880920/)
+## Author
 
 👤 **Namita Devadas**
 
