@@ -6,6 +6,8 @@ setup(name='trapheus', version='0.1.2', author='stationeros (Rohit Kumar)',
       classifiers=[
           'Development Status :: 4 - Beta',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
+          'Programming Language :: Python :: 3.9',
           'Intended Audience :: Developers',
           'Intended Audience :: Information Technology',
           'License :: OSI Approved :: MIT License',
