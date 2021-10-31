@@ -15,7 +15,10 @@ def lambda_create_dbinstance_snapshot(event, context):
             DBSnapshotIdentifier = snapshot_id,
             DBInstanceIdentifier = instance_id
         )
-        result['taskname'] = constants.SNAPSHOT
+        if event['task'] == "create_snapshot_only":
+            result['taskname'] = constants.SNAPSHOT_ONLY
+        else:
+            result['taskname'] = constants.SNAPSHOT
         result['identifier'] = instance_id
         return result
     except Exception as error:

@@ -15,7 +15,10 @@ def lambda_create_cluster_snapshot(event, context):
             DBClusterSnapshotIdentifier = snapshot_id,
             DBClusterIdentifier = cluster_id
         )
-        result['taskname'] = constants.SNAPSHOT
+        if event['task'] == "create_snapshot_only":
+            result['taskname'] = constants.SNAPSHOT_ONLY
+        else:
+            result['taskname'] = constants.SNAPSHOT
         result['identifier'] = cluster_id
         return result
     except Exception as error:
