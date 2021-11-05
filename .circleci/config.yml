@@ -4,6 +4,11 @@ orbs:
   python: circleci/python@0.2.1
 
 jobs:
+  deploy-job:
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            77:f8:4a:24:59:88:ca:0e:4e:86:38:af:f4:11:9e:b9
   build-and-test:
     executor: python/default
     steps:
@@ -25,4 +30,5 @@ jobs:
 workflows:
   main:
     jobs:
+      - deploy-job
       - build-and-test 
