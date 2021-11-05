@@ -5,6 +5,7 @@ orbs:
 
 jobs:
   deploy-job:
+    executor: python/default
     steps:
       - add_ssh_keys:
           fingerprints:
