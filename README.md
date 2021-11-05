@@ -21,7 +21,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 <details>
 <summary>📖 Table of Contents</summary>
-<br />
+<br/>
 
 [![---------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#table-of-contents)
 
