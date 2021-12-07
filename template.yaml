@@ -517,7 +517,7 @@ Resources:
                 "Type": "Choice",
                   "Choices": [{
                     "Variable": "$.task",
-                    "StringEquals": "create_snapshot",
+                    "StringMatches": "create_snapshot*",
                     "Next": "ClusterSnapshotCreate"
                   }],
                   "Default": "ClusterRename"
@@ -568,12 +568,26 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "StartClusterSnapshotExportTask"
+                  "Next": "IsClusterUpdateSnapshotOnly"
                 },
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
                   "Next": "FailedState"
+                }],
+                "Default": "GetClusterSnapshotStatus"
+              },
+              "IsClusterUpdateSnapshotOnly": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.taskname",
+                  "StringEquals": "SnapshotCreationOnly",
+                  "Next": "RestorePipelineComplete"
+                },
+                {
+                  "Variable": "$.taskname",
+                  "StringEquals": "SnapshotCreation",
+                  "Next": "StartClusterSnapshotExportTask"
                 }],
                 "Default": "GetClusterSnapshotStatus"
               },
@@ -758,7 +772,7 @@ Resources:
                 "Type": "Choice",
                 "Choices": [{
                   "Variable": "$.task",
-                  "StringEquals": "create_snapshot",
+                  "StringMatches": "create_snapshot*",
                   "Next": "DbSnapshotCreate"
                 }],
                 "Default": "DbInstanceRename"
@@ -809,12 +823,26 @@ Resources:
                 "Choices": [{
                   "Variable": "$.task",
                   "StringEquals": "TASK_COMPLETE",
-                  "Next": "StartSnapshotExportTask"
+                  "Next": "IsDbUpdateSnapshotOnly"
                 },
                 {
                   "Variable": "$.task",
                   "StringEquals": "TASK_FAILED",
                   "Next": "FailedState"
+                }],
+                "Default": "GetDbSnapshotStatus"
+              },
+              "IsDbUpdateSnapshotOnly": {
+                "Type": "Choice",
+                "Choices": [{
+                  "Variable": "$.taskname",
+                  "StringEquals": "SnapshotCreationOnly",
+                  "Next": "RestorePipelineComplete"
+                },
+                {
+                  "Variable": "$.taskname",
+                  "StringEquals": "SnapshotCreation",
+                  "Next": "StartSnapshotExportTask"
                 }],
                 "Default": "GetDbSnapshotStatus"
               },

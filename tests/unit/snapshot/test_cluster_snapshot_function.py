@@ -12,7 +12,7 @@ os.environ["Region"] = "us-west-2"
 @patch("snapshot.cluster_snapshot_function.boto3.client")
 class TestResourceProvider(unittest.TestCase):
     def setUp(self):
-        self.event = {"identifier": "database-1"}
+        self.event = {"identifier": "database-1", "task": "create_snapshot"}
         self.mocked_rate_exceeded_exception = custom_exceptions.RateExceededException("Identifier:database-1 \nthrottling error: Rate exceeded")
         self.mocked_cluster_not_found_exception = custom_exceptions.SnapshotCreationException("Identifier:database-1 \nDBClusterNotFound")
         self.mocked_duplicate_snapshot_exception = custom_exceptions.RetryClusterSnapshotException("Identifier:database-1 \nDBClusterSnapshotAlreadyExistsFault")
@@ -23,6 +23,15 @@ class TestResourceProvider(unittest.TestCase):
         data = cluster_snapshot_function.lambda_create_cluster_snapshot(self.event, {})
         self.assertEqual(data.get("taskname"), "SnapshotCreation")
         self.assertEqual(data.get("identifier"), self.event["identifier"])
+
+    def test_snapshot_create_only_success(self, mock_client):
+        self.event = {"identifier": "database-1", "task": "create_snapshot_only"}
+        mock_rds = mock_client.return_value
+        mock_rds.create_db_cluster_snapshot.return_value = {}
+        data = cluster_snapshot_function.lambda_create_cluster_snapshot(self.event, {})
+        self.assertEqual(data.get("taskname"), "SnapshotCreationOnly")
+        self.assertEqual(data.get("identifier"), self.event["identifier"])
+        self.event = {"identifier": "database-1", "task": "create_snapshot"}
 
     def test_snapshot_rateexceeded_failure(self, mock_client):
         mock_rds = mock_client.return_value

@@ -165,13 +165,14 @@ To execute the step function, follow the steps below:
 ```
 a. `identifier`: (Required - String) The RDS instance or cluster identifier that has to be restored. Any type of RDS instance or Amazon aurora clusters are supported in this.
 
-b. `task`: (Required - String) Valid options are `create_snapshot` or `db_restore`.
+b. `task`: (Required - String) Valid options are `create_snapshot` or `db_restore` or `create_snapshot_only`.
 
 c. `isCluster`: (Required - Boolean) Set to `true` if the identifier provided is of a cluster else set to `false`
 
 The state machine can do one of the following tasks:
 1. if `task` is set to `create_snapshot`, the state machine creates/updates a snapshot for the given RDS instance or cluster using the snapshot identifier: *identifier*-snapshot and then executes the pipeline
 2. if `task` is set to `db_restore`, the state machine does a restore on the given RDS instance, without updating a snapshot, assuming there is an existing snapshot with an identifier: *identifier*-snapshot
+3. if `task` is set to `create_snapshot_only`, the state machine creates/updates a snapshot for the given RDS instance or cluster using the snapshot identifier: *identifier*-snapshot and it would not execute the pipeline
 
 **Cost considerations**
 
@@ -210,17 +211,20 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 
 3. If `task` is set to `db_restore`, the db restoration process starts, without a snapshot creation/updation
 
-4. As part of the db restoration process, the first step is a **Rename** of the provided db instance or db cluster and its corresponding instances to a temporary name.
+4. If `task` is set to `create_snapshot_only`, the **snapshot creation/updation** process only takes place for a cluster or instance respectively.
+   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created.
+
+5. As part of the db restoration process, the first step is a **Rename** of the provided db instance or db cluster and its corresponding instances to a temporary name.
    Wait for successful completion of the rename step to be able to use the provided unique `identifier` in the restoration step.
 
-5. Once the rename step is complete, next step is to **Restore** the db-instance or db-cluster using the `identifier` parameter and the snapshot id as *identifier*-snapshot
+6. Once the rename step is complete, next step is to **Restore** the db-instance or db-cluster using the `identifier` parameter and the snapshot id as *identifier*-snapshot
 
-6. Once the restore is complete and the db-instance or db-cluster is available, the final step is to **Delete** the initially renamed instance or cluster (along with its instances) which was retained for failure handling purposes.
+7. Once the restore is complete and the db-instance or db-cluster is available, the final step is to **Delete** the initially renamed instance or cluster (along with its instances) which was retained for failure handling purposes.
    Executed using lambdas created for deletion purposes, once the deletion is successful, the pipeline is complete.
 
-7. At any step, the retries with backoff and failure alerts are handled in every step of the state machine. If there is an occurrence of a failure, an SES email alert is sent as configured during the setup. Optionally, if `SlackWebhookUrls` was provided in the [setup](#slack-setup), failure notifications will also be sent to the appropriate channels.
+8. At any step, the retries with backoff and failure alerts are handled in every step of the state machine. If there is an occurrence of a failure, an SES email alert is sent as configured during the setup. Optionally, if `SlackWebhookUrls` was provided in the [setup](#slack-setup), failure notifications will also be sent to the appropriate channels.
 
-8. If the restore step fails, as part of failure handling, the **Step-4** of instance/cluster rename is reverted to ensure that the original db-instance or db cluster is available for use.
+9. If the restore step fails, as part of failure handling, the **Step-4** of instance/cluster rename is reverted to ensure that the original db-instance or db cluster is available for use.
 
 ![DBRestore failure handling depiction](screenshots/failure_handling.png)
 
