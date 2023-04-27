@@ -11,3 +11,12 @@ Report security bugs in third-party modules to the person or team maintaining th
 ## Learning More About AWS RDS Security
 
 To learn more about securing an AWS RDS application, please see the [security tutorial](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.html).
+
+
+## Supported Versions
+
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 0.1.2   | :white_check_mark: |
+| 0.1.1   | :white_check_mark: |             |
