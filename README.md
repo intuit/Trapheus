@@ -12,7 +12,6 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 <a href = "https://coveralls.io/github/intuit/Trapheus?branch=master"><img src= "https://coveralls.io/repos/github/intuit/Trapheus/badge.svg?branch=master" alt = "Coverage"/></a>
   <a href="http://www.serverless.com"><img src="http://public.serverless.com/badges/v3.svg" alt="serverless badge"/></a>
   <a href="https://github.com/intuit/Trapheus/releases"><img src="https://img.shields.io/github/v/release/intuit/trapheus.svg" alt="release badge"/></a>
-  <a href="https://discord.gg/mxBwDZH3Mr" target="_blank"><img src="https://img.shields.io/discord/524990803874152458?style=plastic" alt="discord link"/></a>
 </p>
 
 
@@ -113,7 +112,7 @@ The following are the parameters for creating the cloudformation template:
 
 <p align="center"><img src="screenshots/Trapheus.gif?raw=true"/></p>
 
-> Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue or join me live in [Discord](https://discord.gg/mxBwDZH3Mr)
+> Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue
 
 The above will setup a CFT in your AWS account with the name provided during installation.
 
