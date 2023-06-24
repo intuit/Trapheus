@@ -1,0 +1,129 @@
+import boto3
+import networkx as nx
+import matplotlib.pyplot as plt
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from networkx.algorithms import community
+import plotly.graph_objects as go
+import pydeck as pdk
+import random
+
+
+client = boto3.client('dataexchange', region_name='us-east-1')
+
+datasets_response = client.list_data_sets(MaxResults=100, Origin='ENTITLED')
+datasets = datasets_response['DataSets']
+
+
+def extract_keywords(description=None):
+    if description is None:
+        return set()
+
+    tokens = word_tokenize(description.lower())
+    filtered_tokens = [word for word in tokens if word.isalnum() and word not in stopwords.words('english')]
+    return set(filtered_tokens)
+
+
+G = nx.Graph()
+
+
+
+def compute_node_properties(dataset):
+    dataset_name = dataset['name']
+    name_length = len(dataset_name)
+    return {'name_length': name_length}
+
+
+def compute_edge_properties(dataset1, dataset2):
+    dataset1_keywords = dataset1['keywords']
+    dataset2_keywords = dataset2['keywords']
+    common_keywords = dataset1_keywords.intersection(dataset2_keywords)
+    common_keywords_length = len(common_keywords)
+    return {'common_keywords_length': common_keywords_length}
+
+
+for dataset in datasets:
+    dataset_id = dataset['Id']
+    dataset_name = dataset['Name']
+    dataset_description = dataset.get('Description')  
+
+    computed_properties = compute_node_properties({'name': dataset_name})
+    G.add_node(dataset_id, name=dataset_name, description=dataset_description, computed_properties=computed_properties)
+
+
+for i, dataset1 in enumerate(datasets):
+    for dataset2 in datasets[i+1:]:
+        dataset1_id = dataset1['Id']
+        dataset2_id = dataset2['Id']
+        dataset1_keywords = extract_keywords(dataset1.get('Description'))
+        dataset2_keywords = extract_keywords(dataset2.get('Description'))
+
+        common_keywords = dataset1_keywords.intersection(dataset2_keywords)
+        if len(common_keywords) >= 2:  
+            computed_properties = compute_edge_properties({'keywords': dataset1_keywords}, {'keywords': dataset2_keywords})
+            G.add_edge(dataset1_id, dataset2_id, common_keywords=common_keywords, computed_properties=computed_properties)
+
+print(common_keywords)
+
+communities = list(nx.community.girvan_newman(G))
+
+
+community_colors = {}
+for i, community in enumerate(communities[0]):
+    for node in community:
+        community_colors[node] = i
+
+node_degrees = dict(G.degree())
+node_closeness_centralities = nx.closeness_centrality(G)
+node_betweenness_centralities = nx.betweenness_centrality(G)
+
+
+pos = nx.spring_layout(G, dim=3)
+
+
+# Create a scatter plot for nodes
+node_trace = go.Scatter3d(
+    x=[pos[node][0] for node in G.nodes],
+    y=[pos[node][1] for node in G.nodes],
+    z=[pos[node][2] for node in G.nodes],
+    mode='markers',
+    text=[f'Dataset ID: {node}<br>Name: {G.nodes[node]["name"]}<br>Community: {community_colors[node]}<br>Degree: {node_degrees[node]}<br>Closeness Centrality: {node_closeness_centralities[node]:.2f}<br>Betweenness Centrality: {node_betweenness_centralities[node]:.2f}<br>Computed Properties: {", ".join(G.nodes[node]["computed_properties"])}' for node in G.nodes],
+    hoverinfo='text',
+    marker=dict(
+        size=10,
+        color=[community_colors[node] for node in G.nodes],
+        colorscale='Viridis',
+        opacity=0.8
+    )
+)
+
+# Create a scatter plot for edges
+edge_trace = go.Scatter3d(
+    x=[coord for edge in G.edges for coord in (pos[edge[0]][0], pos[edge[1]][0], None)],
+    y=[coord for edge in G.edges for coord in (pos[edge[0]][1], pos[edge[1]][1], None)],
+    z=[coord for edge in G.edges for coord in (pos[edge[0]][2], pos[edge[1]][2], None)],
+    mode='lines',
+    line=dict(color='gray', width=1),
+    hovertext=[f'Common Keywords: {", ".join(G.edges[edge]["common_keywords"])}<br>Computed Properties: {", ".join(G.edges[edge]["computed_properties"])}' for edge in G.edges],
+    hoverinfo='text'
+)
+
+
+fig = go.Figure(data=[edge_trace, node_trace])
+
+
+fig.update_layout(
+    scene=dict(
+        xaxis_title="X",
+        yaxis_title="Y",
+        zaxis_title="Z"
+    ),
+    title="Relationships Between AWS Data Exchange Datasets with Community Structure and NetworkX Properties",
+    showlegend=False,
+    hovermode='closest',
+    margin=dict(b=20, l=5, r=5, t=40),
+)
+
+
+fig.show()
