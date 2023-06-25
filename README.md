@@ -114,7 +114,7 @@ The following are the parameters for creating the cloudformation template:
 
 > Still facing an issue? Check the [Issues](https://github.com/intuit/Trapheus/issues) section or open a new issue
 
-The above will setup a CFT in your AWS account with the name provided during installation.
+The above will setup a CloudFormation Template (CFT) in your AWS account with the name provided during installation.
 
 **TO BE NOTED**:
 The CFT creates the following resources:
