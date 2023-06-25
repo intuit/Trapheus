@@ -64,8 +64,6 @@ for i, dataset1 in enumerate(datasets):
             computed_properties = compute_edge_properties({'keywords': dataset1_keywords}, {'keywords': dataset2_keywords})
             G.add_edge(dataset1_id, dataset2_id, common_keywords=common_keywords, computed_properties=computed_properties)
 
-print(common_keywords)
-
 communities = list(nx.community.girvan_newman(G))
 
 
