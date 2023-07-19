@@ -1,0 +1,3 @@
+# Add your API key below, and make sure to not share it for privacy reasons.
+# Get api key from: https://platform.openai.com/account/api-keys
+OPENAI_API_KEY="<<open_api_key>>"
