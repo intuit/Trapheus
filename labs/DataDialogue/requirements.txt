@@ -1,4 +1,4 @@
-langchain==0.0.154
+langchain==0.0.236
 openai==0.27.5
 streamlit==1.22.0
 black==23.3.0
