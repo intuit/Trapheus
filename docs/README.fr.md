@@ -104,7 +104,7 @@ Voici les paramètres de création du modèle cloudformation :
 3.  Courir`pip install -r requirements.txt`pour installer le graphe de dépendance
 4.  Courir`python install.py`
 
-<p align="center"><img src="opensource/Trapheus/screenshots/Trapheus.gif?raw=true"/></p>
+<p align="center"><img src="../screenshots/Trapheus.gif?raw=true"/></p>
 
 > Toujours confronté à un problème ? Vérifier la[Problèmes](https://github.com/intuit/Trapheus/issues)section ou ouvrir un nouveau sujet
 
@@ -189,7 +189,7 @@ Pour démonter votre application et supprimer toutes les ressources associées �
 
 **Canalisation complète**
 
-![DBRestore depiction](opensource/Trapheus/screenshots/restore_state_machine.png)
+![DBRestore depiction](../screenshots/restore_state_machine.png)
 
 Modélisé comme une machine d'état, différentes étapes du flux telles que la création/mise à jour d'instantanés, le changement de nom d'instance, la restauration et la suppression, l'état d'achèvement/d'échec de chaque opération, l'alerte par e-mail d'échec, etc. sont exécutées à l'aide de lambdas individuels pour les instances de base de données et les clusters de base de données respectivement.
 Pour suivre l'achèvement/l'échec de chaque opération, les serveurs RDS sont utilisés avec des retards et un nombre maximal de tentatives configurées en fonction du délai d'attente lambda. Pour les scénarios de disponibilité et de suppression du cluster de bases de données, des serveurs personnalisés ont été définis.
@@ -219,7 +219,7 @@ Sur la base des informations fournies au**DBRestoreStateMachineDBRestoreStateMac
 
 9.  Si l'étape de restauration échoue, dans le cadre de la gestion des échecs, le**Étape 4**du renommage de l'instance/du cluster est annulé pour garantir que l'instance de base de données ou le cluster de base de données d'origine est disponible à l'utilisation.
 
-![DBRestore failure handling depiction](opensource/Trapheus/screenshots/failure_handling.png)
+![DBRestore failure handling depiction](../screenshots/failure_handling.png)
 
 [![\-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#contributing-to-trapheus)
 
