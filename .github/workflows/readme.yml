@@ -3,10 +3,9 @@ name: Translate README
 on:
   push:
     branches:
-      - master
-
-permissions:
-  contents: write
+      - readme-translations
+    paths:
+      - README.md
 
 jobs:
   build:
