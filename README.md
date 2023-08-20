@@ -3,6 +3,8 @@
 src="screenshots/Trapheus.png">
 </p>
 <p align="center">
+ 
+ <br/>
 <b>Restore RDS instances in AWS without worrying about client downtime or configuration retention.</b><br/>
 <sub>Trapheus can restore individual RDS instance or a RDS cluster.
 Modelled as a state machine, with the help of AWS step functions, Trapheus restores the RDS instance in a much faster way than the usual SQL dump preserving the same instance endpoint and confgurations as before.
@@ -13,6 +15,8 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
   <a href="http://www.serverless.com"><img src="http://public.serverless.com/badges/v3.svg" alt="serverless badge"/></a>
   <a href="https://github.com/intuit/Trapheus/releases"><img src="https://img.shields.io/github/v/release/intuit/trapheus.svg" alt="release badge"/></a>
 </p>
+
+ <img src="https://ch-resources.oss-cn-shanghai.aliyuncs.com/images/lang-icons/icon128px.png" width="22px" /> [English](README.md) |  [简体中文](./docs/README-zh-CN.md) | [français](./docs/README.fr.md)
 
 
 * **Important:** this application uses various AWS services and there are costs associated with these services after the Free Tier usage - please see the [AWS  pricing page](https://aws.amazon.com/pricing/) for details.
