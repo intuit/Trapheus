@@ -3,7 +3,7 @@ name: Translate README
 on:
   push:
     branches:
-      - translate1
+      - master
 jobs:
   build:
     runs-on: ubuntu-latest
