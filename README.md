@@ -3,8 +3,6 @@
 src="screenshots/Trapheus.png">
 </p>
 <p align="center">
- 
- <br/>
 <b>Restore RDS instances in AWS without worrying about client downtime or configuration retention.</b><br/>
 <sub>Trapheus can restore individual RDS instance or a RDS cluster.
 Modelled as a state machine, with the help of AWS step functions, Trapheus restores the RDS instance in a much faster way than the usual SQL dump preserving the same instance endpoint and confgurations as before.
