@@ -1,6 +1,6 @@
 <p align="center">
 <img width="300" height="280"
-src="opensource/Trapheus/screenshots/Trapheus.png">
+src="../screenshots/Trapheus.png">
 </p>
 <p align="center">
 <b>Restore RDS instances in AWS without worrying about client downtime or configuration retention.</b><br/>
