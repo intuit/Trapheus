@@ -18,5 +18,6 @@ To learn more about securing an AWS RDS application, please see the [security tu
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.2   | :white_check_mark: |
-| 0.1.1   | :white_check_mark: |             |
+| 0.1.4   | ✅                 |
+| 0.1.3   | ✅                 |
+          
