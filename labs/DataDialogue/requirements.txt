@@ -1,7 +1,8 @@
+
 langchain
 openai
 streamlit
 black
 tabulate
 huggingface-hub
-
+redis
