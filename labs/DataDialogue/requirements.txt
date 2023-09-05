@@ -6,3 +6,4 @@ tabulate
 huggingface-hub
 redis
 streamlit-image-select
+requests
