@@ -227,7 +227,7 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 
 ![DBRestore failure handling depiction](screenshots/failure_handling.png)
 
-
+**Amazon Blog Post** : https://aws.amazon.com/blogs/opensource/what-is-trapheus/
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#contributing-to-trapheus)
 
