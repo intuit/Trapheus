@@ -8,3 +8,5 @@ redis
 streamlit-image-select
 requests
 transformers
+accelerate
+bitsandbytes
