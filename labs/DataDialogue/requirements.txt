@@ -8,3 +8,4 @@ redis
 streamlit-image-select
 requests
 transformers
+torch
