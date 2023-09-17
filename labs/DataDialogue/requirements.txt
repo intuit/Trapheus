@@ -7,4 +7,4 @@ huggingface-hub
 redis
 streamlit-image-select
 requests
-transformers
+transformers==4.30
