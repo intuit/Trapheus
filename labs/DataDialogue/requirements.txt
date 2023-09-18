@@ -8,3 +8,6 @@ redis
 streamlit-image-select
 requests
 transformers==4.30
+accelerate
+bitsandbytes
+torch
