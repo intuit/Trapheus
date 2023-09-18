@@ -73,7 +73,8 @@ The app requires the following AWS resources to exist before installation:
                 - VPC: Trapheus-VPC-[region]
                 - Availability Zone: choose a different one than the Subnet1 AZ.
                 - IPv4 CIDR block: 10.0.32.0/19
-        - You have created a VPC with only two private subnets. If you are creating non-private subnets, check [the ratio between private, public subnets, private subnet with dedicated custom network ACL and spare capacity](https://docs.aws.amazon.com/quickstart/latest/vpc/architecture.html).
+        - You have created a VPC with only two private subnets. If you are creating non-private subnets, check [the ratio between private, public subnets, private subnet with dedicated custom network ACL and spare capacity](https://aws-quickstart.github.io/quickstart-aws-vpc/).
+        
 
 5. One or more instances of an RDS database that you wish to restore.
     - Example minimal *free* RDS setup:
