@@ -1,6 +1,6 @@
 <p align="center">
 <img width="300" height="280"
-src="screenshots/Trapheus.png">
+src="../screenshots/Trapheus.png">
 </p>
 <p align="center">
 <b>Restore RDS instances in AWS without worrying about client downtime or configuration retention.</b><br/>
@@ -192,7 +192,7 @@ Pour démonter votre application et supprimer toutes les ressources associées �
 
 **Pipeline complet**
 
-![DBRestore depiction](screenshots/restore_state_machine.png)
+![DBRestore depiction](../screenshots/restore_state_machine.png)
 
 Modélisées comme une machine à états, différentes étapes du flux telles que la création/mise à jour d'instantanés, le renommage de l'instance, la restauration et la suppression, l'état d'achèvement/d'échec de chaque opération, l'alerte par e-mail d'échec, etc. sont exécutées à l'aide de lambdas individuels pour les instances de base de données et les clusters de base de données. respectivement.
 Pour suivre l'achèvement/l'échec de chaque opération, les serveurs RDS sont utilisés avec des délais et un nombre maximal de tentatives configurés en fonction du délai d'expiration lambda. Pour les scénarios de disponibilité et de suppression de cluster de bases de données, des serveurs personnalisés ont été définis.
@@ -222,7 +222,7 @@ Sur la base des commentaires fournis au**DBRestoreStateMachine**fonction step, l
 
 9.  Si l'étape de restauration échoue, dans le cadre de la gestion des échecs, le**Étape 4**Le changement de nom de l'instance/du cluster est inversé pour garantir que l'instance de base de données ou le cluster de base de données d'origine est disponible pour utilisation.
 
-![DBRestore failure handling depiction](screenshots/failure_handling.png)
+![DBRestore failure handling depiction](../screenshots/failure_handling.png)
 
 **Article du blog Amazon**:<https://aws.amazon.com/blogs/opensource/what-is-trapheus/>
 
