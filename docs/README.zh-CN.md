@@ -14,6 +14,8 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
   <a href="https://github.com/intuit/Trapheus/releases"><img src="https://img.shields.io/github/v/release/intuit/trapheus.svg" alt="release badge"/></a>
 </p>
 
+<img src="https://ch-resources.oss-cn-shanghai.aliyuncs.com/images/lang-icons/icon128px.png" width="22px" />[英语](README.md)\|[简体中文](./docs/README.zh-CN.md)\|[法语](./docs/README.fr.md)
+
 -   **重要的：**此应用程序使用各种 AWS 服务，并且在使用免费套餐后会产生与这些服务相关的费用 - 请参阅[AWS 定价页面](https://aws.amazon.com/pricing/)了解详情。
 
 <details>
@@ -44,7 +46,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 1.  `python3.7`安装在本地计算机上如下[这](https://www.python.org/downloads/).
 
 2.  配置[AWSSES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
-    -   配置 SES 发件人和收件人电子邮件（[SES-控制台](https://console.aws.amazon.com/ses/)->电子邮件地址）。
+    -   配置 SES 发件人和收件人电子邮件（[SES控制台](https://console.aws.amazon.com/ses/)->电子邮件地址）。
         -   SES 电子邮件警报配置为通知用户状态机中的任何故障。需要sender email参数来配置发送警报的电子邮件ID。需要接收者电子邮件参数来设置警报发送到的电子邮件 ID。
 
 3.  创建系统将存储云形成模板的 S3 存储桶：
@@ -61,21 +63,22 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
             -   [IPv4 CIDR 块](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#vpc-sizing-ipv4): 10.0.0.0/16
         -   VPC控制台->子网页面并创建两个私有子网：
             -   子网1：
-                -   VPC：斜方VPC[地区]
+                -   VPC: Trapheus-VPC-[地区]
                 -   可用区域：选择一个
                 -   IPv4 CIDR 块：10.0.0.0/19
             -   子网2：
-                -   VPC：斜方VPC[地区]
+                -   VPC: Trapheus-VPC-[地区]
                 -   可用区：选择与 Subnet1 AZ 不同的可用区。
                 -   IPv4 CIDR 块：10.0.32.0/19
-        -   您创建了一个只有两个私有子网的 VPC。如果您要创建非私有子网，请检查[私有子网、公有子网、具有专用自定义网络 ACL 的私有子网和备用容量之间的比率](https://docs.aws.amazon.com/quickstart/latest/vpc/architecture.html).
+        -   您创建了一个只有两个私有子网的 VPC。如果您要创建非私有子网，请检查[私有子网、公有子网、具有专用自定义网络 ACL 的私有子网和备用容量之间的比率](https://aws-quickstart.github.io/quickstart-aws-vpc/).
+
 
 5.  您想要恢复的 RDS 数据库的一个或多个实例。
     -   最小示例_自由的_RDS 设置：
         -   引擎选项：MySQL
         -   模板：免费套餐
         -   设置：输入密码
-        -   连接性：VPC：Trapeus VPC[地区]
+        -   连接性：VPC：Trapeus-VPC-[地区]
 
 [![\-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#parameters)
 
@@ -87,7 +90,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 2.  `vpcID`:[必需的]来自 VPC 的 id[先决条件](#pre-requisites)。来自 Trapheus 状态机的 lambda 将在此 VPC 中创建。
 3.  `Subnets`:[必需的]私有子网 ID（特定于区域）的逗号分隔列表[先决条件](#pre-requisites)专有网络。
 4.  `SenderEmail`:[必需的]中配置的SES发送电子邮件[先决条件](#pre-requisites)
-5.  `RecipientEmail`:[必需的]配置的收件人电子邮件地址的逗号分隔列表[先决条件](#pre-requisites).
+5.  `RecipientEmail`:[必需的]在中配置的收件人电子邮件地址的逗号分隔列表[先决条件](#pre-requisites).
 6.  `UseVPCAndSubnets`:[选修的]是否使用 vpc 和子网创建安全组并将安全组和 vpc 链接到 lambda。当 UseVPCAndSubnets 省略（默认）或设置为“true”时，lambda 将连接到您账户中的 VPC，并且默认情况下，如果 VPC 不提供访问权限（通过以下方式），则该函数无法访问 RDS（或其他服务）：将出站流量路由到[NAT网关](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html)在公共子网中，或者有一个[VPC端点](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html)，两者都会产生成本或需要更多设置）。如果设置为“假”，则[lambdas 将在默认的 Lambda 拥有的 VPC 中运行，该 VPC 可以访问 RDS（和其他 AWS 服务）](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html#vpc-internet).
 7.  `SlackWebhookUrls`:[选修的]用于故障警报的 Slack Webhook 的逗号分隔列表。
 
@@ -104,13 +107,13 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 3.  跑步`pip install -r requirements.txt`安装依赖图
 4.  跑步`python install.py`
 
-<p align="center"><img src="../screenshots/Trapheus.gif?raw=true"/></p>
+<p align="center"><img src="screenshots/Trapheus.gif?raw=true"/></p>
 
 > 仍然面临问题吗？检查[问题](https://github.com/intuit/Trapheus/issues)部分或打开一个新问题
 
 上述操作将使用安装期间提供的名称在您的 AWS 账户中设置一个 CFT。
 
-**需要注意的是**：
+**需要注意的是**:
 CFT 创建以下资源：
 
 1.  **数据库恢复状态机**阶跃函数状态机
@@ -137,7 +140,7 @@ CFT 创建以下资源：
 
     b.根据您要为其设置计划的目标数量，添加或删除目标。
 4.  改变**状态**财产价值为**启用**
-5.  最后，按照中的步骤 2 和 3 打包并重新部署堆栈[吊人设置](#to-setup-the-trapheus-in-your-aws-account-follow-the-steps-below)
+5.  最后，按照中的步骤 2 和 3 打包并重新部署堆栈[楼梯设置](#to-setup-the-trapheus-in-your-aws-account-follow-the-steps-below)
 
 [![\-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#execution)
 
@@ -180,7 +183,7 @@ C。`isCluster`：（必需 - 布尔值）设置为`true`如果提供的标识�
 要拆除您的应用程序并删除与 Trapheus DB Restore 状态机关联的所有资源，请执行以下步骤：
 
 1.  登录[Amazon CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home?#)并找到您创建的堆栈。
-2.  删除堆栈。请注意，如果 rds-snapshots-&lt;YOUR_ACCOUNT_NO> s3 存储桶不为空，堆栈删除将会失败，因此请先删除该存储桶中快照的导出。
+2.  删除堆栈。请注意，如果 rds-snapshots-&lt;YOUR_ACCOUNT_NO> s3 存储桶不为空，堆栈删除将会失败，因此请先删除存储桶中快照的导出。
 3.  从以下位置删除 AWS 资源[先决条件](#pre-requisites)。删除 SES、CFN S3 存储桶（如果不删除则将其清空）和 VPC 是可选的，因为您不会看到费用，但可以稍后重新使用它们以快速启动。
 
 [![\-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#how-it-works)
@@ -199,7 +202,7 @@ Lambda 层用于所有 lambda 中的通用实用方法和自定义异常处理�
 
 1.  使用`isCluster`值时，状态机中会发生分支以执行数据库集群或数据库实例的管道。
 
-2.  如果`task`被设定为`create_snapshot`， 这**快照创建/更新**该过程分别针对集群或实例进行。
+2.  如果`task`被设定为`create_snapshot`， 这**快照创建/更新**进程分别针对集群或实例进行。
     使用唯一标识符创建快照：_标识符_-快照，如果不存在。如果具有上述标识符的快照已存在，则将其删除并创建新快照。
 
 3.  如果`task`被设定为`db_restore`，数据库恢复过程开始，没有快照创建/更新
@@ -220,6 +223,8 @@ Lambda 层用于所有 lambda 中的通用实用方法和自定义异常处理�
 9.  如果恢复步骤失败，作为故障处理的一部分，**步骤4**恢复实例/集群重命名以确保原始数据库实例或数据库集群可供使用。
 
 ![DBRestore failure handling depiction](../screenshots/failure_handling.png)
+
+**亚马逊博客文章**:[HTTPS://AWS.Amazon.com/blogs/open source/what-is-trap和US/](https://aws.amazon.com/blogs/opensource/what-is-trapheus/)
 
 [![\-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#contributing-to-trapheus)
 
