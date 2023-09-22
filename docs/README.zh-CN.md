@@ -1,6 +1,6 @@
 <p align="center">
 <img width="300" height="280"
-src="screenshots/Trapheus.png">
+src="../screenshots/Trapheus.png">
 </p>
 <p align="center">
 <b>Restore RDS instances in AWS without worrying about client downtime or configuration retention.</b><br/>
@@ -192,7 +192,7 @@ C。`isCluster`：（必需 - 布尔值）设置为`true`如果提供的标识�
 
 **完整的管道**
 
-![DBRestore depiction](screenshots/restore_state_machine.png)
+![DBRestore depiction](../screenshots/restore_state_machine.png)
 
 建模为状态机，流程中的不同步骤（例如快照创建/更新、实例重命名、恢复和删除、每个操作的完成/失败状态、失败电子邮件警报等）是使用数据库实例和数据库集群的单独 lambda 执行的分别。
 为了跟踪每个操作的完成/失败，使用 RDS 等待程序，并根据 lambda 超时配置延迟和最大重试尝试次数。针对数据库集群可用和删除的场景，定义了自定义服务员。
@@ -222,7 +222,7 @@ Lambda 层用于所有 lambda 中的通用实用方法和自定义异常处理�
 
 9.  如果恢复步骤失败，作为故障处理的一部分，**步骤4**恢复实例/集群重命名以确保原始数据库实例或数据库集群可供使用。
 
-![DBRestore failure handling depiction](screenshots/failure_handling.png)
+![DBRestore failure handling depiction](../screenshots/failure_handling.png)
 
 **亚马逊博客文章**:[HTTPS://AWS.Amazon.com/blogs/open source/what-is-trap和US/](https://aws.amazon.com/blogs/opensource/what-is-trapheus/)
 
