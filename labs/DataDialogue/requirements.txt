@@ -11,3 +11,6 @@ transformers==4.30
 accelerate
 bitsandbytes
 torch
+streamlit-agraph
+pandasai
+tk
