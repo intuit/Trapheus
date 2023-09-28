@@ -1,16 +1,23 @@
-Introducing DataDialogue: Your personal data analyst
+Introducing ROBIN: Next gen automated data anlaysis 
 
-This is a tool that helps with data analysis by integrating ChatGPT to streamline workflow and boost productivity. 
-It provides instant insights and visualizations without the need for coding. The workflow is simple: connect data source, ask questions, and get instant results.
-It uses natural language processing to make data analysis effortless.
+ROBIN is next generation data analysis tool which simplifies and automates your exploratory data analysis by creating concept maps 
+for discovering relationships and patterns between entities, along with a powerful search engine to auto generate multi dimensional
+data visualisation powered by natural language.
 
-Data sources to be supported 
+Walkthrough
 
-Athena, redshift, sparksql, apachedoris, Grafana, hive, mysql postgresql, imapala, snowflake airtbale, bigquery
+Concept Mapping
 
-graph datasets require a different support
+Data Search and Copilot
 
-causal analysis and what if analysis 
+Features
+
+Get meaningful and fast insights with no code
+
+Boost your producitivity 
+
+Myriad of data set integrations
+
 
 Inspired from
 
