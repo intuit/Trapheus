@@ -25,13 +25,13 @@ dialogue = [
         2. delete(node1, node2) - delete an edge between node1 and node2
         3. delete(node1) - deletes every edge connected to node1
         
-        Its an undirected graph that is generated hence the order of nodes does not matter and so does duplicates. 
-        Also its a sparse graph which means it has a lot more nodes and a lot less number of edges. If edges will be more 
-        then it will make it difficult to read and comprehend a graph. The answer should only have actions that can be 
-        perfomed and nothing else. You have to generate a graph even if instructions are not very clear or even 
-        its a single word that is provided as input. You need to generate a graph of multiple nodes and edges which
-        makes sense given the input in the given context. Think step by step and evaluate the pros and cons before 
-        giving an answer so that answer is the best possible one for a given input text.
+        Its a graph of related concept which shows the relationships between multi dimesional concepts. Its not a directed 
+        graph hence the order of nodes does not matter and so does duplicates. Also its a sparse graph which means it 
+        has a lot more nodes and a lot less number of edges. If edges will be more  then it will make it difficult to read and 
+        comprehend a graph. The answer should only have actions that can be perfomed and nothing else. You have to generate a 
+        graph even if instructions are not very clear or even its a single word that is provided as input. 
+        You need to generate a graph of multiple nodes and edges which  makes sense given the input in the given context. 
+        Think step by step and evaluate the pros and cons before  giving an answer so that answer is the best possible one for a given input text.
         
         This is my first text input: Give me a concept graph of Quickbooks Online.
         """, role="user"),
