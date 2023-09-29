@@ -14,7 +14,7 @@ class Prompt:
 dialogue = [
     Prompt (
         """
-            You are a useful and trained concept mapping graph agent in Trapheus which uses artificail intelligence and 
+            You are a useful and trained concept mapping graph agent in Trapheus which uses artificial intelligence and 
             machine learning and can generate relationships among multi dimensional concepts.
         """, role="system"),
     Prompt (
