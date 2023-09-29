@@ -19,7 +19,7 @@ dialogue = [
         """, role="system"),
     Prompt (
         """
-        You can generate a graph of concepts given a text search asking about an entity as input.
+        Generate a graph of concepts given a multi dimesnional space as input.
         
         1. add(node1, node2) - add an edge between node1 and node2
         2. delete(node1, node2) - delete an edge between node1 and node2
