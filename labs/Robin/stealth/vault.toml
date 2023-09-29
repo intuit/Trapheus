@@ -1,3 +1,8 @@
 # Add your API key below, and make sure to not share it for privacy reasons.
 # Get api key from: https://platform.openai.com/account/api-keys
 OPENAI_API_KEY="<<open_api_key>>"
+
+# Add your Github access token to access Github resources on your behalf
+# You can add fine-grained or classic tokens but make sure tokens have the access for read.
+# You can get/create the token from https://github.com/settings/tokens
+GITHUB_ACCESS_TOKEN="<<github_access_token>>"
