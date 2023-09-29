@@ -32,3 +32,38 @@ class Concept:
         ]
         output , self.conversation = ask_model(discourse)
         self.add_relationships(output, replace=True)
+
+    def add_relationships(self, output: str, replace: bool=True):
+        add_delete_pattern = r'(add|delete)\("([^()"]+)",\s*"([^()"]+)"\)'
+        delete_pattern = r'(delete)\("([^()"]+)"\)'
+
+        actions = re.findall(add_delete_pattern, output) + re.findall(delete_pattern, output)
+        new_relationships = []
+        remove_relationships = set()
+        remove_concept = set()
+        for action in actions:
+            operation, *args = action
+            add = operation == "add"
+            if add or (operation == "delete" and len(args)==2):
+                a, b = args
+                if a == b:
+                    continue
+                if add:
+                    new_relationships.append((a, b))
+                else:
+                    remove_relationships.add(frozenset([a, b]))
+            else:
+                remove_concept.add(args[0])
+        if replace:
+            edges = new_relationships
+        else:
+            edges = self.edges + new_relationships
+        concepts_added = set()
+        for edge in edges:
+            concepts = frozenset(edge)
+            if concepts in concepts_added or concepts & remove_concept or concepts in remove_relationships:
+                continue
+            concepts_added.add(concepts)
+        self.edges = list([tuple(concept) for concept in concepts_added])
+        self.nodes = list(set([node for edge in self.edges for node in edges]))
+        self.save()
