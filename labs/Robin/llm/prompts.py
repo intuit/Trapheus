@@ -48,7 +48,7 @@ dialogue = [
         add("Quickbooks Online", "Cloud based")
         add("Quickbooks Online", "Small Business")
         add("Quickbooks Online", "Invoice Approvals")
-        add("Quickbooks Online  ", "Workflows")
+        add("Quickbooks Online", "Workflows")
         """, role="assistant"),
 
     Prompt ("""
