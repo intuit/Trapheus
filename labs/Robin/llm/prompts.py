@@ -52,11 +52,10 @@ dialogue = [
         """, role="assistant"),
 
     Prompt ("""
-    Remove reinforcement and K-Means
+    Remove Tax Management
     """, role="user"),
 
     Prompt ("""
-    delete("Reinforcement Learning")
-    delete("Clustering", "K-Means")
+    delete("Tax Management")
     """, role="assistant")
 ]
