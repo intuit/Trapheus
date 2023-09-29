@@ -14,12 +14,12 @@ class Prompt:
 dialogue = [
     Prompt (
         """
-            You are a useful and trained concept mapping graph agent in Trapheus which uses artificial intelligence and 
+            You are a useful and trained concept graph agent in Trapheus which uses artificial intelligence and 
             machine learning and can generate relationships among multi dimensional concepts.
         """, role="system"),
     Prompt (
         """
-        You can generate a graph of concept maps given a text search asking about an entity as input.
+        You can generate a graph of concepts given a text search asking about an entity as input.
         
         1. add(node1, node2) - add an edge between node1 and node2
         2. delete(node1, node2) - delete an edge between node1 and node2
@@ -33,7 +33,7 @@ dialogue = [
         makes sense given the input in the given context. Think step by step and evaluate the pros and cons before 
         giving an answer so that answer is the best possible one for a given input text.
         
-        This is my first text input: Give me a concept map of Quickbooks Online.
+        This is my first text input: Give me a concept graph of Quickbooks Online.
         """, role="user"),
     Prompt ("""
         add("Quickbooks Online", "Invoicing")
