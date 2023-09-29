@@ -7,9 +7,9 @@ from llm.model import ask_model
 
 class Concept:
 
-    def __init__(self, edges: Optional[List[Tuple[str, str]]]=None, nodes: Optional[List[str]]=None) -> None:
-        self.edges = [] if edges is None else edges
-        self.nodes = [] if nodes is None else nodes
+    def __init__(self, relationships: Optional[List[Tuple[str, str]]]=None, concepts: Optional[List[str]]=None) -> None:
+        self.relationships = [] if relationships is None else relationships
+        self.concepts = [] if concepts is None else concepts
         self.save()
 
     @classmethod
@@ -22,7 +22,7 @@ class Concept:
         streamlit.session_state["concept"] = self
 
     def is_empty(self) -> bool:
-        return len(self.edges) == 0
+        return len(self.relationships) == 0
 
     def render_initial_concepts(self, query: str) -> None:
         discourse = dialogue + [
@@ -65,6 +65,15 @@ class Concept:
             if concepts in concepts_added or concepts & remove_concept or concepts in remove_relationships:
                 continue
             concepts_added.add(concepts)
-        self.edges = list([tuple(concept) for concept in concepts_added])
-        self.nodes = list(set([node for edge in self.edges for node in edges]))
+        self.relationships = list([tuple(concept) for concept in concepts_added])
+        self.concepts = list(set([node for edge in self.edges for node in edges]))
+        self.save()
+
+    def delete_concept(self, concept) -> None:
+        self.relationships = [e for e in self.relationships if concept not in frozenset(e)]
+        self.concepts = list(set([n for e in self.relationships for n in e]))
+        self.conversation.append(Prompt(
+            f'delete("{concept}")',
+            role="user"
+        ))
         self.save()
