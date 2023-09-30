@@ -14,7 +14,7 @@ class Github(IBaseProvider):
 
     def query(self):
         request_params = {
-            "q": f"{query} .csv in:path",
+            "q": f"{self.query} .csv in:path",
             "per_page": 5,
         }
         request_headers = {
