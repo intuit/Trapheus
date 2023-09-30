@@ -77,3 +77,20 @@ class Concept:
             role="user"
         ))
         self.save()
+
+    def drill_down_and_remove_concept(self, concept) -> None:
+        streamlit.sidebar.subheader(concept)
+        cols = streamlit.sidebar.columns(2)
+        cols[0].button(
+            label="Drill Down",
+            type="primary",
+            on_click=self.drill_down,
+            key=f"drill_down_{concept}",
+            kwargs={"selected_node": cols}
+        )
+        cols[1].button(
+            label="Remove Concept",
+            on_click=self.remove_concept,
+            key=f"remove_{concept}",
+            args=(concept,)
+        )
