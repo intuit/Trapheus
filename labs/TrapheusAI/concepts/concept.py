@@ -68,7 +68,7 @@ class Concept:
                 continue
             concepts_added.add(concepts)
         self.relationships = list([tuple(concept) for concept in concepts_added])
-        self.concepts = list(set([node for edge in self.edges for node in edges]))
+        self.concepts = list(set([node for edges in self.relationships for node in edges]))
         self.save()
 
     def delete_concept(self, concept) -> None:
