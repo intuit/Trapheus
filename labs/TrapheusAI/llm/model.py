@@ -1,13 +1,16 @@
-import pandas
-from pandasai.llm.openai import OpenAI
-from pandasai import SmartDataframe
-from typing import Tuple, List
-from llm.prompts import Prompt
 from dataclasses import asdict
+from typing import Tuple, List
+
+
+import matplotlib
+import pandas
+from pandasai import SmartDataframe
+from pandasai.llm.openai import OpenAI
+
+from llm.prompts import Prompt
 
 # Since most backends are non GUI setting this to Agg to pick this up later from a file
 # TODO later let the user choose the ibackend he is operating on from a command line param.
-import matplotlib
 matplotlib.use('Agg')
 
 
@@ -27,7 +30,7 @@ def ask_foundational_data_model(dataframe: pandas.core.frame.DataFrame, query: s
     # https://github.com/gventuri/pandas-ai/issues/340#issuecomment-1637184573
     # seeing if chart introduction can help https://github.com/gventuri/pandas-ai/pull/497/files#r1341966270
     llm = OpenAI(api_token='xxxx')
-    smart_df = SmartDataframe(df, config={"llm": llm})
+    smart_df = SmartDataframe(dataframe, config={"llm": llm})
     response =  smart_df.chat(query)
     return response
 
