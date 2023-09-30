@@ -28,7 +28,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 ## ➤ Table of Contents
 
-- * [➤ Pre-Requisites](#-pre-requisites )
+- * [➤ Pre-Requisites](#pre-requisites )
 - * [➤ Parameters](#-parameters)
 - * [➤ Instructions](#-instructions)
 - * [➤ Execution](#-execution)
@@ -40,7 +40,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 [![---------------------------------------------------------------------------------------------------------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#pre-requisites)
 
-## ➤ Pre-Requisites
+## Pre-Requisites
 
 
 The app requires the following AWS resources to exist before installation:
