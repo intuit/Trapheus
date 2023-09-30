@@ -3,6 +3,7 @@ import constants
 import streamlit as streamlit
 from typing import Optional, List, Tuple
 from llm.prompts import Prompt, dialogue
+from llm.model import ask_foundational_model
 from streamlit_agraph import agraph, Node, Edge, Config
 
 
@@ -32,7 +33,7 @@ class Concept:
                 {query}
             """, role="user")
         ]
-        output , self.conversation = ask_model(discourse)
+        output , self.conversation = ask_foundational_model(discourse)
         self.add_relationships(output, replace=True)
 
     def add_relationships(self, output: str, replace: bool=True):
@@ -104,7 +105,7 @@ class Concept:
                 Node(
                     id=concept,
                     label=concept,
-                    size=multiplier+additive*(concept==selected),
+                    size=multiplier+additive*(concept==selected_concept),
                     color=constants.GRAPH_DEFAULT_COLOR if concept != selected_concept else constants.GRAPH_SELECTED_COLOR
                 )
                 for concept in self.concepts
