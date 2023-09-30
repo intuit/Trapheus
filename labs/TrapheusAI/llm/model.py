@@ -25,6 +25,7 @@ def ask_foundational_model(discourses: List[Prompt]) -> Tuple[str, List[Prompt]]
 def ask_foundational_data_model(dataframe: pandas.core.frame.DataFrame, query: str):
     # local llm is still having issues, i have reported this at
     # https://github.com/gventuri/pandas-ai/issues/340#issuecomment-1637184573
+    # seeing if chart introduction can help https://github.com/gventuri/pandas-ai/pull/497/files#r1341966270
     llm = OpenAI(api_token='xxxx')
     smart_df = SmartDataframe(df, config={"llm": llm})
     response =  smart_df.chat(query)
