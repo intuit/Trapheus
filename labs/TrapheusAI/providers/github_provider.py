@@ -9,6 +9,9 @@ Searches csv data sets from github
 
 class Github(IBaseProvider):
 
+    def __init__(self, query: str):
+        self.query = query
+
     def query(self):
         request_params = {
             "q": f"{query} .csv in:path",
