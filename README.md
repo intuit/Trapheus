@@ -28,7 +28,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 ## ➤ Table of Contents
 
-- * [➤ Pre-Requisites](#pre-requisites )
+- * [➤ Pre-Requisites](#-pre-requisites )
 - * [➤ Parameters](#-parameters)
 - * [➤ Instructions](#-instructions)
 - * [➤ Execution](#-execution)
