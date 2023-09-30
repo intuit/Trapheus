@@ -1,8 +1,9 @@
 import re
+import constants
 import streamlit as streamlit
 from typing import Optional, List, Tuple
 from llm.prompts import Prompt, dialogue
-from llm.model import ask_model
+from streamlit_agraph import agraph, Node, Edge, Config
 
 
 class Concept:
@@ -94,3 +95,32 @@ class Concept:
             key=f"remove_{concept}",
             args=(concept,)
         )
+
+    def render_concepts(self) -> None:
+        selected_concept = streamlit.session_state.get("previous_selection")
+        multiplier = constants.GRAPH_MULTIPLIER
+        additive = constants.GRAPH_ADDITIVE
+        concepts = [
+                Node(
+                    id=concept,
+                    label=concept,
+                    size=multiplier+additive*(concept==selected),
+                    color=constants.GRAPH_DEFAULT_COLOR if concept != selected_concept else constants.GRAPH_SELECTED_COLOR
+                )
+                for concept in self.concepts
+            ]
+        relaltionships = [Edge(source=a, target=b) for a, b in self.edges]
+        dimensions = Config(width=constants.GRAPH_WIDTH,
+                            height=constants.GRAPH_HEIGHT,
+                            directed=False,
+                            physics=True,
+                            hierarchical=False,
+                            )
+        selected_concept = agraph(nodes=concepts,
+                                  edges=relaltionships,
+                                  config=dimensions)
+        if selected_concept is not None:
+            self.drill_down_and_remove_concept(selected_concept)
+            return
+        for concept in sorted(self.concepts):
+            self.drill_down_and_remove_concept(concept)
