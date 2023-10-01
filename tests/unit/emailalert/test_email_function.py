@@ -14,7 +14,7 @@ os.environ["SenderEmail"] = "xyz@example.com"
 class TestResourceProvider(unittest.TestCase):
 
     def setUp(self):
-        self.event = {"Error": "RestoreError","Cause": "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded"}
+        self.event = {"Taskname": "Task name", "SnapshotID": "Snapshot ID name", "Error": "RestoreError", "Cause": "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded"}
         self.mock_email_response = {"MessageId": "Email sent successfully"}
 
     def test_email_success_with_error_payload(self, mock_client):
@@ -23,9 +23,10 @@ class TestResourceProvider(unittest.TestCase):
         mock_ses = mock_client.return_value
         mock_ses.send_email.return_value = self.mock_email_response
         data = email_function.lambda_handler(self.event, {})
-        self.assertEqual(data["Error"], "RestoreError")
-        self.assertEqual(data["Cause"], "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded")
-        self.assertEqual(data["message"], self.mock_email_response["MessageId"])
+        self.assertEqual(data["database id"], "Identifier name")
+        self.assertEqual(data["snapshot id"], "Snapshot ID name")
+        self.assertEqual(data["failed step"], "Task name")
+        self.assertEqual(data["cause of failure"], "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded")
 
     def test_email_success_with_status_payload(self, mock_client):
         # test successful send of email alert through ses
