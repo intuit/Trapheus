@@ -26,21 +26,21 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 [![---------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#table-of-contents)
 
-## ➤ Table of Contents
+## Table of Contents
 
-- * [➤ Pre-Requisites](#-pre-requisites )
-- * [➤ Parameters](#-parameters)
-- * [➤ Instructions](#-instructions)
-- * [➤ Execution](#-execution)
-- * [➤ How it Works](#-how-it-works)
-- * [➤ Contributing to Trapheus](#-contributing-to-trapheus)
-- * [➤ Contributors](#-contributors)
+- * [➤ Pre-Requisites](#pre-requisites )
+- * [➤ Parameters](#parameters)
+- * [➤ Instructions](#instructions)
+- * [➤ Execution](#execution)
+- * [➤ How it Works](#how-it-works)
+- * [➤ Contributing to Trapheus](#contributing-to-trapheus)
+- * [➤ Contributors](#contributors)
 
 </details>
 
 [![---------------------------------------------------------------------------------------------------------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#pre-requisites)
 
-## ➤ Pre-Requisites
+## Pre-Requisites
 
 
 The app requires the following AWS resources to exist before installation:
@@ -86,7 +86,7 @@ The app requires the following AWS resources to exist before installation:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#parameters)
 
-## ➤ Parameters
+## Parameters
 
 The following are the parameters for creating the cloudformation template:
 
@@ -101,7 +101,7 @@ The following are the parameters for creating the cloudformation template:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#instructions)
 
-## ➤ Instructions
+## Instructions
 
 ### Setup
 
@@ -151,7 +151,7 @@ The CFT creates the following resources:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#execution)
 
-## ➤ Execution
+## Execution
 
 To execute the step function, follow the steps below:
 1. Navigate to the State machine definition from the *Resources* tab in the cloudformation stack.
@@ -193,7 +193,7 @@ To tear down your application and remove all resources associated with the Traph
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#how-it-works)
 
-## ➤ How it Works
+## How it Works
 
 **Complete Pipeline**
 
@@ -233,7 +233,7 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#contributing-to-trapheus)
 
-## ➤ Contributing to Trapheus
+## Contributing to Trapheus
 
 Reference Code Structure
 
@@ -357,7 +357,7 @@ Prepare your environment. Install tools as needed.
 1. The `Output` will provide a link to create your Pull Request.
 
 
-## ➤ Contributors
+## Contributors
 
 
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
