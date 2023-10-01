@@ -151,7 +151,7 @@ The CFT creates the following resources:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#execution)
 
-## ➤ Execution
+## Execution
 
 To execute the step function, follow the steps below:
 1. Navigate to the State machine definition from the *Resources* tab in the cloudformation stack.
@@ -193,7 +193,7 @@ To tear down your application and remove all resources associated with the Traph
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#how-it-works)
 
-## ➤ How it Works
+## How it Works
 
 **Complete Pipeline**
 
