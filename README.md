@@ -233,7 +233,7 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#contributing-to-trapheus)
 
-## ➤ Contributing to Trapheus
+## Contributing to Trapheus
 
 Reference Code Structure
 
@@ -357,7 +357,7 @@ Prepare your environment. Install tools as needed.
 1. The `Output` will provide a link to create your Pull Request.
 
 
-## ➤ Contributors
+## Contributors
 
 
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
