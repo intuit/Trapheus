@@ -10,18 +10,18 @@ def lambda_handler(event, context):
     SUBJECT = "Failure alert for RDS Restore Pipeline"
     result = {}
     if 'status' in event:
-        result[constants.ERROR] = event['taskname'] + 'Error'
-        result[constants.CAUSE] = event['status']
+        result['failed step'] = event['taskname'] + 'Error'
+        result['cause of failure'] = event['status']
     elif 'Error' in event:
         result['database id'] = event['DatabaseID']
         result['snapshot id'] = event['SnapshotID']
-        result['failed step'] = event['Taskname']
+        result['failed step'] = event['Error']
         result['cause of failure'] = event['Cause']
     BODY_HTML = """<html>
     <head></head>
     <body>
     <h1>Failure alert for RDS Restore Pipeline</h1>
-    <p>""" + result['Error'] + """ : """ + result['Cause'] + """</p>
+    <p>""" + result['failed step'] + """ : """ + result['cause of failure'] + """</p>
     </body>
     </html>"""
 
