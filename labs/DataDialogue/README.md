@@ -21,9 +21,12 @@ Myriad of data set integrations
 
 Inspired from
 
+ The concept space explorer
+ A Framework for Structured Search of Distributed Research Resources
  Graphical Perception: Theory, Experimentation, and Application to the Development of Graphical Methods
  Automatic design of graphical presentations. Stanford Univ
  Extracting top-K insights from multi-dimensional data
  Graphscape: A model for automated reasoning about visualization similarity and sequencing
+
 
  
