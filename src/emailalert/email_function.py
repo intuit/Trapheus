@@ -21,7 +21,10 @@ def lambda_handler(event, context):
     <head></head>
     <body>
     <h1>Failure alert for RDS Restore Pipeline</h1>
-    <p>""" + result['failed step'] + """ : """ + result[constants.CAUSE] + """</p>
+    <p>database id:""" + result['database id'] """</p>
+    <p>snapshot id:""" + result['snapshot id'] """</p>
+    <p>failed step:""" + result['taskname'] """</p>
+    <p>cause of failure:""" + result[constants.CAUSE] """</p>
     </body>
     </html>"""
 
