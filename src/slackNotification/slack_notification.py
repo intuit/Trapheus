@@ -14,8 +14,10 @@ def lambda_handler(event, context):
         message[constants.ERROR] = event['taskname'] + 'Error'
         message[constants.CAUSE] = event['status']
     elif 'Error' in event:
-        message[constants.ERROR] = event['Error']
-        message[constants.CAUSE] = event['Cause']
+        message['database id'] = event['databaseid']
+        message['snapshot id'] = event['snapshotid']
+        message['failed step'] = event['taskname']
+        message['cause of failure'] = event['Error']
     send_to_slack(slack_webhooks, message)
 
 
