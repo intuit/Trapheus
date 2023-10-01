@@ -14,7 +14,7 @@ os.environ["SenderEmail"] = "xyz@example.com"
 class TestResourceProvider(unittest.TestCase):
 
     def setUp(self):
-        self.event = {"Taskname": "Task name", "DatabaseID": "Identifier name", "SnapshotID": "Snapshot ID name", "Error": "RestoreError", "Cause": "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded"}
+        self.event = {"DatabaseID": "Identifier name", "SnapshotID": "Snapshot ID name", "Error": "RestoreError", "Cause": "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded"}
         self.mock_email_response = {"MessageId": "Email sent successfully"}
 
     def test_email_success_with_error_payload(self, mock_client):
@@ -25,7 +25,7 @@ class TestResourceProvider(unittest.TestCase):
         data = email_function.lambda_handler(self.event, {})
         self.assertEqual(data["database id"], "Identifier name")
         self.assertEqual(data["snapshot id"], "Snapshot ID name")
-        self.assertEqual(data["failed step"], "Task name")
+        self.assertEqual(data["failed step"], "RestoreError")
         self.assertEqual(data["cause of failure"], "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded")
 
     def test_email_success_with_status_payload(self, mock_client):
@@ -35,8 +35,8 @@ class TestResourceProvider(unittest.TestCase):
         mock_ses.send_email.return_value = self.mock_email_response
         event = {"taskname": "Restore","status": "inaccessible-encryption-credentials"}
         data = email_function.lambda_handler(event, {})
-        self.assertEqual(data.get("Error"), "RestoreError")
-        self.assertEqual(data.get("Cause"), "inaccessible-encryption-credentials")
+        self.assertEqual(data.get("failed step"), "RestoreError")
+        self.assertEqual(data.get("cause of failure"), "inaccessible-encryption-credentials")
         self.assertEqual(data.get("message"), self.mock_email_response["MessageId"])
     
     def test_email_failure(self, mock_client):
