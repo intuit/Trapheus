@@ -13,8 +13,10 @@ def lambda_handler(event, context):
         result[constants.ERROR] = event['taskname'] + 'Error'
         result[constants.CAUSE] = event['status']
     elif 'Error' in event:
-        result[constants.ERROR] = event['Error']
-        result[constants.CAUSE] = event['Cause']
+        result['database id'] = event['DatabaseID']
+        result['snapshot id'] = event['SnapshotID']
+        result['failed step'] = event['Taskname']
+        result['cause of failure'] = event['Cause']
     BODY_HTML = """<html>
     <head></head>
     <body>
