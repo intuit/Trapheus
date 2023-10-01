@@ -14,7 +14,7 @@ os.environ["SenderEmail"] = "xyz@example.com"
 class TestResourceProvider(unittest.TestCase):
 
     def setUp(self):
-        self.event = {"Taskname": "Task name", "SnapshotID": "Snapshot ID name", "Error": "RestoreError", "Cause": "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded"}
+        self.event = {"Taskname": "Task name", "DatabaseID": "Identifier name", "SnapshotID": "Snapshot ID name", "Error": "RestoreError", "Cause": "DBInstanceIdentifier:database-1 ThrottlingError: Rate exceeded"}
         self.mock_email_response = {"MessageId": "Email sent successfully"}
 
     def test_email_success_with_error_payload(self, mock_client):
