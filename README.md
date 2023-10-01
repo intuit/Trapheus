@@ -28,10 +28,10 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 ## ➤ Table of Contents
 
-- * [➤ Pre-Requisites](#pre-requisites )
-- * [➤ Parameters](#-parameters)
-- * [➤ Instructions](#-instructions)
-- * [➤ Execution](#-execution)
+- * [Pre-Requisites](#pre-requisites )
+- * [Parameters](#parameters)
+- * [Instructions](#instructions)
+- * [Execution](#execution)
 - * [➤ How it Works](#-how-it-works)
 - * [➤ Contributing to Trapheus](#-contributing-to-trapheus)
 - * [➤ Contributors](#-contributors)
@@ -86,7 +86,7 @@ The app requires the following AWS resources to exist before installation:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#parameters)
 
-## ➤ Parameters
+## Parameters
 
 The following are the parameters for creating the cloudformation template:
 
@@ -101,7 +101,7 @@ The following are the parameters for creating the cloudformation template:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#instructions)
 
-## ➤ Instructions
+## Instructions
 
 ### Setup
 
