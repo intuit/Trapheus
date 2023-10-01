@@ -26,15 +26,15 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 [![---------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#table-of-contents)
 
-## ➤ Table of Contents
+## Table of Contents
 
-- * [Pre-Requisites](#pre-requisites )
-- * [Parameters](#parameters)
-- * [Instructions](#instructions)
-- * [Execution](#execution)
-- * [How it Works](#how-it-works)
-- * [Contributing to Trapheus](#contributing-to-trapheus)
-- * [Contributors](#contributors)
+- * [➤ Pre-Requisites](#pre-requisites )
+- * [➤ Parameters](#parameters)
+- * [➤ Instructions](#instructions)
+- * [➤ Execution](#execution)
+- * [➤ How it Works](#how-it-works)
+- * [➤ Contributing to Trapheus](#contributing-to-trapheus)
+- * [➤ Contributors](#contributors)
 
 </details>
 
