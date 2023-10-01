@@ -239,13 +239,19 @@ Reference Code Structure
 
 ```bash
 
-├── CONTRIBUTING.md                               <-- How to contribute to Trapheus
 ├── LICENSE.md                                    <-- The MIT license.
 ├── README.md                                     <-- The Readme file.
-├── events
-│   └── event.json                                <-- JSON event file to be used for local SAM testing
+├── docs                                          <-- The Readme files
+│   ├── README.fr.md
+│   └── README.zh-CN.md
+├── install.py
+├── labs
+├── presentation
+│   └── Trapheus.pptx
+├── requirements.txt
 ├── screenshots                                   <-- Folder for screenshots of teh state machine.
-│   ├── Trapheus-logo.png
+│   ├── Trapheus.gif
+│   ├── Trapheus.png
 │   ├── cluster_restore.png
 │   ├── cluster_snapshot_branch.png
 │   ├── failure_handling.png
@@ -253,6 +259,7 @@ Reference Code Structure
 │   ├── instance_snapshot_branch.png
 │   ├── isCluster_branching.png
 │   └── restore_state_machine.png
+├── setup.py
 ├── src
 │   ├── checkstatus
 │   │   ├── DBClusterStatusWaiter.py              <-- Python Waiter(https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html#waiters) for checking the status of the cluster
@@ -282,24 +289,30 @@ Reference Code Structure
 │       ├── cluster_snapshot_function.py         <-- Python Lambda code for creating a snapshot of a clusterised database.
 │       └── snapshot_function.py                 <-- Python Lambda code for creating a snapshot of a non-clusterised RDS instance.
 ├── template.yaml                                <-- SAM template definition for the entire state machine.
-└── tests                                        <-- Test folder.
+└── tests
     └── unit
-        ├── mock_constants.py
-        ├── mock_custom_exceptions.py
-        ├── mock_import.py
-        ├── mock_utility.py
-        ├── test_cluster_delete_function.py
-        ├── test_cluster_rename_function.py
-        ├── test_cluster_restore_function.py
-        ├── test_cluster_snapshot_function.py
-        ├── test_delete_function.py
-        ├── test_email_function.py
-        ├── test_get_dbcluster_status_function.py
-        ├── test_get_dbstatus_function.py
-        ├── test_rename_function.py
-        ├── test_restore_function.py
-        ├── test_slack_notification.py
-        └── test_snapshot_function.py
+        ├── checkstatus
+        │   ├── test_get_dbcluster_status_function.py
+        │   └── test_get_dbstatus_function.py
+        ├── delete
+        │   ├── test_cluster_delete_function.py
+        │   └── test_delete_function.py
+        ├── emailalert
+        │   └── test_email_function.py
+        ├── export
+        │   ├── test_export_cluster_snapshot_s3_function.py
+        │   └── test_export_snapshot_s3_function.py
+        ├── rename
+        │   ├── test_cluster_rename_function.py
+        │   └── test_rename_function.py
+        ├── restore
+        │   ├── test_cluster_restore_function.py
+        │   └── test_restore_function.py
+        ├── slackNotification
+        │   └── test_slack_notification.py
+        └── snapshot
+            ├── test_cluster_snapshot_function.py
+            └── test_snapshot_function.py
 
 ```
 
@@ -363,5 +376,3 @@ Prepare your environment. Install tools as needed.
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=intuit/Trapheus" />
 </a>
-
-
