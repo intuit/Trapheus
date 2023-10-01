@@ -58,8 +58,8 @@ class TestSlackNotification(unittest.TestCase):
         event = {
             "databaseid": "idname",
             "snapshotid": "snapidname",
-            "taskname": "task name",
-            "error": "errormessage"
+            "taskname": "taskname",
+            "Error": "errormessage"
         }
         slack_notification.lambda_handler(event, {})
         expected_message = {
