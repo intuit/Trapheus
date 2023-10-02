@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-import os
+# import os
+import subprocess
+
 
 def main():
     package_command = 'sam package --template-file template.yaml --output-template-file deploy.yaml'
@@ -14,7 +16,10 @@ def main():
         deploy_command = deploy_command + ' --region ' + region
         print()
         print ('packaging trapheus for use ...')
-        os.system(package_command)
+        try:
+            subprocess.run(package_command, shell=False, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f'Error: {e}')
 
 
     stack_name = input('Enter a stack name: ')
@@ -41,7 +46,10 @@ def main():
                 deploy_command = deploy_command + ' Subnets=' +subnets
     print()
     print('Deploying trapheus to AWS ...')
-    os.system(deploy_command)
+    try:
+        subprocess.run(deploy_command, shell=False, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f'Error: {e}')
 
 
 if __name__ == "__main__":
