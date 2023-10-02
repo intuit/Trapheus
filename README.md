@@ -26,21 +26,21 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 [![---------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#table-of-contents)
 
-## ➤ Table of Contents
+## Table of Contents
 
-- * [➤ Pre-Requisites](#-pre-requisites )
-- * [➤ Parameters](#-parameters)
-- * [➤ Instructions](#-instructions)
-- * [➤ Execution](#-execution)
-- * [➤ How it Works](#-how-it-works)
-- * [➤ Contributing to Trapheus](#-contributing-to-trapheus)
-- * [➤ Contributors](#-contributors)
+- * [➤ Pre-Requisites](#pre-requisites )
+- * [➤ Parameters](#parameters)
+- * [➤ Instructions](#instructions)
+- * [➤ Execution](#execution)
+- * [➤ How it Works](#how-it-works)
+- * [➤ Contributing to Trapheus](#contributing-to-trapheus)
+- * [➤ Contributors](#contributors)
 
 </details>
 
 [![---------------------------------------------------------------------------------------------------------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#pre-requisites)
 
-## ➤ Pre-Requisites
+## Pre-Requisites
 
 
 The app requires the following AWS resources to exist before installation:
@@ -86,7 +86,7 @@ The app requires the following AWS resources to exist before installation:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#parameters)
 
-## ➤ Parameters
+## Parameters
 
 The following are the parameters for creating the cloudformation template:
 
@@ -101,7 +101,7 @@ The following are the parameters for creating the cloudformation template:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#instructions)
 
-## ➤ Instructions
+## Instructions
 
 ### Setup
 
@@ -151,7 +151,7 @@ The CFT creates the following resources:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#execution)
 
-## ➤ Execution
+## Execution
 
 To execute the step function, follow the steps below:
 1. Navigate to the State machine definition from the *Resources* tab in the cloudformation stack.
@@ -193,7 +193,7 @@ To tear down your application and remove all resources associated with the Traph
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#how-it-works)
 
-## ➤ How it Works
+## How it Works
 
 **Complete Pipeline**
 
@@ -233,19 +233,25 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#contributing-to-trapheus)
 
-## ➤ Contributing to Trapheus
+## Contributing to Trapheus
 
 Reference Code Structure
 
 ```bash
 
-├── CONTRIBUTING.md                               <-- How to contribute to Trapheus
 ├── LICENSE.md                                    <-- The MIT license.
 ├── README.md                                     <-- The Readme file.
-├── events
-│   └── event.json                                <-- JSON event file to be used for local SAM testing
+├── docs                                          <-- The Readme files
+│   ├── README.fr.md
+│   └── README.zh-CN.md
+├── install.py
+├── labs
+├── presentation
+│   └── Trapheus.pptx
+├── requirements.txt
 ├── screenshots                                   <-- Folder for screenshots of teh state machine.
-│   ├── Trapheus-logo.png
+│   ├── Trapheus.gif
+│   ├── Trapheus.png
 │   ├── cluster_restore.png
 │   ├── cluster_snapshot_branch.png
 │   ├── failure_handling.png
@@ -253,6 +259,7 @@ Reference Code Structure
 │   ├── instance_snapshot_branch.png
 │   ├── isCluster_branching.png
 │   └── restore_state_machine.png
+├── setup.py
 ├── src
 │   ├── checkstatus
 │   │   ├── DBClusterStatusWaiter.py              <-- Python Waiter(https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html#waiters) for checking the status of the cluster
@@ -282,24 +289,30 @@ Reference Code Structure
 │       ├── cluster_snapshot_function.py         <-- Python Lambda code for creating a snapshot of a clusterised database.
 │       └── snapshot_function.py                 <-- Python Lambda code for creating a snapshot of a non-clusterised RDS instance.
 ├── template.yaml                                <-- SAM template definition for the entire state machine.
-└── tests                                        <-- Test folder.
+└── tests
     └── unit
-        ├── mock_constants.py
-        ├── mock_custom_exceptions.py
-        ├── mock_import.py
-        ├── mock_utility.py
-        ├── test_cluster_delete_function.py
-        ├── test_cluster_rename_function.py
-        ├── test_cluster_restore_function.py
-        ├── test_cluster_snapshot_function.py
-        ├── test_delete_function.py
-        ├── test_email_function.py
-        ├── test_get_dbcluster_status_function.py
-        ├── test_get_dbstatus_function.py
-        ├── test_rename_function.py
-        ├── test_restore_function.py
-        ├── test_slack_notification.py
-        └── test_snapshot_function.py
+        ├── checkstatus
+        │   ├── test_get_dbcluster_status_function.py
+        │   └── test_get_dbstatus_function.py
+        ├── delete
+        │   ├── test_cluster_delete_function.py
+        │   └── test_delete_function.py
+        ├── emailalert
+        │   └── test_email_function.py
+        ├── export
+        │   ├── test_export_cluster_snapshot_s3_function.py
+        │   └── test_export_snapshot_s3_function.py
+        ├── rename
+        │   ├── test_cluster_rename_function.py
+        │   └── test_rename_function.py
+        ├── restore
+        │   ├── test_cluster_restore_function.py
+        │   └── test_restore_function.py
+        ├── slackNotification
+        │   └── test_slack_notification.py
+        └── snapshot
+            ├── test_cluster_snapshot_function.py
+            └── test_snapshot_function.py
 
 ```
 
@@ -357,11 +370,9 @@ Prepare your environment. Install tools as needed.
 1. The `Output` will provide a link to create your Pull Request.
 
 
-## ➤ Contributors
+## Contributors
 
 
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=intuit/Trapheus" />
 </a>
-
-
