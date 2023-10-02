@@ -1,6 +1,6 @@
 <p align="center"><img src="logo/TrapheusAILogo.png"></p>
 
-<p id="description"><b>Introducing TrapheusAI:</b> Next gen automated data analysis <br/> <br/>
+<p id="description"><b>Introducing TrapheusAI:</b> Next gen automated data analysis co-pilot. <br/> <br/>
 Traditional search engines have always relied on keyword search much like the indexes you find in the back of books. 
 Unless a query matches a keyword in your index, the search engine can come up with no answers. TraphesuAI aims to solve
 this problem shifting from "matching" to "understanding". Driven by AI , it represents the unstructured search space 
