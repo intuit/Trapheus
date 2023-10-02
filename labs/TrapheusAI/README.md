@@ -1,6 +1,6 @@
 <p align="center"><img src="logo/TrapheusAILogo.png"></p>
 
-<p id="description"><b>Introducing TrapheusAI:</b> Next gen automated data analysis <br/> <br/>
+<p id="description"><b>Introducing TrapheusAI:</b> Next gen automated data analysis co-pilot. <br/> <br/>
 Traditional search engines have always relied on keyword search much like the indexes you find in the back of books. 
 Unless a query matches a keyword in your index, the search engine can come up with no answers. TraphesuAI aims to solve
 this problem shifting from "matching" to "understanding". Driven by AI , it represents the unstructured search space 
@@ -29,6 +29,6 @@ https://github.com/intuit/Trapheus/assets/112308320/de425e33-5c35-4103-a7f9-0b29
 * Graphical Perception: Theory, Experimentation, and Application to the Development of Graphical Methods 
 * Automatic design of graphical presentations. Stanford Univ 
 * Extracting top-K insights from multi-dimensional data 
-* Graphscape: A model for automated reasoning about visualization similarity and sequencing 
+* Graphscape: A model for automated reasoning about visualization similarity and sequencing
 * The concept space explorer - A Design Case Knowledge Retrieval System
-* A Framework for Structured Search of Distributed Research Resources 
+* A Framework for Structured Search of Distributed Research Resources
