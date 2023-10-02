@@ -6,7 +6,8 @@ Unless a query matches a keyword in your index, the search engine can come up wi
 this problem shifting from "matching" to "understanding". Driven by AI , it represents the unstructured search space 
 conceptually which can be interprested by machines. 
 
-Powered by niche graph and search technology it overcomes the limitations of traditional keyword based models.
+Powered by niche graph and search technology it overcomes the limitations of traditional keyword based models and it helps
+you orient, discover and navigate.
 </p>
 
 
@@ -29,5 +30,5 @@ https://github.com/intuit/Trapheus/assets/112308320/de425e33-5c35-4103-a7f9-0b29
 * Automatic design of graphical presentations. Stanford Univ 
 * Extracting top-K insights from multi-dimensional data 
 * Graphscape: A model for automated reasoning about visualization similarity and sequencing 
-* The concept space explorer 
+* The concept space explorer - A Design Case Knowledge Retrieval System
 * A Framework for Structured Search of Distributed Research Resources 
