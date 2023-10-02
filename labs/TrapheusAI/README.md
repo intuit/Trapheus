@@ -2,7 +2,7 @@
 
 <p id="description"><b>Introducing TrapheusAI:</b> Next gen automated data analysis co-pilot. <br/> <br/>
 Traditional search engines have always relied on keyword search much like the indexes you find in the back of books. 
-Unless a query matches a keyword in your index, the search engine can come up with no answers. TraphesuAI aims to solve
+Unless a query matches a keyword in your index, the search engine can come up with fuzzy or no answers. TraphesuAI aims to solve
 this problem shifting from "matching" to "understanding". Driven by AI , it represents the unstructured search space 
 conceptually which can be interprested by machines. 
 
@@ -12,8 +12,6 @@ you orient, discover and navigate.
 
 
 <h2>🧐 Features</h2>
-
-Here are some of the project's best features:
 
 *   Search for concepts in an unstructured space
 *   Refine your search and discover patterns insights and relationship among concepts
