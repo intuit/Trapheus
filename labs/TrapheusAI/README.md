@@ -21,8 +21,7 @@ Here are some of the project's best features:
 
 <h2>🚀 Demo</h2>
 
-https://github.com/intuit/Trapheus/assets/112308320/ef489d84-e022-4b50-9f09-176d9381e238 
-
+https://github.com/intuit/Trapheus/assets/112308320/de425e33-5c35-4103-a7f9-0b29579c7060
 
 <h2> Inspired from </h2>
 
