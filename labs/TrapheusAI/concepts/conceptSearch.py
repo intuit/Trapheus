@@ -145,5 +145,3 @@ class ConceptSearch:
         if selected_concept is not None:
             self.drill_down_concept(selected_concept)
             return
-        #for concept in sorted(self.concepts):
-        #    self.drill_down_concept(concept)
