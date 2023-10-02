@@ -7,7 +7,8 @@ from llm.model import ask_foundational_model
 from streamlit_agraph import agraph, Node, Edge, Config
 
 
-class Concept:
+
+class ConceptSearch:
 
     def __init__(self, relationships: Optional[List[Tuple[str, str]]]=None, concepts: Optional[List[str]]=None) -> None:
         self.relationships = [] if relationships is None else relationships
@@ -15,7 +16,7 @@ class Concept:
         self.save()
 
     @classmethod
-    def render(cls) -> Concept:
+    def render(cls):
         if "concept" in streamlit.session_state:
             return streamlit.session_state["concept"]
         return cls()
@@ -33,8 +34,24 @@ class Concept:
                 {query}
             """, role="user")
         ]
-        output , self.conversation = ask_foundational_model(discourse)
-        self.add_relationships(output, replace=True)
+        result , self.conversation = ask_foundational_model(discourse)
+        self.add_relationships(result, replace=True)
+
+    def drill_down(self, selected_concept: Optional[str]=None, text: Optional[str]=None) -> None:
+        if (selected_concept is None and text is None):
+            return
+        if selected_concept is not None:
+            conversation = self.conversation + [
+                Prompt(f"""
+                    start adding edges to the nodes starting from "{selected_concept}"
+                """, role="user")
+            ]
+            streamlit.session_state.previous_selection = selected_concept
+        else:
+            conversation = self.conversation + [Prompt(text, role="user")]
+        # now self.conversation is updated
+        result, self.conversation = ask_foundational_model(conversation)
+        self.add_relationships(result, replace=False)
 
     def add_relationships(self, output: str, replace: bool=True):
         add_delete_pattern = r'(add|delete)\("([^()"]+)",\s*"([^()"]+)"\)'
@@ -80,7 +97,7 @@ class Concept:
         ))
         self.save()
 
-    def drill_down_and_remove_concept(self, concept) -> None:
+    def drill_down_concept(self, concept) -> None:
         streamlit.sidebar.subheader(concept)
         cols = streamlit.sidebar.columns(2)
         cols[0].button(
@@ -88,11 +105,11 @@ class Concept:
             type="primary",
             on_click=self.drill_down,
             key=f"drill_down_{concept}",
-            kwargs={"selected_node": cols}
+            kwargs={"selected_concept": cols}
         )
         cols[1].button(
             label="Remove Concept",
-            on_click=self.remove_concept,
+            on_click=self.delete_concept,
             key=f"remove_{concept}",
             args=(concept,)
         )
@@ -110,7 +127,7 @@ class Concept:
                 )
                 for concept in self.concepts
             ]
-        relaltionships = [Edge(source=a, target=b) for a, b in self.edges]
+        relationships = [Edge(source=a, target=b) for a, b in self.relationships]
         dimensions = Config(width=constants.GRAPH_WIDTH,
                             height=constants.GRAPH_HEIGHT,
                             directed=False,
@@ -118,10 +135,10 @@ class Concept:
                             hierarchical=False,
                             )
         selected_concept = agraph(nodes=concepts,
-                                  edges=relaltionships,
+                                  edges=relationships,
                                   config=dimensions)
         if selected_concept is not None:
-            self.drill_down_and_remove_concept(selected_concept)
+            self.drill_down_concept(selected_concept)
             return
         for concept in sorted(self.concepts):
-            self.drill_down_and_remove_concept(concept)
+            self.drill_down_concept(concept)
