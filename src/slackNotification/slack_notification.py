@@ -10,14 +10,16 @@ def lambda_handler(event, context):
     """Handles slack alerts for a configured webhook"""
     slack_webhooks = os.environ['SLACK_WEBHOOK'].split(',')
     message = {}
+
+    message[constants.DB_ID] = event['Identifier']
+    message[constants.SNAPSHOT_ID] = event['Identifier'] + constants.SNAPSHOT_POSTFIX
+
     if 'status' in event:
-        message[constants.ERROR] = event['taskname'] + 'Error'
+        message[constants.ERROR] = event[constants.TASK_NAME] + 'Error'
         message[constants.CAUSE] = event['status']
     elif 'Error' in event:
-        message['database id'] = event['databaseid']
-        message['snapshot id'] = event['snapshotid']
-        message['failed step'] = event['taskname']
-        message['cause of failure'] = event['Error']
+        message[constants.FAILED_STEP] = event[constants.TASK_NAME]
+        message[constants.CAUSE] = event['Error']
     send_to_slack(slack_webhooks, message)
 
 
