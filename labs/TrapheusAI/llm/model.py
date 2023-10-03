@@ -1,6 +1,6 @@
 from dataclasses import asdict
 from typing import Tuple, List
-
+import openai
 
 import matplotlib
 import pandas
@@ -29,7 +29,7 @@ def ask_foundational_data_model(dataframe: pandas.core.frame.DataFrame, query: s
     # local llm is still having issues, i have reported this at
     # https://github.com/gventuri/pandas-ai/issues/340#issuecomment-1637184573
     # seeing if chart introduction can help https://github.com/gventuri/pandas-ai/pull/497/files#r1341966270
-    llm = OpenAI(api_token='xxxx')
+    llm = OpenAI(api_token='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')
     smart_df = SmartDataframe(dataframe, config={"llm": llm})
     response =  smart_df.chat(query)
     return response

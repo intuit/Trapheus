@@ -6,8 +6,6 @@ from llm.prompts import Prompt, dialogue
 from llm.model import ask_foundational_model
 from streamlit_agraph import agraph, Node, Edge, Config
 
-
-
 class ConceptSearch:
 
     def __init__(self, relationships: Optional[List[Tuple[str, str]]]=None, concepts: Optional[List[str]]=None) -> None:
@@ -34,24 +32,28 @@ class ConceptSearch:
                 {query}
             """, role="user")
         ]
-        result , self.conversation = ask_foundational_model(discourse)
-        self.add_relationships(result, replace=True)
+        output , self.conversation = ask_foundational_model(discourse)
+        self.add_relationships(output, replace=True)
 
     def drill_down(self, selected_concept: Optional[str]=None, text: Optional[str]=None) -> None:
+
         if (selected_concept is None and text is None):
             return
         if selected_concept is not None:
+            print(selected_concept)
+            print(text)
             conversation = self.conversation + [
                 Prompt(f"""
-                    start adding edges to the nodes starting from "{selected_concept}"
+                    add new edges to new nodes, starting from the node "{selected_concept}"
                 """, role="user")
             ]
+
             streamlit.session_state.previous_selection = selected_concept
         else:
             conversation = self.conversation + [Prompt(text, role="user")]
         # now self.conversation is updated
-        result, self.conversation = ask_foundational_model(conversation)
-        self.add_relationships(result, replace=False)
+        output, self.conversation = ask_foundational_model(conversation)
+        self.add_relationships(output, replace=False)
 
     def add_relationships(self, output: str, replace: bool=True):
         add_delete_pattern = r'(add|delete)\("([^()"]+)",\s*"([^()"]+)"\)'
@@ -60,7 +62,7 @@ class ConceptSearch:
         actions = re.findall(add_delete_pattern, output) + re.findall(delete_pattern, output)
         new_relationships = []
         remove_relationships = set()
-        remove_concept = set()
+        remove_concepts = set()
         for action in actions:
             operation, *args = action
             add = operation == "add"
@@ -73,19 +75,21 @@ class ConceptSearch:
                 else:
                     remove_relationships.add(frozenset([a, b]))
             else:
-                remove_concept.add(args[0])
+                remove_concepts.add(args[0])
         if replace:
             edges = new_relationships
         else:
-            edges = self.edges + new_relationships
+            edges = self.relationships + new_relationships
         concepts_added = set()
         for edge in edges:
             concepts = frozenset(edge)
-            if concepts in concepts_added or concepts & remove_concept or concepts in remove_relationships:
+            if concepts in concepts_added or concepts & remove_concepts or concepts in remove_relationships:
                 continue
             concepts_added.add(concepts)
+        print(concepts_added)
         self.relationships = list([tuple(concept) for concept in concepts_added])
-        self.concepts = list(set([node for edges in self.relationships for node in edges]))
+        self.concepts = list(set([n for e in self.relationships for n in e]))
+        print(self.concepts)
         self.save()
 
     def delete_concept(self, concept) -> None:
@@ -105,7 +109,7 @@ class ConceptSearch:
             type="primary",
             on_click=self.drill_down,
             key=f"drill_down_{concept}",
-            kwargs={"selected_concept": cols}
+            kwargs={"selected_concept": concept}
         )
         cols[1].button(
             label="Remove Concept",
@@ -137,8 +141,7 @@ class ConceptSearch:
         selected_concept = agraph(nodes=concepts,
                                   edges=relationships,
                                   config=dimensions)
+
         if selected_concept is not None:
             self.drill_down_concept(selected_concept)
             return
-        for concept in sorted(self.concepts):
-            self.drill_down_concept(concept)

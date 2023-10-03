@@ -12,5 +12,6 @@ accelerate
 bitsandbytes
 torch
 streamlit-agraph
+streamlit-extras
 pandasai
 tk
