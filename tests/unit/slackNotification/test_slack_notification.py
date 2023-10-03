@@ -56,17 +56,16 @@ class TestSlackNotification(unittest.TestCase):
     def test_lambda_handler_Error(self, mock_send_to_slack):
         os.environ["SLACK_WEBHOOK"] = "webhook1,webhook2,webhook3"
         event = {
-            "databaseid": "idname",
-            "snapshotid": "snapidname",
+            "Identifier": "identifier name",
             "taskname": "taskname",
             "Error": "errormessage"
         }
         slack_notification.lambda_handler(event, {})
         expected_message = {
-            "database id": "idname",
-            "snapshot id": "snapidname",
+            "database id": "identifier name",
+            "snapshot id": "identifier name-snapshot",
             "failed step": "taskname",
-            "cause of failure": "errormessage"
+            "Cause": "errormessage"
         }
         mock_send_to_slack.assert_called_once_with(
             ["webhook1", "webhook2", "webhook3"], expected_message)
