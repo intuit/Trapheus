@@ -9,14 +9,16 @@ def lambda_handler(event, context):
     AWS_REGION = os.environ['Region']
     SUBJECT = "Failure alert for RDS Restore Pipeline"
     result = {}
+
+    result[constants.DB_ID] = event['Identifier']
+    result[constants.SNAPSHOT_ID] = event['Identifier'] + constants.SNAPSHOT_POSTFIX
+    result[constants.FAILED_STEP] = event[constants.TASK_NAME]
+
     if 'status' in event:
-        result['failed step'] = event['taskname']
         result[constants.CAUSE] = event['status']
     elif 'Error' in event:
-        result['database id'] = event['Identifier']
-        result['snapshot id'] = event['Identifier'] + constants.SNAPSHOT_POSTFIX
-        result['failed step'] = event['taskname']
         result[constants.CAUSE] = event['Cause']
+
     BODY_HTML = """<html>
     <head></head>
     <body>
