@@ -33,7 +33,7 @@ class TestResourceProvider(unittest.TestCase):
         # with payload containing `status` attribute
         mock_ses = mock_client.return_value
         mock_ses.send_email.return_value = self.mock_email_response
-        event = {"taskname": "Restore","status": "inaccessible-encryption-credentials"}
+        event = {"Identifier": "Identifier name", "taskname": "Restore","status": "inaccessible-encryption-credentials"}
         data = email_function.lambda_handler(event, {})
         self.assertEqual(data.get("failed step"), "Restore")
         self.assertEqual(data.get("Cause"), "inaccessible-encryption-credentials")
