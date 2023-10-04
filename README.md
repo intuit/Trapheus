@@ -262,33 +262,36 @@ Reference Code Structure
 ├── setup.py
 ├── src
 │   ├── checkstatus
-│   │   ├── DBClusterStatusWaiter.py              <-- Python Waiter(https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html#waiters) for checking the status of the cluster
-│   │   ├── get_dbcluster_status_function.py      <-- Python Lambda code for polling the status of a clusterised database
-│   │   ├── get_dbstatus_function.py              <-- Python Lambda code for polling the status of a non clusterised RDS instance
-│   │   └── waiter_acceptor_config.py             <-- Config module for the waiters
-│   ├── common                                    <-- Common modules across the state machine deployed as a AWS Lambda layer.
+│   │   ├── DBClusterStatusWaiter.py                  <-- Python Waiter(https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html#waiters) for checking the status of the cluster
+│   │   ├── get_dbcluster_status_function.py          <-- Python Lambda code for polling the status of a clusterised database
+│   │   ├── get_dbstatus_function.py                  <-- Python Lambda code for polling the status of a non clusterised RDS instance
+│   │   └── waiter_acceptor_config.py                 <-- Config module for the waiters
+│   ├── common                                        <-- Common modules across the state machine deployed as a AWS Lambda layer.
 │   │   ├── common.zip
 │   │   └── python
-│   │       ├── constants.py                      <-- Common constants used across the state machine.
-│   │       ├── custom_exceptions.py              <-- Custom exceptions defined for the entire state machine.
-│   │       └── utility.py                        <-- Utility module.
+│   │       ├── constants.py                          <-- Common constants used across the state machine.
+│   │       ├── custom_exceptions.py                  <-- Custom exceptions defined for the entire state machine.
+│   │       └── utility.py                            <-- Utility module.
 │   ├── delete
-│   │   ├── cluster_delete_function.py           <-- Python Lambda code for deleting a clusterised database.
-│   │   └── delete_function.py                   <-- Python Lambda code for deleting a non clusterised RDS instance.
+│   │   ├── cluster_delete_function.py                <-- Python Lambda code for deleting a clusterised database.
+│   │   └── delete_function.py                        <-- Python Lambda code for deleting a non clusterised RDS instance.
 │   ├── emailalert
-│   │   └── email_function.py                    <-- Python Lambda code for sending out failure emails.
+│   │   └── email_function.py                         <-- Python Lambda code for sending out failure emails.
+│   ├── export
+│   │   ├── export_cluster_snapshot_s3_function.py    <-- Python Lambda code for exporting db cluster snapshot to S3.
+│   │   └── export_snapshot_s3_function.py            <-- Python Lambda code for exporting db instance snapshot to S3.
 │   ├── rename
-│   │   ├── cluster_rename_function.py           <-- Python Lambda code for renaming a clusterised database.
-│   │   └── rename_function.py                   <-- Python Lambda code for renaming a non-clusterised RDS instance.
+│   │   ├── cluster_rename_function.py                <-- Python Lambda code for renaming a clusterised database.
+│   │   └── rename_function.py                        <-- Python Lambda code for renaming a non-clusterised RDS instance.
 │   ├── restore
-│   │   ├── cluster_restore_function.py          <-- Python Lambda code for retoring a clusterised database.
-│   │   └── restore_function.py                  <-- Python Lambda code for restoring a non-clusterised RDS instance
+│   │   ├── cluster_restore_function.py               <-- Python Lambda code for retoring a clusterised database.
+│   │   └── restore_function.py                       <-- Python Lambda code for restoring a non-clusterised RDS instance
 │   ├── slackNotification
-│   │   └── slack_notification.py                <-- Python Lambda code for sending out a failure alert to configured webhook(s) on Slack.
+│   │   └── slack_notification.py                     <-- Python Lambda code for sending out a failure alert to configured webhook(s) on Slack.
 │   └── snapshot
-│       ├── cluster_snapshot_function.py         <-- Python Lambda code for creating a snapshot of a clusterised database.
-│       └── snapshot_function.py                 <-- Python Lambda code for creating a snapshot of a non-clusterised RDS instance.
-├── template.yaml                                <-- SAM template definition for the entire state machine.
+│       ├── cluster_snapshot_function.py              <-- Python Lambda code for creating a snapshot of a clusterised database.
+│       └── snapshot_function.py                      <-- Python Lambda code for creating a snapshot of a non-clusterised RDS instance.
+├── template.yaml                                     <-- SAM template definition for the entire state machine.
 └── tests
     └── unit
         ├── checkstatus
