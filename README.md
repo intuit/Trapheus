@@ -20,10 +20,6 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 * **Important:** this application uses various AWS services and there are costs associated with these services after the Free Tier usage - please see the [AWS  pricing page](https://aws.amazon.com/pricing/) for details.
 
 
-<details>
-<summary>📖 Table of Contents</summary>
-<br />
-
 [![---------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#table-of-contents)
 
 ## Table of Contents
@@ -35,8 +31,6 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 - * [➤ How it Works](#how-it-works)
 - * [➤ Contributing to Trapheus](#contributing-to-trapheus)
 - * [➤ Contributors](#contributors)
-
-</details>
 
 [![---------------------------------------------------------------------------------------------------------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#pre-requisites)
 
