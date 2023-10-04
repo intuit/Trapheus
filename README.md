@@ -202,12 +202,12 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 1. Using the `isCluster` value, a branching takes place in the state machine to execute the pipeline for a db cluster or for a db instance.
 
 2. If `task` is set to `create_snapshot`, the **snapshot creation/updation** process takes place for a cluster or instance respectively.
-   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created.
+   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created. Post the new snapshot creation, the db restoration pipeline executes.
 
 3. If `task` is set to `db_restore`, the db restoration process starts, without a snapshot creation/updation
 
 4. If `task` is set to `create_snapshot_only`, the **snapshot creation/updation** process only takes place for a cluster or instance respectively.
-   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created.
+   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created. In this scenario, the db restoration pipeline is not started.
 
 5. As part of the db restoration process, the first step is a **Rename** of the provided db instance or db cluster and its corresponding instances to a temporary name.
    Wait for successful completion of the rename step to be able to use the provided unique `identifier` in the restoration step.
@@ -233,9 +233,9 @@ Reference Code Structure
 
 ```bash
 
-├── LICENSE.md                                    <-- The MIT license.
-├── README.md                                     <-- The Readme file.
-├── docs                                          <-- The Readme files
+├── LICENSE.md                                        <-- The MIT license.
+├── README.md                                         <-- The Readme file.
+├── docs                                              <-- The Readme files
 │   ├── README.fr.md
 │   └── README.zh-CN.md
 ├── install.py
@@ -243,7 +243,7 @@ Reference Code Structure
 ├── presentation
 │   └── Trapheus.pptx
 ├── requirements.txt
-├── screenshots                                   <-- Folder for screenshots of the state machine.
+├── screenshots                                       <-- Folder for screenshots of the state machine.
 │   ├── Trapheus.gif
 │   ├── Trapheus.png
 │   ├── cluster_restore.png
@@ -368,7 +368,6 @@ Prepare your environment. Install tools as needed.
 
 
 ## Contributors
-
 
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=intuit/Trapheus" />
