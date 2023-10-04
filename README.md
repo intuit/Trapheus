@@ -20,23 +20,17 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 * **Important:** this application uses various AWS services and there are costs associated with these services after the Free Tier usage - please see the [AWS  pricing page](https://aws.amazon.com/pricing/) for details.
 
 
-<details>
-<summary>📖 Table of Contents</summary>
-<br />
-
 [![---------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#table-of-contents)
 
 ## Table of Contents
 
-- * [➤ Pre-Requisites](#pre-requisites )
-- * [➤ Parameters](#parameters)
-- * [➤ Instructions](#instructions)
-- * [➤ Execution](#execution)
-- * [➤ How it Works](#how-it-works)
-- * [➤ Contributing to Trapheus](#contributing-to-trapheus)
-- * [➤ Contributors](#contributors)
-
-</details>
+- [➤ Pre-Requisites](#pre-requisites)
+- [➤ Parameters](#parameters)
+- [➤ Instructions](#instructions)
+- [➤ Execution](#execution)
+- [➤ How it Works](#how-it-works)
+- [➤ Contributing to Trapheus](#contributing-to-trapheus)
+- [➤ Contributors](#contributors)
 
 [![---------------------------------------------------------------------------------------------------------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#pre-requisites)
 
@@ -208,12 +202,12 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 1. Using the `isCluster` value, a branching takes place in the state machine to execute the pipeline for a db cluster or for a db instance.
 
 2. If `task` is set to `create_snapshot`, the **snapshot creation/updation** process takes place for a cluster or instance respectively.
-   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created.
+   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created. Post the new snapshot creation, the db restoration pipeline executes.
 
 3. If `task` is set to `db_restore`, the db restoration process starts, without a snapshot creation/updation
 
 4. If `task` is set to `create_snapshot_only`, the **snapshot creation/updation** process only takes place for a cluster or instance respectively.
-   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created.
+   Creates a snapshot using the unique identifier: *identifier*-snapshot, if it does not exist. If a snapshot already exists with the aforementioned identifier, it is deleted and a new snapshot is created. In this scenario, the db restoration pipeline is not started.
 
 5. As part of the db restoration process, the first step is a **Rename** of the provided db instance or db cluster and its corresponding instances to a temporary name.
    Wait for successful completion of the rename step to be able to use the provided unique `identifier` in the restoration step.
@@ -239,9 +233,9 @@ Reference Code Structure
 
 ```bash
 
-├── LICENSE.md                                    <-- The MIT license.
-├── README.md                                     <-- The Readme file.
-├── docs                                          <-- The Readme files
+├── LICENSE.md                                        <-- The MIT license.
+├── README.md                                         <-- The Readme file.
+├── docs                                              <-- The Readme files
 │   ├── README.fr.md
 │   └── README.zh-CN.md
 ├── install.py
@@ -249,7 +243,7 @@ Reference Code Structure
 ├── presentation
 │   └── Trapheus.pptx
 ├── requirements.txt
-├── screenshots                                   <-- Folder for screenshots of teh state machine.
+├── screenshots                                       <-- Folder for screenshots of the state machine.
 │   ├── Trapheus.gif
 │   ├── Trapheus.png
 │   ├── cluster_restore.png
@@ -262,33 +256,36 @@ Reference Code Structure
 ├── setup.py
 ├── src
 │   ├── checkstatus
-│   │   ├── DBClusterStatusWaiter.py              <-- Python Waiter(https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html#waiters) for checking the status of the cluster
-│   │   ├── get_dbcluster_status_function.py      <-- Python Lambda code for polling the status of a clusterised database
-│   │   ├── get_dbstatus_function.py              <-- Python Lambda code for polling the status of a non clusterised RDS instance
-│   │   └── waiter_acceptor_config.py             <-- Config module for the waiters
-│   ├── common                                    <-- Common modules across the state machine deployed as a AWS Lambda layer.
+│   │   ├── DBClusterStatusWaiter.py                  <-- Python Waiter(https://boto3.amazonaws.com/v1/documentation/api/latest/guide/clients.html#waiters) for checking the status of the cluster
+│   │   ├── get_dbcluster_status_function.py          <-- Python Lambda code for polling the status of a clusterised database
+│   │   ├── get_dbstatus_function.py                  <-- Python Lambda code for polling the status of a non clusterised RDS instance
+│   │   └── waiter_acceptor_config.py                 <-- Config module for the waiters
+│   ├── common                                        <-- Common modules across the state machine deployed as a AWS Lambda layer.
 │   │   ├── common.zip
 │   │   └── python
-│   │       ├── constants.py                      <-- Common constants used across the state machine.
-│   │       ├── custom_exceptions.py              <-- Custom exceptions defined for the entire state machine.
-│   │       └── utility.py                        <-- Utility module.
+│   │       ├── constants.py                          <-- Common constants used across the state machine.
+│   │       ├── custom_exceptions.py                  <-- Custom exceptions defined for the entire state machine.
+│   │       └── utility.py                            <-- Utility module.
 │   ├── delete
-│   │   ├── cluster_delete_function.py           <-- Python Lambda code for deleting a clusterised database.
-│   │   └── delete_function.py                   <-- Python Lambda code for deleting a non clusterised RDS instance.
+│   │   ├── cluster_delete_function.py                <-- Python Lambda code for deleting a clusterised database.
+│   │   └── delete_function.py                        <-- Python Lambda code for deleting a non clusterised RDS instance.
 │   ├── emailalert
-│   │   └── email_function.py                    <-- Python Lambda code for sending out failure emails.
+│   │   └── email_function.py                         <-- Python Lambda code for sending out failure emails.
+│   ├── export
+│   │   ├── export_cluster_snapshot_s3_function.py    <-- Python Lambda code for exporting db cluster snapshot to S3.
+│   │   └── export_snapshot_s3_function.py            <-- Python Lambda code for exporting db instance snapshot to S3.
 │   ├── rename
-│   │   ├── cluster_rename_function.py           <-- Python Lambda code for renaming a clusterised database.
-│   │   └── rename_function.py                   <-- Python Lambda code for renaming a non-clusterised RDS instance.
+│   │   ├── cluster_rename_function.py                <-- Python Lambda code for renaming a clusterised database.
+│   │   └── rename_function.py                        <-- Python Lambda code for renaming a non-clusterised RDS instance.
 │   ├── restore
-│   │   ├── cluster_restore_function.py          <-- Python Lambda code for retoring a clusterised database.
-│   │   └── restore_function.py                  <-- Python Lambda code for restoring a non-clusterised RDS instance
+│   │   ├── cluster_restore_function.py               <-- Python Lambda code for retoring a clusterised database.
+│   │   └── restore_function.py                       <-- Python Lambda code for restoring a non-clusterised RDS instance
 │   ├── slackNotification
-│   │   └── slack_notification.py                <-- Python Lambda code for sending out a failure alert to configured webhook(s) on Slack.
+│   │   └── slack_notification.py                     <-- Python Lambda code for sending out a failure alert to configured webhook(s) on Slack.
 │   └── snapshot
-│       ├── cluster_snapshot_function.py         <-- Python Lambda code for creating a snapshot of a clusterised database.
-│       └── snapshot_function.py                 <-- Python Lambda code for creating a snapshot of a non-clusterised RDS instance.
-├── template.yaml                                <-- SAM template definition for the entire state machine.
+│       ├── cluster_snapshot_function.py              <-- Python Lambda code for creating a snapshot of a clusterised database.
+│       └── snapshot_function.py                      <-- Python Lambda code for creating a snapshot of a non-clusterised RDS instance.
+├── template.yaml                                     <-- SAM template definition for the entire state machine.
 └── tests
     └── unit
         ├── checkstatus
@@ -371,7 +368,6 @@ Prepare your environment. Install tools as needed.
 
 
 ## Contributors
-
 
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=intuit/Trapheus" />
