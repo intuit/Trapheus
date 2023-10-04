@@ -243,7 +243,7 @@ Reference Code Structure
 ├── presentation
 │   └── Trapheus.pptx
 ├── requirements.txt
-├── screenshots                                   <-- Folder for screenshots of teh state machine.
+├── screenshots                                   <-- Folder for screenshots of the state machine.
 │   ├── Trapheus.gif
 │   ├── Trapheus.png
 │   ├── cluster_restore.png
