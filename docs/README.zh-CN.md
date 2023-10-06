@@ -43,7 +43,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 该应用程序在安装前需要以下 AWS 资源：
 
-1.  `python3.7`安装在本地计算机上如下[这](https://www.python.org/downloads/).
+1.  `python3.11`安装在本地计算机上如下[这](https://www.python.org/downloads/).
 
 2.  配置[AWSSES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
     -   配置 SES 发件人和收件人电子邮件（[SES控制台](https://console.aws.amazon.com/ses/)->电子邮件地址）。
