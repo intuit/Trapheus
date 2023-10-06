@@ -10,7 +10,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 </p>
 <p align="center"><a href="https://circleci.com/gh/intuit/Trapheus"><img src="https://circleci.com/gh/intuit/Trapheus.svg?style=svg" alt="TravisCI Build Status"/></a>
 <a href = "https://coveralls.io/github/intuit/Trapheus?branch=master"><img src= "https://coveralls.io/repos/github/intuit/Trapheus/badge.svg?branch=master" alt = "Coverage"/></a>
-  <a href="http://www.serverless.com"><img src="http://public.serverless.com/badges/v3.svg" alt="serverless badge"/></a>
+  <a href="https://www.serverless.com"><img src="https://github.com/intuit/Trapheus/assets/112308320/c7764b65-fb72-46ed-824b-c82c6374ec8b" alt="serverless badge"/></a>
   <a href="https://github.com/intuit/Trapheus/releases"><img src="https://img.shields.io/github/v/release/intuit/trapheus.svg" alt="release badge"/></a>
 </p>
 
@@ -36,7 +36,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 The app requires the following AWS resources to exist before installation:
 
-1. `python3.7` installed on local machine following [this](https://www.python.org/downloads/).
+1. `python3.11` installed on local machine following [this](https://www.python.org/downloads/).
 
 2. Configure [AWS SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
 
