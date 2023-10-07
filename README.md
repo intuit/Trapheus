@@ -95,6 +95,23 @@ The following are the parameters for creating the cloudformation template:
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#instructions)
 
+## Tagging
+This section describes the currently supported set of tags and how to take advantage of them in support of common use cases around billing insight generation. 
+
+Tags provide additional means of grouping and subdividing costs, whether for the purposes of analysis or cost distribution. Explanations for how tags can be applied to resources inside AWS is provided here. To facilitate a consistent approach to handling known and foreseen use cases, the following tags has been added at stack level and as well as at resource levels.
+
+AppName - Name of the application, default Trapheus
+AppComponent - Name of the component, since this application targeted for DB restore, default component database
+AppFunction - Application function name, default RestoreDB
+
+If you would like to change above defaults, change it using  `samconfig.toml`
+
+Every resource has tags as well, which override the default tag.
+For example:
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "RenameDBInstance"
+
 ## Instructions
 
 ### Setup

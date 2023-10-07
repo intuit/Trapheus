@@ -34,7 +34,7 @@ def main():
     slack_webhook_urls = input('Enter slack webhooks to publish failure notifications to: ')
     if slack_webhook_urls:
         deploy_command = deploy_command + ' --SlackWebhookUrls=' + slack_webhook_urls
-    vpc = input('Are ypu using vpc[y/n]: ')
+    vpc = input('Are you using vpc[y/n]: ')
     if vpc == 'y' or vpc == 'Y':
         deploy_command = deploy_command + ' UseVPCAndSubnets=true'
         vpc_id = input('Enter vpc ID: ')
