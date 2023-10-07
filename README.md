@@ -104,7 +104,7 @@ Tags provide additional means of grouping and subdividing costs, whether for the
 <b>AppComponent</b> - Name of the component, since this application targeted for DB restore, default component database <br>
 <b>AppFunction</b> - Application function name, default RestoreDB <br>
 
-If you would like to change above defaults, change it using  `samconfig.toml`
+If you would like to change above defaults, change it in `samconfig.toml`
 
 Every resource has tags as well, which override the default tag.
 
