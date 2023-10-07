@@ -100,9 +100,9 @@ This section describes the currently supported set of tags and how to take advan
 
 Tags provide additional means of grouping and subdividing costs, whether for the purposes of analysis or cost distribution. Explanations for how tags can be applied to resources inside AWS is provided here. To facilitate a consistent approach to handling known and foreseen use cases, the following tags has been added at stack level and as well as at resource levels.
 
-AppName - Name of the application, default Trapheus
-AppComponent - Name of the component, since this application targeted for DB restore, default component database
-AppFunction - Application function name, default RestoreDB
+AppName - Name of the application, default Trapheus <br>
+AppComponent - Name of the component, since this application targeted for DB restore, default component database <br>
+AppFunction - Application function name, default RestoreDB <br>
 
 If you would like to change above defaults, change it using  `samconfig.toml`
 
