@@ -107,7 +107,9 @@ AppFunction - Application function name, default RestoreDB
 If you would like to change above defaults, change it using  `samconfig.toml`
 
 Every resource has tags as well, which override the default tag.
+
 For example:
+
       Tags:
         AppComponent: "Lambda"
         AppFunction: "RenameDBInstance"
