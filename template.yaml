@@ -7,7 +7,7 @@ Description: >
 
 Globals:
   Function:
-    Runtime: python3.7
+    Runtime: python3.11
     Timeout: 900
     Environment:
       Variables:
@@ -171,6 +171,10 @@ Resources:
       Description: Dependencies on util methods used in lambdas of the state machine
       ContentUri: src/common/common.zip
       CompatibleRuntimes:
+        - python3.11
+        - python3.10
+        - python3.9
+        - python3.8
         - python3.7
         - python3.6
       LicenseInfo: 'MIT'
@@ -181,7 +185,7 @@ Resources:
       FunctionName: "lambda-function-rename-dbinstance"
       Description: Lambda functions required to execute rename of a database instance.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/rename/
       Handler: rename_function.lambda_rename_dbinstance
       MemorySize: 128
@@ -200,7 +204,7 @@ Resources:
       FunctionName: "lambda-function-get-dbinstance-status-sf"
       Description: Lambda function which provides information on status of db instance post any operation.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/checkstatus/
       Handler: get_dbstatus_function.lambda_get_dbinstance_status
       MemorySize: 128
@@ -219,7 +223,7 @@ Resources:
       FunctionName: "lambda-function-restore-dbinstance-sf"
       Description: Lambda functions required to execute database restore.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/restore/
       Handler: restore_function.lambda_restore_dbinstance
       MemorySize: 128
@@ -238,7 +242,7 @@ Resources:
       FunctionName: "lambda-function-delete-dbinstance-sf"
       Description: Lambda functions required to execute database instance deletion.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/delete/
       Handler: delete_function.lambda_delete_dbinstance
       MemorySize: 128
@@ -257,7 +261,7 @@ Resources:
       FunctionName: "lambda-function-dbsnapshot-sf"
       Description: Lambda functions required to take snapshot of a database instance.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/snapshot/
       Handler: snapshot_function.lambda_create_dbinstance_snapshot
       MemorySize: 128
@@ -276,7 +280,7 @@ Resources:
       FunctionName: "lambda-function-send-emailalert-sf"
       Description: Lambda functions required to enable alerts in case of any failure of state machine.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/emailalert/
       Handler: email_function.lambda_handler
       MemorySize: 128
@@ -301,7 +305,7 @@ Resources:
       FunctionName: "lambda-function-send-slackalert-sf"
       Description: Lambda functions required to enable slack alerts in case of any failure of state machine.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/slacknotification/
       Handler: slack_notification.lambda_handler
       MemorySize: 128
@@ -324,7 +328,7 @@ Resources:
       FunctionName: "lambda-function-dbcluster-rename-sf"
       Description: Lambda functions required to execute database cluster rename.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/rename/
       Handler: cluster_rename_function.lambda_rename_dbcluster
       MemorySize: 128
@@ -343,7 +347,7 @@ Resources:
       FunctionName: "lambda-function-dbcluster-restore-sf"
       Description: Lambda functions required to execute database cluster restore.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/restore/
       Handler: cluster_restore_function.lambda_restore_dbcluster
       MemorySize: 128
@@ -362,7 +366,7 @@ Resources:
       FunctionName: "lambda-function-dbcluster-status-sf"
       Description: Lambda function which provides information on status of db cluster post any operation.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/checkstatus/
       Handler: get_dbcluster_status_function.lambda_get_cluster_status
       MemorySize: 128
@@ -381,7 +385,7 @@ Resources:
       FunctionName: "lambda-function-dbcluster-delete-sf"
       Description: Lambda functions required to execute deletion of database cluster.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/delete/
       Handler: cluster_delete_function.lambda_delete_dbcluster
       MemorySize: 128
@@ -400,7 +404,7 @@ Resources:
       FunctionName: "lambda-function-dbcluster-snapshot-sf"
       Description: Lambda functions required to take snapshot of database cluster.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/snapshot/
       Handler: cluster_snapshot_function.lambda_create_cluster_snapshot
       MemorySize: 128
@@ -459,7 +463,7 @@ Resources:
       FunctionName: !Sub ${ProjectName}-snapshot-export-sf
       Description: Lambda functions required to start export task of RDS snapshot to s3.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/export/
       Handler: export_snapshot_s3_function.lambda_export_rds_snapshot_to_s3
       MemorySize: 128
@@ -480,7 +484,7 @@ Resources:
       FunctionName: !Sub ${ProjectName}-cluster-snapshot-export-sf
       Description: Lambda functions required to start export task of RDS snapshot to s3.
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.11
       CodeUri: src/export/
       Handler: export_cluster_snapshot_s3_function.lambda_export_rds_cluster_snapshot_to_s3
       MemorySize: 128

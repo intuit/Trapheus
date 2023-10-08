@@ -43,7 +43,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 L'application nécessite que les ressources AWS suivantes existent avant l'installation :
 
-1.  `python3.7`installé sur la machine locale suivante[ce](https://www.python.org/downloads/).
+1.  `python3.11`installé sur la machine locale suivante[ce](https://www.python.org/downloads/).
 
 2.  Configurer[AWS SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing-create-configuration-set.html)
     -   Configurez l'e-mail de l'expéditeur et du destinataire SES ([SES Console](https://console.aws.amazon.com/ses/)->Adresses e-mail).
