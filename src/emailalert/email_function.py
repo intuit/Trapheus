@@ -10,8 +10,8 @@ def lambda_handler(event, context):
     SUBJECT = "Failure alert for RDS Restore Pipeline"
     result = {}
 
-    result[constants.DB_ID] = event['Identifier']
-    result[constants.SNAPSHOT_ID] = event['Identifier'] + constants.SNAPSHOT_POSTFIX
+    result[constants.DB_ID] = event['identifier']
+    result[constants.SNAPSHOT_ID] = event['identifier'] + constants.SNAPSHOT_POSTFIX
     result[constants.FAILED_STEP] = event[constants.TASK_NAME]
 
     if 'status' in event:

@@ -11,8 +11,8 @@ def lambda_handler(event, context):
     slack_webhooks = os.environ['SLACK_WEBHOOK'].split(',')
     message = {}
 
-    message[constants.DB_ID] = event['Identifier']
-    message[constants.SNAPSHOT_ID] = event['Identifier'] + constants.SNAPSHOT_POSTFIX
+    message[constants.DB_ID] = event['identifier']
+    message[constants.SNAPSHOT_ID] = event['identifier'] + constants.SNAPSHOT_POSTFIX
 
     if 'status' in event:
         message[constants.ERROR] = event[constants.TASK_NAME] + 'Error'
