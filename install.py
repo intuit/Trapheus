@@ -4,10 +4,9 @@ import subprocess
 
 
 def main():
-    package_command_list = ['sam', 'package' , '--template-file', 'template.yaml', '--output-template-file', 'deploy.yaml']
-    deploy_command_list = ['sam', 'deploy' , '--template-file', 'deploy.yaml', '--capabilities', 'CAPABILITY_NAMED_IAM']
+    package_command_list = ['sam', 'package', '--template-file', 'template.yaml', '--output-template-file', 'deploy.yaml']
+    deploy_command_list = ['sam', 'deploy', '--template-file', 'deploy.yaml', '--capabilities', 'CAPABILITY_NAMED_IAM']
     s3_bucket = input('Enter the s3 bucket name created as part of pre-requisite: ')
-    
     if s3_bucket:
         package_command_list.append('--s3-bucket')
         package_command_list.append(s3_bucket)
@@ -20,7 +19,6 @@ def main():
         deploy_command_list.append(region)
         print()
         print ('packaging trapheus for use ...')
-        print(package_command_list)
         try:
             subprocess.run(package_command_list, shell=False, check=True)
         except subprocess.CalledProcessError as e:
@@ -52,7 +50,6 @@ def main():
                 deploy_command_list.append('Subnets=' +subnets)
     print()
     print('Deploying trapheus to AWS ...')
-    print(deploy_command_list)
     try:
         subprocess.run(deploy_command_list, shell=False, check=True)
     except subprocess.CalledProcessError as e:
