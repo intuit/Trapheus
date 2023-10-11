@@ -16,7 +16,7 @@ def main():
         print()
         print ('packaging trapheus for use ...')
         try:
-            subprocess.run(package_command, shell=False, check=True)
+            subprocess.run(package_command, shell=True, check=True)
         except subprocess.CalledProcessError as e:
             print(f'Error: {e}')
 
@@ -46,7 +46,7 @@ def main():
     print()
     print('Deploying trapheus to AWS ...')
     try:
-        subprocess.run(deploy_command, shell=False, check=True)
+        subprocess.run(deploy_command, shell=True, check=True)
     except subprocess.CalledProcessError as e:
         print(f'Error: {e}')
 
