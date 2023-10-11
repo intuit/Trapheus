@@ -3,11 +3,12 @@
 import subprocess
 
 def execute_subprocess(command_list):
-    print('Executing command list: ', command_list)
+    print(f'Executing command list: {command_list}')
     try:
         subprocess.run(command_list, shell=False, check=True)
     except subprocess.CalledProcessError as e:
         print(f'Error: {e}')
+        raise Exception(e)
 
 
 def main():
@@ -37,7 +38,7 @@ def main():
     sender_email = input('Enter sender email to send email FROM in case of failure: ')
     if sender_email:
         deploy_command_list.append('SenderEmail=' + sender_email)
-    recipient_email = input('Enter recipeint email to send email TO in case of failure: ')
+    recipient_email = input('Enter recipient email to send email TO in case of failure: ')
     if recipient_email:
         deploy_command_list.append('RecipientEmail=' + recipient_email)
     slack_webhook_urls = input('Enter slack webhooks to publish failure notifications to: ')
@@ -49,7 +50,7 @@ def main():
         vpc_id = input('Enter vpc ID: ')
         if vpc_id:
             deploy_command_list.append('vpcId=' + vpc_id)
-            subnets = input('Enter comman seperated list of PRIVATE subnets: ')
+            subnets = input('Enter comma seperated list of PRIVATE subnets: ')
             if subnets:
                 deploy_command_list.append('Subnets=' +subnets)
     print()
