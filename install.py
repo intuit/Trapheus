@@ -2,6 +2,13 @@
 
 import subprocess
 
+def execute_subprocess(command_list):
+    print('Executing command list: ', command_list)
+    try:
+        subprocess.run(command_list, shell=False, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f'Error: {e}')
+
 
 def main():
     package_command_list = ['sam', 'package', '--template-file', 'template.yaml', '--output-template-file', 'deploy.yaml']
@@ -18,11 +25,8 @@ def main():
         deploy_command_list.append('--region')
         deploy_command_list.append(region)
         print()
-        print ('packaging trapheus for use ...')
-        try:
-            subprocess.run(package_command_list, shell=False, check=True)
-        except subprocess.CalledProcessError as e:
-            print(f'Error: {e}')
+        print ('packaging trapheus for use...')
+        execute_subprocess(package_command_list)
 
 
     stack_name = input('Enter a stack name: ')
@@ -49,11 +53,8 @@ def main():
             if subnets:
                 deploy_command_list.append('Subnets=' +subnets)
     print()
-    print('Deploying trapheus to AWS ...')
-    try:
-        subprocess.run(deploy_command_list, shell=False, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f'Error: {e}')
+    print('Deploying trapheus to AWS...')
+    execute_subprocess(deploy_command_list)
 
 
 if __name__ == "__main__":
