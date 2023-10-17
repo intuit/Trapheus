@@ -192,6 +192,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -211,6 +214,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -230,6 +236,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -249,6 +258,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -268,6 +280,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -287,6 +302,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -312,6 +330,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -335,6 +356,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -354,6 +378,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -373,6 +400,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -392,6 +422,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -411,6 +444,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -470,6 +506,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       Environment:
         Variables:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
@@ -491,6 +530,9 @@ Resources:
       Layers:
         - !Ref CommonLambdaLayer
       Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+
       Environment:
         Variables:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
