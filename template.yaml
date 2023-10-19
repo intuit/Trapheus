@@ -681,8 +681,53 @@ Resources:
         !Sub
         - |-
           {
-            "StartAt": "ShouldRestoreClusterOrInstance",
+            "StartAt": "IsTaskRestoreInTargetAccountsAndRegions",
             "States": {
+              "IsTaskRestoreInTargetAccountsAndRegions": {
+                "Type": "Choice",
+                  "Choices": [{
+                    "Variable": "$.task",
+                    "StringEquals": "restore_rds_in_target_accounts",
+                    "Next": "ShareRDSSnapshot"
+                  }],
+                  "Default": "ShouldRestoreClusterOrInstance"
+              },
+              "ShareRDSSnapshot": {
+                "Type": "Task",
+                "Resource": "${ShareSnapshotLambdaArn}",
+                "Next": "RestoreRDSInTargetAccountAndRegion",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["AutomationExecutionLimitExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "FailedState"
+                  }
+                ]
+              },
+              "RestoreRDSInTargetAccountAndRegion": {
+                "Type": "Task",
+                "Resource": "${RestoreRDSInTargetAccountsAndRegionsLambdaArn}",
+                "Next": "RestorePipelineComplete",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["AutomationExecutionLimitExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "FailedState"
+                  }
+                ]
+              },
               "ShouldRestoreClusterOrInstance": {
                 "Type": "Choice",
                   "Choices": [{
@@ -1372,7 +1417,9 @@ Resources:
             DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
             DBSnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn,
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
-            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
+            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
+            ShareSnapshotLambdaArn: !GetAtt ShareSnapshotLambdaFunction.Arn,
+            RestoreRDSInTargetAccountsAndRegionsLambda: !GetAtt RestoreRDSInTargetAccountsAndRegionsLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
 
