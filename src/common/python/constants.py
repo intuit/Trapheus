@@ -8,6 +8,7 @@ TEMP_POSTFIX = "-temp"
 ERROR = "Error"
 CAUSE = "Cause"
 RDS_SNAPSHOTS_BUCKET_NAME_PREFIX = "rds-snapshots-"
+SHARE_SNAPSHOT_SSM_AUTOMATION = "AWSSupport-ShareRDSSnapshot"
 
 DELETE = "Delete"
 RENAME = "Rename"
@@ -16,6 +17,7 @@ SNAPSHOT_ONLY = "SnapshotCreationOnly"
 DB_RESTORE = "Restore"
 CLUSTER_RESTORE = "ClusterRestore"
 EXPORT_SNAPSHOT = "SnapshotExport"
+SHARE_SNAPSHOT = "ShareSnapshot"
 
 TASK_ERROR_MAP = {
     'Rename' : custom_exceptions.RenameException,
