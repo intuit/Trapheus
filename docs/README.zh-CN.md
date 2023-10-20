@@ -324,7 +324,7 @@ Lambda 层用于所有 lambda 中的通用实用方法和自定义异常处理�
     ```bash
        cd Trapheus
        python -m pytest tests/ -v #to execute the complete test suite
-       python -m pytest tests/unit/test_get_dbstatus_function.py -v #to execute any individual test
+       python -m pytest tests/unit/checkstatus/test_get_dbstatus_function.py -v #to execute any individual test
     ```
 
 6.  阶段编辑的文件。
