@@ -372,3 +372,7 @@ Prepare your environment. Install tools as needed.
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=intuit/Trapheus" />
 </a>
+
+
+## Blogs
+* [Unlocking the potential of data with TrapheusAI](https://medium.com/@chasindak9/unlocking-the-potential-of-data-with-trapheusai-772d9a1707f1)
