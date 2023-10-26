@@ -223,7 +223,6 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 
 ![DBRestore failure handling depiction](screenshots/failure_handling.png)
 
-**Amazon Blog Post** : https://aws.amazon.com/blogs/opensource/what-is-trapheus/ 
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#contributing-to-trapheus)
 
@@ -366,6 +365,9 @@ Prepare your environment. Install tools as needed.
 
 1. The `Output` will provide a link to create your Pull Request.
 
+## Blogs
+* [What is Trapheus](https://aws.amazon.com/blogs/opensource/what-is-trapheus/)
+* [Unlocking the potential of data with TrapheusAI](https://medium.com/@chasindak9/unlocking-the-potential-of-data-with-trapheusai-772d9a1707f1)
 
 ## Contributors
 
