@@ -30,6 +30,7 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 - [➤ Execution](#execution)
 - [➤ How it Works](#how-it-works)
 - [➤ Contributing to Trapheus](#contributing-to-trapheus)
+- [➤ Blogs](#blogs)
 - [➤ Contributors](#contributors)
 
 [![---------------------------------------------------------------------------------------------------------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#pre-requisites)
