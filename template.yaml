@@ -102,6 +102,50 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         - arn:aws:iam::aws:policy/AWSStepFunctionsReadOnlyAccess
         - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/AmazonSSMAutomationRole
+
+  RDSAutomationExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ssm.amazonaws.co
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: kms-ssm-automation-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: "*"
+                Action:
+                  - "iam:CreateServiceLinkedRole"
+                  - "kms:EnableKey"
+                  - "kms:Decrypt"
+                  - "kms:ListKeyPolicies"
+                  - "kms:PutKeyPolicy"
+                  - "kms:GetKeyPolicy"
+                  - "kms:ListResourceTags"
+                  - "kms:DisableKey"
+                  - "kms:ReEncryptFrom"
+                  - "kms:ListGrants"
+                  - "kms:ListKeys"
+                  - "kms:TagResource"
+                  - "kms:Encrypt"
+                  - "kms:ScheduleKeyDeletion"
+                  - "kms:CreateAlias"
+                  - "kms:ReEncryptTo"
+                  - "kms:DescribeKey"
+                  - "kms:CreateKey"
+                  - "kms:CreateGrant"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMAutomationRole
+
 
   RecordSet:
     Condition: ConfigureRoute53
@@ -285,6 +329,9 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
+      Environment:
+        Variables:
+          SHARE_SNAPSHOT_TASK_ROLE: !GetAtt RDSAutomationExecutionRole.Arn
       VpcConfig:
         !If [ UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
