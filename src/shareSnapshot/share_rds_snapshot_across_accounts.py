@@ -21,7 +21,7 @@ def lambda_share_rds_snapshot_cross_account(event, context):
                     event['identifier'] + constants.SNAPSHOT_POSTFIX
                 ],
                 'AutomationAssumeRole': [
-                     event['AutomationAssumeRole']
+                     os.environ['SHARE_SNAPSHOT_TASK_ROLE']
                 ]
 
             },
@@ -32,4 +32,4 @@ def lambda_share_rds_snapshot_cross_account(event, context):
         result['shareSnapshotSSMExecutionId'] = response.get("AutomationExecutionId")
         return result
     except Exception as error:
-        raise custom_exceptions.SSMShareSnapshotException(error_message)
+        raise custom_exceptions.SSMShareSnapshotException(error)

@@ -47,4 +47,4 @@ def lambda_restore_rds_target_account(event, context):
         result['shareSnapshotSSMExecutionId'] = response.get("AutomationExecutionId")
         return result
     except Exception as error:
-        raise custom_exceptions.InstanceRestoreException(error_message)
+        raise custom_exceptions.InstanceRestoreException(error)
