@@ -102,7 +102,7 @@ def style_page():
     streamlit.markdown(style, unsafe_allow_html=True)
 
 def showDownloadMessage():
-    streamlit.success("Downloading dataset to system")
+    streamlit.success("Your dataset has been saved")
 
 
 if __name__ == "__main__":
