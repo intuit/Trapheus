@@ -1419,7 +1419,7 @@ Resources:
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
             SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
             ShareSnapshotLambdaArn: !GetAtt ShareSnapshotLambdaFunction.Arn,
-            RestoreRDSInTargetAccountsAndRegionsLambda: !GetAtt RestoreRDSInTargetAccountsAndRegionsLambdaFunction.Arn
+            RestoreRDSInTargetAccountsAndRegionsLambdaArn: !GetAtt RestoreRDSInTargetAccountsAndRegionsLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
 

@@ -18,6 +18,9 @@ def main():
     if s3_bucket:
         package_command_list.append('--s3-bucket')
         package_command_list.append(s3_bucket)
+
+        deploy_command_list.append('--s3-bucket')
+        deploy_command_list.append(s3_bucket)
     region = input('Enter the region [for instance, us-west-2]: ')
     if region:
         package_command_list.append('--region')
