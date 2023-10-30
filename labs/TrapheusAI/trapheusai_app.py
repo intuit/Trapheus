@@ -46,6 +46,8 @@ def handle_dataset_search():
                 data = next(result for result in response if result["repo"] == choice)
                 repository_url = data["fullurl"]
                 df = pd.read_csv(repository_url)
+
+                # Storing the updated dataframe so that it can be downloaded
                 updated_df = streamlit.data_editor(df)
                 streamlit.download_button(
                     "Download as CSV", data = updated_df.to_csv(index=False), file_name=f"{choice}.csv", 
