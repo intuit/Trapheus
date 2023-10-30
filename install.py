@@ -19,6 +19,9 @@ def main():
         package_command_list.append('--s3-bucket')
         package_command_list.append(s3_bucket)
 
+        # Adding parameter to solve the limitation:
+        # Templates with a size greater than 51,200 bytes must be deployed via an S3 Bucket.
+        # The local template will be copied to that S3 bucket and then deployed.
         deploy_command_list.append('--s3-bucket')
         deploy_command_list.append(s3_bucket)
     region = input('Enter the region [for instance, us-west-2]: ')
