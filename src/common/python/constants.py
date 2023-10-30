@@ -8,7 +8,7 @@ TEMP_POSTFIX = "-temp"
 ERROR = "Error"
 CAUSE = "Cause"
 RDS_SNAPSHOTS_BUCKET_NAME_PREFIX = "rds-snapshots-"
-SHARE_SNAPSHOT_SSM_AUTOMATION = "AWSSupport-ShareRDSSnapshot"
+SNAPSHOT_SHARE_AUTOMATION = "AWSSupport-ShareRDSSnapshot"
 
 DELETE = "Delete"
 RENAME = "Rename"

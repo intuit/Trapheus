@@ -14,7 +14,7 @@ def lambda_restore_rds_target_account(event, context):
                 'SharedSnapshotARN': [
                     event['SharedSnapshotARN']
                 ],
-                'sourceDBInstanceIdentifier':[
+                'sourceDBInstanceIdentifier': [
                     event['identifier']
                 ],
                 'NewDatabaseIdentifier': [
@@ -44,7 +44,7 @@ def lambda_restore_rds_target_account(event, context):
             ]
         )
         result['identifier'] = event['identifier']
-        result['shareSnapshotSSMExecutionId'] = response.get("AutomationExecutionId")
+        result['restoreRDSAutomationExecutionId'] = response.get("AutomationExecutionId")
         return result
     except Exception as error:
         raise custom_exceptions.InstanceRestoreException(error)

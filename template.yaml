@@ -112,7 +112,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: ssm.amazonaws.co
+              Service: ssm.amazonaws.com
             Action: "sts:AssumeRole"
       Path: "/"
       Policies:
