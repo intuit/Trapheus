@@ -46,9 +46,9 @@ def handle_dataset_search():
                 data = next(result for result in response if result["repo"] == choice)
                 repository_url = data["fullurl"]
                 df = pd.read_csv(repository_url)
-                streamlit.data_editor(df)
+                updated_df = streamlit.data_editor(df)
                 streamlit.download_button(
-                    "Download as CSV", data = df.to_csv(index=False), file_name=f"{choice}.csv", 
+                    "Download as CSV", data = updated_df.to_csv(index=False), file_name=f"{choice}.csv", 
                     mime = "text/csv", on_click = showDownloadMessage)
                 question = streamlit.chat_input("Ask any question related to the dataset")
                 if question:
