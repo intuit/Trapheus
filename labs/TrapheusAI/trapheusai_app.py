@@ -47,6 +47,9 @@ def handle_dataset_search():
                 repository_url = data["fullurl"]
                 df = pd.read_csv(repository_url)
                 streamlit.data_editor(df)
+                streamlit.download_button(
+                    "Download as CSV", data = df.to_csv(index=False), file_name=f"{choice}.csv", 
+                    mime = "text/csv", on_click = showDownloadMessage)
                 question = streamlit.chat_input("Ask any question related to the dataset")
                 if question:
 
@@ -97,6 +100,9 @@ def style_page():
             </style>
             """
     streamlit.markdown(style, unsafe_allow_html=True)
+
+def showDownloadMessage():
+    streamlit.success("Your dataset has been saved")
 
 
 if __name__ == "__main__":
