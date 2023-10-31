@@ -1,0 +1,5 @@
+version = 0.1
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+tags = "AppName=\"Trapheus\" AppComponent=\"database\" AppFunction=\"RestoreDB\""

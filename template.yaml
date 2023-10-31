@@ -102,6 +102,8 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         - arn:aws:iam::aws:policy/AWSStepFunctionsReadOnlyAccess
         - arn:aws:iam::aws:policy/AWSLambdaExecute
+      Tags:
+        AppComponent: "iamrole"
 
   RecordSet:
     Condition: ConfigureRoute53
@@ -134,6 +136,8 @@ Resources:
                 Action:
                   - "lambda:InvokeFunction"
                 Resource: "*"
+      Tags:
+        AppComponent: "iamrole"
 
   CWEventStatesExecutionRole:
     Type: "AWS::IAM::Role"
@@ -155,6 +159,8 @@ Resources:
                 Action:
                   - "states:StartExecution"
                 Resource: !GetAtt DBRestoreStateMachine.Arn
+      Tags:
+        AppComponent: "iamrole"
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -178,6 +184,8 @@ Resources:
         - python3.7
         - python3.6
       LicenseInfo: 'MIT'
+      Tags:
+        AppComponent: "SecurityGroup"
 
   RenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -200,6 +208,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "RenameDBInstance"
 
   DbInstanceStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -222,6 +233,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DBInstanceStatus"
 
   DBRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -244,6 +258,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DBInstanceRestore"
 
   DeleteInstanceLambdaFunction:
     Type: AWS::Serverless::Function
@@ -266,6 +283,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DeleteDBInstance"
 
   DBSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -288,6 +308,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DBSnapshot"
 
   EmailAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -316,6 +339,9 @@ Resources:
             Fn::Sub: ${SenderEmail}
           RecipientEmail:
             Fn::Sub: ${RecipientEmail}
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "EmailAlerting"
 
   SlackAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -342,6 +368,9 @@ Resources:
         Variables:
           SLACK_WEBHOOK:
             Fn::Sub: ${SlackWebhookUrls}
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "SlackAlerting"
 
   ClusterRenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -364,6 +393,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DBClusterRename"
 
   ClusterRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -386,6 +418,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DBClusterRestore"
 
   ClusterStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -408,6 +443,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DBClusterStatus"
 
   ClusterDeleteLambdaFunction:
     Type: AWS::Serverless::Function
@@ -430,6 +468,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DBClusterDelete"
 
   ClusterSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -452,7 +493,10 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
-
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "DBClusterSnapshot"
+        
   SnapshotExportKmsKey:
     Type: AWS::KMS::Key
     Properties:
@@ -487,11 +531,17 @@ Resources:
               - kms:TagResource
               - kms:UntagResource
             Resource: '*'
+      Tags:
+        AppComponent: "CMK"
+        AppFunction: "export-snapshot-to-s3"
 
   SnapshotsBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub 'rds-snapshots-${AWS::AccountId}'
+    Tags:
+      AppComponent: "S3"
+      AppFunction: "rds-snapshots"
 
   SnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -516,6 +566,9 @@ Resources:
       VpcConfig:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
+    Tags:
+      AppComponent: "Lambda"
+      AppFunction: "DBExportSnapshots"
 
   ClusterSnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -540,6 +593,9 @@ Resources:
       VpcConfig:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
+    Tags:
+      AppComponent: "Lambda"
+      AppFunction: "ClusterExportSnapshots"
 
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -1242,6 +1298,9 @@ Resources:
             SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "ClusterExportSnapshots"
 
   DBRestoreStateMachineEventRule:
     Type: AWS::Events::Rule
@@ -1267,3 +1326,7 @@ Resources:
                       "task": "create_snapshot",
                       "isCluster": true
                   }'
+      Tags:
+        AppComponent: "CW-Rule"
+        AppFunction: "DBRestoreRule"
+
