@@ -24,10 +24,12 @@ Modelled as a state machine, with the help of AWS step functions, Trapheus resto
 
 - [➤ Pre-Requisites](#pre-requisites)
 - [➤ Parameters](#parameters)
+- [➤ Tagging](#tagging)
 - [➤ Instructions](#instructions)
 - [➤ Execution](#execution)
 - [➤ How it Works](#how-it-works)
 - [➤ Contributing to Trapheus](#contributing-to-trapheus)
+- [➤ Blogs](#blogs)
 - [➤ Contributors](#contributors)
 
 [![---------------------------------------------------------------------------------------------------------------------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#pre-requisites)
@@ -90,6 +92,25 @@ The following are the parameters for creating the cloudformation template:
 7. `SlackWebhookUrls` : [Optional] Comma separated list of Slack webhooks for failure alerts.
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#instructions)
+
+## Tagging
+This section describes the currently supported set of tags and how to take advantage of them in support of common use cases around billing insight generation. 
+
+Tags provide additional means of grouping and subdividing costs, whether for the purposes of analysis or cost distribution. Explanations for how tags can be applied to resources inside AWS is provided here. To facilitate a consistent approach to handling known and foreseen use cases, the following tags has been added at stack level and as well as at resource levels.
+
+<b>AppName</b> - Name of the application, default Trapheus <br>
+<b>AppComponent</b> - Name of the component, since this application targeted for DB restore, default component database <br>
+<b>AppFunction</b> - Application function name, default RestoreDB <br>
+
+If you would like to change above defaults, change it in `samconfig.toml`
+
+Every resource has tags as well, which override the default tag.
+
+For example:
+
+      Tags:
+        AppComponent: "Lambda"
+        AppFunction: "RenameDBInstance"
 
 ## Instructions
 
@@ -224,7 +245,6 @@ Based on the input provided to the **DBRestoreStateMachine** step function, the 
 
 ![DBRestore failure handling depiction](screenshots/failure_handling.png)
 
-**Amazon Blog Post** : https://aws.amazon.com/blogs/opensource/what-is-trapheus/
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#contributing-to-trapheus)
 
@@ -368,7 +388,13 @@ Prepare your environment. Install tools as needed.
        git push --set-upstream origin trapheus-change1
    ```
 
+
 1. The `Output` will provide a link to create your Pull Request.
+
+## Blogs
+* [What is Trapheus](https://aws.amazon.com/blogs/opensource/what-is-trapheus/)
+* [Unlocking the potential of data with TrapheusAI](https://medium.com/@chasindak9/unlocking-the-potential-of-data-with-trapheusai-772d9a1707f1)
+
 
 ## Contributors
 
