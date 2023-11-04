@@ -22,7 +22,7 @@ class Github(IBaseProvider):
         return request_headers, request_params
 
 
-    @streamlit.cache_data
+    @streamlit.cache_data(ttl=3600)
     def query(_self, input: str):
         request_headers, request_params = _self.connect(input)
         response = requests.get(constants.GITHUB_END_POINT + constants.GITHUB_SEARCH_PATH, params=request_params,
@@ -31,7 +31,7 @@ class Github(IBaseProvider):
         response_body = response.json()
         return response_body
 
-    @streamlit.cache_data
+    @streamlit.cache_data(ttl=3600)
     def extract_data(_self, input: str):
         formatted_results = []
         data = _self.query(input).get("items", [])
