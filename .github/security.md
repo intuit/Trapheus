@@ -18,6 +18,6 @@ To learn more about securing an AWS RDS application, please see the [security tu
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.1.0   | ✅                 |
 | 1.0.0   | ✅                 |
-| 0.1.4   | ✅                 |
           
