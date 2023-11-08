@@ -21,17 +21,20 @@ class Github(IBaseProvider):
         }
         return request_headers, request_params
 
-    def query(self, input: str):
-        request_headers, request_params = self.connect(input)
+
+    @streamlit.cache_data(ttl=constants.TTL)
+    def query(_self, input: str):
+        request_headers, request_params = _self.connect(input)
         response = requests.get(constants.GITHUB_END_POINT + constants.GITHUB_SEARCH_PATH, params=request_params,
                                 headers=request_headers)
         response.raise_for_status()
         response_body = response.json()
         return response_body
 
-    def extract_data(self, input: str):
+    @streamlit.cache_data(ttl=constants.TTL)
+    def extract_data(_self, input: str):
         formatted_results = []
-        data = self.query(input).get("items", [])
+        data = _self.query(input).get("items", [])
         for item in data:
             repo = item["repository"]["full_name"]
             repo_path = item["path"]
