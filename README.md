@@ -390,7 +390,7 @@ Prepare your environment. Install tools as needed.
 * [Inception of Trapheus](https://medium.com/intuit-engineering/trapheus-9895c5da0bd7)
 * [What is Trapheus](https://aws.amazon.com/blogs/opensource/what-is-trapheus/)
 * [Unlocking the potential of data with TrapheusAI](https://medium.com/@chasindak9/unlocking-the-potential-of-data-with-trapheusai-772d9a1707f1)
-* [Celebrating three years][https://medium.com/intuit-engineering/celebrating-three-years-of-trapheus-with-hacktoberfest-43a4043dc60f]
+* [Celebrating three years](https://medium.com/intuit-engineering/celebrating-three-years-of-trapheus-with-hacktoberfest-43a4043dc60f]
 
 ## Contributors
 
