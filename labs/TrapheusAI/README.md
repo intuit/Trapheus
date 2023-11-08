@@ -17,6 +17,8 @@ you orient, discover and navigate.
 *   Refine your search and discover patterns insights and relationship among concepts
 *   Search for related data for a concept you want insights on
 *   Boost your productivity and do complex data analysis with no code at all
+*   One liner docker image for easy installation
+*   Direct download of datasets 
 
 <h2>🚀 Demo</h2>
 
