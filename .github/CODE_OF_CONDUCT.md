@@ -15,6 +15,21 @@ As members of this community, we will not tolerate behaviors including, but not 
 - Public or private harassment of any kind;
 - Other conduct considered inappropriate in a professional setting.
 
+# The Oath
+
+- I will do everything I say - word to word
+- I will show no excitement - calm, direct and pointed
+- I will be all about software
+- I will not be impulsive
+- I will not be reactive
+- I will know the outcome of every encounter
+- I will not hesitate
+- I will constantly make decisions + change them as needed
+- I will give immediate feedback, non-emotionally
+- I will speak rarely but when I will - it will be crisp and concise
+- I will call BS immediately
+- I will be fully present
+  
 ## Reporting Concerns
 
 If you see someone violating the Code of Conduct please email TechOpenSource@intuit.com
