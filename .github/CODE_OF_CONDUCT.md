@@ -8,6 +8,17 @@ At Intuit, we foster a kind, respectful, harassment-free cooperative community. 
 - Act as a global community;
 - Conduct ourselves professionally.
 
+# The conduct
+
+- Follow Through - Do whatever you say and consistently deliver on the commitment.
+- Proactively Communicate - When something takes longer that we envisioned and why
+- Improved communication  - In order for others to listen we need to hone the way we deliver the message
+- Volunteer Information - Make a genuine effort to help people understand ambigous ideas and concepts. Share the decisions and diversions. Letting others know before they figfure out on their own shows ownerships and prevents misunderstandings
+- Be forthright and authentic - Be authentic with your feelings , even when you hold contradictory opinions communicate with respect and tact.
+- Be objective and neutral - When in tough situations act as a diplomat resolving conflicts instead of causing them.
+- Consistency in behaviour - Follow throigh and eliminate any double standards that may exist
+- Trust people - Give others benefit of doubt and build strong mutual relationship
+
 As members of this community, we will not tolerate behaviors including, but not limited to:
 
 - Violent threats or language;
@@ -15,6 +26,21 @@ As members of this community, we will not tolerate behaviors including, but not 
 - Public or private harassment of any kind;
 - Other conduct considered inappropriate in a professional setting.
 
+# The Oath
+
+- I will do everything I say - word to word
+- I will show no excitement - calm, direct and pointed
+- I will be all about software
+- I will not be impulsive
+- I will not be reactive
+- I will know the outcome of every encounter
+- I will not hesitate
+- I will constantly make decisions + change them as needed
+- I will give immediate feedback, non-emotionally
+- I will speak rarely but when I will - it will be crisp and concise
+- I will call BS immediately
+- I will be fully present
+  
 ## Reporting Concerns
 
 If you see someone violating the Code of Conduct please email TechOpenSource@intuit.com

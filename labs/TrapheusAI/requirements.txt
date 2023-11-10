@@ -16,3 +16,4 @@ streamlit-extras
 pandasai
 tk
 safetensors
+faiss
