@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN git clone https://github.com/intuit/Trapheus .
 
-cd labs/DataDialogue
+cd labs/TrapheusAI
 
 RUN pip3 install -r requirements.txt
 
