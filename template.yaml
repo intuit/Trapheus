@@ -102,7 +102,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         - arn:aws:iam::aws:policy/AWSStepFunctionsReadOnlyAccess
         - arn:aws:iam::aws:policy/AWSLambdaExecute
-        - arn:aws:iam::aws:policy/AmazonSSMAutomationRole
+        - arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole
       Tags:
         AppComponent: "iamrole"
 
@@ -146,7 +146,7 @@ Resources:
                   - "kms:CreateGrant"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonRDSFullAccess
-        - arn:aws:iam::aws:policy/AmazonSSMAutomationRole
+        - arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole
       Tags:
         AppComponent: "iamrole"
 
