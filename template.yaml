@@ -567,8 +567,10 @@ Resources:
     Properties:
       BucketName: !Sub 'rds-snapshots-${AWS::AccountId}'
       Tags:
-        AppComponent: "S3"
-        AppFunction: "rds-snapshots"
+        - Key: "AppComponent"
+          Value: "S3"
+        - Key: "AppFunction"
+          Value: "rds-snapshots"
 
   SnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
