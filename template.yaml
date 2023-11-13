@@ -103,7 +103,8 @@ Resources:
         - arn:aws:iam::aws:policy/AWSStepFunctionsReadOnlyAccess
         - arn:aws:iam::aws:policy/AWSLambdaExecute
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "iamrole"
 
   RecordSet:
     Condition: ConfigureRoute53
@@ -137,7 +138,8 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource: "*"
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "iamrole"
 
   CWEventStatesExecutionRole:
     Type: "AWS::IAM::Role"
@@ -160,7 +162,8 @@ Resources:
                   - "states:StartExecution"
                 Resource: !GetAtt DBRestoreStateMachine.Arn
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "iamrole"
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
