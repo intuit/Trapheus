@@ -513,7 +513,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -586,7 +585,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       Environment:
         Variables:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
@@ -615,7 +613,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       Environment:
         Variables:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
@@ -1331,8 +1328,10 @@ Resources:
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "ClusterExportSnapshots"
+        - Key: "AppComponent"
+          Value: "StepFunction"
+        - Key: "AppFunction"
+          Value: "DBRestoreStateMachine"
 
   DBRestoreStateMachineEventRule:
     Type: AWS::Events::Rule
