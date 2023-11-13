@@ -148,7 +148,8 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonRDSFullAccess
         - arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "trapheus:iamrole"
 
   RecordSet:
     Condition: ConfigureRoute53
@@ -182,7 +183,8 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource: "*"
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "trapheus:iamrole"
 
   CWEventStatesExecutionRole:
     Type: "AWS::IAM::Role"
@@ -205,7 +207,8 @@ Resources:
                   - "states:StartExecution"
                 Resource: !GetAtt DBRestoreStateMachine.Arn
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "trapheus:iamrole"
 
   RestoreDBFromSharedSnapshotSSMDocument:
     Type: 'AWS::SSM::Document'
@@ -305,6 +308,9 @@ Resources:
       GroupDescription: security group added to VPC config of every lambda used
       GroupName: my-sg
       VpcId: !Ref vpcId
+      Tags:
+        - Key: "AppComponent"
+          Value: "trapheus:securityGroup"
 
   CommonLambdaLayer:
     Type: AWS::Serverless::LayerVersion
@@ -320,8 +326,6 @@ Resources:
         - python3.7
         - python3.6
       LicenseInfo: 'MIT'
-      Tags:
-        AppComponent: "SecurityGroup"
 
   ShareSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -383,15 +387,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "RenameDBInstance"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:RenameDBInstance"
 
   DbInstanceStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -408,15 +411,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBInstanceStatus"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBInstanceStatus"
 
   DBRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -433,15 +435,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBInstanceRestore"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBInstanceRestore"
 
   DeleteInstanceLambdaFunction:
     Type: AWS::Serverless::Function
@@ -458,15 +459,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DeleteDBInstance"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DeleteDBInstance"
 
   DBSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -483,15 +483,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBSnapshot"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBSnapshot"
 
   EmailAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -508,7 +507,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -521,8 +519,8 @@ Resources:
           RecipientEmail:
             Fn::Sub: ${RecipientEmail}
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "EmailAlerting"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:EmailAlerting"
 
   SlackAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -539,7 +537,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -550,8 +547,8 @@ Resources:
           SLACK_WEBHOOK:
             Fn::Sub: ${SlackWebhookUrls}
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "SlackAlerting"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:SlackAlerting"
 
   ClusterRenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -568,15 +565,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterRename"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterRename"
 
   ClusterRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -593,15 +589,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterRestore"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterRestore"
 
   ClusterStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -618,15 +613,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterStatus"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterStatus"
 
   ClusterDeleteLambdaFunction:
     Type: AWS::Serverless::Function
@@ -643,15 +637,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterDelete"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterDelete"
 
   ClusterSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -668,15 +661,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterSnapshot"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterSnapshot"
         
   SnapshotExportKmsKey:
     Type: AWS::KMS::Key
@@ -713,16 +705,20 @@ Resources:
               - kms:UntagResource
             Resource: '*'
       Tags:
-        AppComponent: "CMK"
-        AppFunction: "export-snapshot-to-s3"
+        - Key: "AppComponent"
+          Value: "trapheus:CMK"
+        - Key: "AppFunction"
+          Value: "trapheus:export-snapshot-to-s3"
 
   SnapshotsBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub 'rds-snapshots-${AWS::AccountId}'
-    Tags:
-      AppComponent: "S3"
-      AppFunction: "rds-snapshots"
+      Tags:
+        - Key: "AppComponent"
+          Value: "trapheus:s3"
+        - Key: "AppFunction"
+          Value: "trapheus:rds-snapshots-s3"
 
   SnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -739,7 +735,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       Environment:
         Variables:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
@@ -747,9 +742,9 @@ Resources:
       VpcConfig:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
-    Tags:
-      AppComponent: "Lambda"
-      AppFunction: "DBExportSnapshots"
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBExportSnapshots"
 
   ClusterSnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -766,7 +761,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       Environment:
         Variables:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
@@ -774,9 +768,9 @@ Resources:
       VpcConfig:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
-    Tags:
-      AppComponent: "Lambda"
-      AppFunction: "ClusterExportSnapshots"
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:ClusterExportSnapshots"
 
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -1527,8 +1521,10 @@ Resources:
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "ClusterExportSnapshots"
+        - Key: "AppComponent"
+          Value: "trapheus:StepFunction"
+        - Key: "AppFunction"
+          Value: "trapheus:DBRestoreStateMachine"
 
   DBRestoreStateMachineEventRule:
     Type: AWS::Events::Rule
@@ -1554,7 +1550,4 @@ Resources:
                       "task": "create_snapshot",
                       "isCluster": true
                   }'
-      Tags:
-        AppComponent: "CW-Rule"
-        AppFunction: "DBRestoreRule"
 
