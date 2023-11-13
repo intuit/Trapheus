@@ -62,7 +62,7 @@ def main():
         vpc_id = get_input('vpcid','Enter vpc ID: ')
         if vpc_id:
             deploy_command_list.append('vpcId=' + vpc_id)
-            subnets = get_input('subnets','Enter comma seperated list of PRIVATE subnets: ')
+            subnets = get_input('subnets','Enter comma separated list of PRIVATE subnets: ')
             if subnets:
                 deploy_command_list.append('Subnets=' +subnets)
     print()
