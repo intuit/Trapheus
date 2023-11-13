@@ -206,7 +206,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -233,7 +232,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -260,7 +258,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -287,7 +284,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -314,7 +310,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -341,7 +336,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -374,7 +368,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -405,7 +398,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -432,7 +424,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -459,7 +450,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -486,7 +476,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -559,8 +548,10 @@ Resources:
               - kms:UntagResource
             Resource: '*'
       Tags:
-        AppComponent: "CMK"
-        AppFunction: "export-snapshot-to-s3"
+        - Key: "AppComponent"
+          Value: "CMK"
+        - Key: "AppFunction"
+          Value: "export-snapshot-to-s3"
 
   SnapshotsBucket:
     Type: AWS::S3::Bucket
