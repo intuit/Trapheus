@@ -104,7 +104,7 @@ Resources:
         - arn:aws:iam::aws:policy/AWSLambdaExecute
       Tags:
         - Key: "AppComponent"
-          Value: "iamrole"
+          Value: "trapheus:iamrole"
 
   RecordSet:
     Condition: ConfigureRoute53
@@ -139,7 +139,7 @@ Resources:
                 Resource: "*"
       Tags:
         - Key: "AppComponent"
-          Value: "iamrole"
+          Value: "trapheus:iamrole"
 
   CWEventStatesExecutionRole:
     Type: "AWS::IAM::Role"
@@ -163,7 +163,7 @@ Resources:
                 Resource: !GetAtt DBRestoreStateMachine.Arn
       Tags:
         - Key: "AppComponent"
-          Value: "iamrole"
+          Value: "trapheus:iamrole"
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -174,7 +174,7 @@ Resources:
       VpcId: !Ref vpcId
       Tags:
         - Key: "AppComponent"
-          Value: "SecurityGroup"
+          Value: "trapheus:securityGroup"
 
   CommonLambdaLayer:
     Type: AWS::Serverless::LayerVersion
@@ -212,8 +212,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "RenameDBInstance"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:RenameDBInstance"
 
   DbInstanceStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -236,8 +236,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBInstanceStatus"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBInstanceStatus"
 
   DBRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -260,8 +260,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBInstanceRestore"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBInstanceRestore"
 
   DeleteInstanceLambdaFunction:
     Type: AWS::Serverless::Function
@@ -284,8 +284,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DeleteDBInstance"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DeleteDBInstance"
 
   DBSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -308,8 +308,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBSnapshot"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBSnapshot"
 
   EmailAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -338,8 +338,8 @@ Resources:
           RecipientEmail:
             Fn::Sub: ${RecipientEmail}
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "EmailAlerting"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:EmailAlerting"
 
   SlackAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -366,8 +366,8 @@ Resources:
           SLACK_WEBHOOK:
             Fn::Sub: ${SlackWebhookUrls}
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "SlackAlerting"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:SlackAlerting"
 
   ClusterRenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -390,8 +390,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterRename"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterRename"
 
   ClusterRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -414,8 +414,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterRestore"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterRestore"
 
   ClusterStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -438,8 +438,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterStatus"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterStatus"
 
   ClusterDeleteLambdaFunction:
     Type: AWS::Serverless::Function
@@ -462,8 +462,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterDelete"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterDelete"
 
   ClusterSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -486,8 +486,8 @@ Resources:
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterSnapshot"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterSnapshot"
         
   SnapshotExportKmsKey:
     Type: AWS::KMS::Key
@@ -525,9 +525,9 @@ Resources:
             Resource: '*'
       Tags:
         - Key: "AppComponent"
-          Value: "CMK"
+          Value: "trapheus:CMK"
         - Key: "AppFunction"
-          Value: "export-snapshot-to-s3"
+          Value: "trapheus:export-snapshot-to-s3"
 
   SnapshotsBucket:
     Type: AWS::S3::Bucket
@@ -535,9 +535,9 @@ Resources:
       BucketName: !Sub 'rds-snapshots-${AWS::AccountId}'
       Tags:
         - Key: "AppComponent"
-          Value: "S3"
+          Value: "trapheus:s3"
         - Key: "AppFunction"
-          Value: "rds-snapshots"
+          Value: "trapheus:rds-snapshots-s3"
 
   SnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -562,8 +562,8 @@ Resources:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBExportSnapshots"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBExportSnapshots"
 
   ClusterSnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -588,8 +588,8 @@ Resources:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "ClusterExportSnapshots"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:ClusterExportSnapshots"
 
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -1294,9 +1294,9 @@ Resources:
       RoleArn: !GetAtt StatesExecutionRole.Arn
       Tags:
         - Key: "AppComponent"
-          Value: "StepFunction"
+          Value: "trapheus:StepFunction"
         - Key: "AppFunction"
-          Value: "DBRestoreStateMachine"
+          Value: "trapheus:DBRestoreStateMachine"
 
   DBRestoreStateMachineEventRule:
     Type: AWS::Events::Rule
