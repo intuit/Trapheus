@@ -173,7 +173,8 @@ Resources:
       GroupName: my-sg
       VpcId: !Ref vpcId
       Tags:
-        AppComponent: "SecurityGroup"
+        - Key: "AppComponent"
+          Value: "SecurityGroup"
 
   CommonLambdaLayer:
     Type: AWS::Serverless::LayerVersion
