@@ -169,6 +169,8 @@ Resources:
       GroupDescription: security group added to VPC config of every lambda used
       GroupName: my-sg
       VpcId: !Ref vpcId
+      Tags:
+        AppComponent: "SecurityGroup"
 
   CommonLambdaLayer:
     Type: AWS::Serverless::LayerVersion
@@ -184,8 +186,6 @@ Resources:
         - python3.7
         - python3.6
       LicenseInfo: 'MIT'
-      Tags:
-        AppComponent: "SecurityGroup"
 
   RenameLambdaFunction:
     Type: AWS::Serverless::Function
