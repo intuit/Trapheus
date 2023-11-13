@@ -1358,6 +1358,8 @@ Resources:
                       "isCluster": true
                   }'
       Tags:
-        AppComponent: "CW-Rule"
-        AppFunction: "DBRestoreRule"
+        - Key: "AppComponent"
+          Value: "CW-Rule"
+        - Key: "AppFunction"
+          Value: "DBRestoreRule"
 
