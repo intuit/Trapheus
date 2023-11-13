@@ -1392,9 +1392,4 @@ Resources:
                       "task": "create_snapshot",
                       "isCluster": true
                   }'
-      Tags:
-        - Key: "AppComponent"
-          Value: "CW-Rule"
-        - Key: "AppFunction"
-          Value: "DBRestoreRule"
 
