@@ -184,8 +184,6 @@ Resources:
         - python3.7
         - python3.6
       LicenseInfo: 'MIT'
-      Tags:
-        AppComponent: "SecurityGroup"
 
   RenameLambdaFunction:
     Type: AWS::Serverless::Function
