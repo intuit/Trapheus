@@ -214,11 +214,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "RenameDBInstance"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "RenameDBInstance"
 
   DbInstanceStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -243,11 +238,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBInstanceStatus"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBInstanceStatus"
 
   DBRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -272,11 +262,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBInstanceRestore"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBInstanceRestore"
 
   DeleteInstanceLambdaFunction:
     Type: AWS::Serverless::Function
@@ -301,11 +286,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DeleteDBInstance"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DeleteDBInstance"
 
   DBSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -330,11 +310,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBSnapshot"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBSnapshot"
 
   EmailAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -365,11 +340,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "EmailAlerting"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "EmailAlerting"
 
   SlackAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -398,11 +368,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "SlackAlerting"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "SlackAlerting"
 
   ClusterRenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -427,11 +392,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBClusterRename"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBClusterRename"
 
   ClusterRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -456,11 +416,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBClusterRestore"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBClusterRestore"
 
   ClusterStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -485,11 +440,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBClusterStatus"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBClusterStatus"
 
   ClusterDeleteLambdaFunction:
     Type: AWS::Serverless::Function
@@ -514,11 +464,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBClusterDelete"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBClusterDelete"
 
   ClusterSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -543,11 +488,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBClusterSnapshot"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBClusterSnapshot"
         
   SnapshotExportKmsKey:
     Type: AWS::KMS::Key
@@ -624,11 +564,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "DBExportSnapshots"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "DBExportSnapshots"
 
   ClusterSnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -655,11 +590,6 @@ Resources:
       Tags:
         AppComponent: "Lambda"
         AppFunction: "ClusterExportSnapshots"
-#      Tags:
-#        - Key: "AppComponent"
-#          Value: "Lambda"
-#        - Key: "AppFunction"
-#          Value: "ClusterExportSnapshots"
 
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
