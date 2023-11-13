@@ -30,6 +30,11 @@ def main():
     if s3_bucket:
         package_command_list.append('--s3-bucket')
         package_command_list.append(s3_bucket)
+        # Adding parameter to solve the limitation:
+        # Templates with a size greater than 51,200 bytes must be deployed via an S3 Bucket.
+        # The local template will be copied to that S3 bucket and then deployed.
+        deploy_command_list.append('--s3-bucket')
+        deploy_command_list.append(s3_bucket)
     region = get_input('region','Enter the region [for instance, us-west-2]: ')
     if region:
         package_command_list.append('--region')
@@ -62,7 +67,7 @@ def main():
         vpc_id = get_input('vpcid','Enter vpc ID: ')
         if vpc_id:
             deploy_command_list.append('vpcId=' + vpc_id)
-            subnets = get_input('subnets','Enter comma seperated list of PRIVATE subnets: ')
+            subnets = get_input('subnets','Enter comma separated list of PRIVATE subnets: ')
             if subnets:
                 deploy_command_list.append('Subnets=' +subnets)
     print()
