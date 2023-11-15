@@ -219,7 +219,7 @@ Resources:
       DocumentType: Automation
       Content:
         schemaVersion: '0.3'
-        assumeRole: 'AWS-SystemsManager-AutomationExecutionRole'
+        assumeRole: '{{ AutomationAssumeRole }}'
         parameters:
           NewSnapshotIdentifier:
             type: String
