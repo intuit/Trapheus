@@ -11,12 +11,6 @@ def lambda_restore_rds_target_account(event, context):
         response = ssm.start_automation_execution(
             DocumentName='Trapheus-RestoreDatabaseFromSharedSnapshot',
             Parameters={
-                'SharedSnapshotARN': [
-                    event['SharedSnapshotARN']
-                ],
-                'sourceDBInstanceIdentifier': [
-                    event['identifier']
-                ],
                 'NewDatabaseIdentifier': [
                     event['identifier']
                 ],
@@ -31,7 +25,7 @@ def lambda_restore_rds_target_account(event, context):
                 ]
 
             },
-            Mode='Interactive',
+            Mode='Auto',
             TargetLocations=[
                 {
                     'Accounts': [

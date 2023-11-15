@@ -12,7 +12,7 @@ os.environ["Region"] = "us-west-2"
 @patch("restore.cross_account_db_restore.boto3.client")
 class TestResourceProvider(unittest.TestCase):
     def setUp(self):
-        self.event = {"identifier": "database-1", "SharedSnapshotARN": "snapshotarn", "vpcId": "vpc-2342432",
+        self.event = {"identifier": "database-1", "vpcId": "vpc-2342432",
                       "AutomationAssumeRole": "role", "targetAccountIds": "123452", "targetRegions": "us-west-2"}
         self.instance_id = "database-1"
         self.dbinstance_creation_exception = custom_exceptions.InstanceRestoreException("Role unauthorised to restore rds instance in target account")

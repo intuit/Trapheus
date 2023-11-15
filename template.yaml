@@ -104,7 +104,8 @@ Resources:
         - arn:aws:iam::aws:policy/AWSLambdaExecute
         - arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "trapheus:iamrole"
 
   RDSAutomationExecutionRole:
     Type: "AWS::IAM::Role"
@@ -218,10 +219,8 @@ Resources:
       DocumentType: Automation
       Content:
         schemaVersion: '0.3'
-        assumeRole: '{{ AutomationAssumeRole }}'
+        assumeRole: 'AWS-SystemsManager-AutomationExecutionRole'
         parameters:
-          SharedSnapshotARN:
-            type: String
           NewSnapshotIdentifier:
             type: String
           AutomationAssumeRole:
@@ -239,11 +238,14 @@ Resources:
             inputs:
               Service: rds
               Api: DescribeDBSnapshots
-              DBSnapshotIdentifier: '{{ SharedSnapshotARN }}'
               IncludeShared: true
+              SnapshotType: shared
             outputs:
               - Name: SharedSnapshotKmsKeyId
                 Selector: '$.DBSnapshots[0].KmsKeyId'
+                Type: String
+              - Name: SharedSnapshotARN
+                Selector: '$.DBSnapshots[0].DBSnapshotArn'
                 Type: String
             nextStep: CreateManualCopyOfSharedSnapshot
           - name: CreateManualCopyOfSharedSnapshot
@@ -255,7 +257,7 @@ Resources:
             inputs:
               Service: rds
               Api: CopyDBSnapshot
-              SourceDBSnapshotIdentifier: '{{ SharedSnapshotARN }}'
+              SourceDBSnapshotIdentifier: '{{ DescribeSharedSnapshot.SharedSnapshotARN }}'
               TargetDBSnapshotIdentifier: '{{ NewSnapshotIdentifier }}'
               KmsKeyId: '{{ DescribeSharedSnapshot.SharedSnapshotKmsKeyId }}'
             isEnd: false
@@ -306,7 +308,7 @@ Resources:
     Condition: UseVPCAndSubnetsCondition
     Properties:
       GroupDescription: security group added to VPC config of every lambda used
-      GroupName: my-sg
+      GroupName: trapheus-sg
       VpcId: !Ref vpcId
       Tags:
         - Key: "AppComponent"
@@ -350,6 +352,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue" ]
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:ShareSnapshot"
 
   RestoreRDSInTargetAccountsAndRegionsLambdaFunction:
     Type: AWS::Serverless::Function
@@ -371,6 +376,9 @@ Resources:
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue" ]
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:RestoreRDSInTargetAccountsAndRegions"
 
   RenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -1550,4 +1558,3 @@ Resources:
                       "task": "create_snapshot",
                       "isCluster": true
                   }'
-
