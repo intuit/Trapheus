@@ -29,7 +29,7 @@ def lambda_share_rds_snapshot_cross_account(event, context):
         )
         result['taskname'] = constants.SHARE_SNAPSHOT
         result['identifier'] = event['identifier']
-        result['shareSnapshotExecutionId'] = response.get("AutomationExecutionId")
+        result['automation_execution_id'] = response.get("AutomationExecutionId")
         return result
     except Exception as error:
         raise custom_exceptions.SSMShareSnapshotException(error)
