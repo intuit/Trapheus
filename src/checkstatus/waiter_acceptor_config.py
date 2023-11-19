@@ -74,3 +74,48 @@ DB_CLUSTER_DELETED = [
         "argument": "DBClusters[].Status"
     }
 ]
+
+SSM_AUTOMATION_EXECUTION_COMPLETED = [
+    {
+        "expected": "Success",
+        "matcher": "pathAll",
+        "state": "success",
+        "argument": "AutomationExecution.AutomationExecutionStatus"
+    },
+    {
+        "expected": "CompletedWithSuccess",
+        "matcher": "pathAll",
+        "state": "success",
+        "argument": "AutomationExecution.AutomationExecutionStatus"
+    },
+    {
+        "expected": "TimedOut",
+        "matcher": "pathAny",
+        "state": "failure",
+        "argument": "AutomationExecution.AutomationExecutionStatus"
+    },
+    {
+        "expected": "Cancelling",
+        "matcher": "pathAny",
+        "state": "failure",
+        "argument": "AutomationExecution.AutomationExecutionStatus"
+    },
+    {
+        "expected": "Cancelled",
+        "matcher": "pathAny",
+        "state": "failure",
+        "argument": "AutomationExecution.AutomationExecutionStatus"
+    },
+    {
+        "expected": "Failed",
+        "matcher": "pathAny",
+        "state": "failure",
+        "argument": "AutomationExecution.AutomationExecutionStatus"
+    },
+    {
+        "expected": "CompletedWithFailure",
+        "matcher": "pathAny",
+        "state": "failure",
+        "argument": "AutomationExecution.AutomationExecutionStatus"
+    }
+]
