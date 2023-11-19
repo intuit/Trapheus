@@ -102,8 +102,55 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         - arn:aws:iam::aws:policy/AWSStepFunctionsReadOnlyAccess
         - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "trapheus:iamrole"
+
+  RDSAutomationExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ssm.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: kms-ssm-automation-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: "*"
+                Action:
+                  - "iam:CreateServiceLinkedRole"
+                  - "kms:EnableKey"
+                  - "kms:Decrypt"
+                  - "kms:ListKeyPolicies"
+                  - "kms:PutKeyPolicy"
+                  - "kms:GetKeyPolicy"
+                  - "kms:ListResourceTags"
+                  - "kms:DisableKey"
+                  - "kms:ReEncryptFrom"
+                  - "kms:ListGrants"
+                  - "kms:ListKeys"
+                  - "kms:TagResource"
+                  - "kms:Encrypt"
+                  - "kms:ScheduleKeyDeletion"
+                  - "kms:CreateAlias"
+                  - "kms:ReEncryptTo"
+                  - "kms:DescribeKey"
+                  - "kms:CreateKey"
+                  - "kms:CreateGrant"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+        - arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole
+      Tags:
+        - Key: "AppComponent"
+          Value: "trapheus:iamrole"
 
   RecordSet:
     Condition: ConfigureRoute53
@@ -137,7 +184,8 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource: "*"
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "trapheus:iamrole"
 
   CWEventStatesExecutionRole:
     Type: "AWS::IAM::Role"
@@ -160,15 +208,111 @@ Resources:
                   - "states:StartExecution"
                 Resource: !GetAtt DBRestoreStateMachine.Arn
       Tags:
-        AppComponent: "iamrole"
+        - Key: "AppComponent"
+          Value: "trapheus:iamrole"
+
+  RestoreDBFromSharedSnapshotSSMDocument:
+    Type: 'AWS::SSM::Document'
+    Properties:
+      Name: Trapheus-RestoreDatabaseFromSharedSnapshot
+      DocumentFormat: YAML
+      DocumentType: Automation
+      Content:
+        schemaVersion: '0.3'
+        assumeRole: '{{ AutomationAssumeRole }}'
+        parameters:
+          NewSnapshotIdentifier:
+            type: String
+          AutomationAssumeRole:
+            type: String
+            default: ''
+          NewDatabaseIdentifier:
+            type: String
+          TargetVPCId:
+            type: String
+            description: vpc id that defines the virtual networking environment for the new restored DB instance.
+            default: ''
+        mainSteps:
+          - name: DescribeSharedSnapshot
+            action: 'aws:executeAwsApi'
+            inputs:
+              Service: rds
+              Api: DescribeDBSnapshots
+              IncludeShared: true
+              SnapshotType: shared
+            outputs:
+              - Name: SharedSnapshotKmsKeyId
+                Selector: '$.DBSnapshots[0].KmsKeyId'
+                Type: String
+              - Name: SharedSnapshotARN
+                Selector: '$.DBSnapshots[0].DBSnapshotArn'
+                Type: String
+            nextStep: CreateManualCopyOfSharedSnapshot
+          - name: CreateManualCopyOfSharedSnapshot
+            action: 'aws:executeAwsApi'
+            outputs:
+              - Name: DBSnapshotIdentifier
+                Selector: $.DBSnapshot.DBSnapshotIdentifier
+                Type: String
+            inputs:
+              Service: rds
+              Api: CopyDBSnapshot
+              SourceDBSnapshotIdentifier: '{{ DescribeSharedSnapshot.SharedSnapshotARN }}'
+              TargetDBSnapshotIdentifier: '{{ NewSnapshotIdentifier }}'
+              KmsKeyId: '{{ DescribeSharedSnapshot.SharedSnapshotKmsKeyId }}'
+            isEnd: false
+            onFailure: Abort
+            nextStep: WaitForAvailableStateOfNewManualSnapshot
+          - name: WaitForAvailableStateOfNewManualSnapshot
+            action: 'aws:waitForAwsResourceProperty'
+            inputs:
+              Service: rds
+              Api: DescribeDBSnapshots
+              PropertySelector: '$.DBSnapshots[0].Status'
+              DesiredValues:
+                - available
+              DBSnapshotIdentifier: '{{ CreateManualCopyOfSharedSnapshot.DBSnapshotIdentifier }}'
+            maxAttempts: 10
+            timeoutSeconds: 600
+            nextStep: RestoreDBInstanceFromSnapshot
+          - name: RestoreDBInstanceFromSnapshot
+            action: 'aws:executeAwsApi'
+            inputs:
+              Service: rds
+              Api: RestoreDBInstanceFromDBSnapshot
+              DBInstanceIdentifier: '{{ NewDatabaseIdentifier }}'
+              DBSnapshotIdentifier: '{{ CreateManualCopyOfSharedSnapshot.DBSnapshotIdentifier }}'
+              DBSubnetGroupName: 'default-{{ TargetVPCId }}'
+            outputs:
+              - Name: NewDBInstanceIdentifier
+                Selector: $.DBInstance.DBInstanceIdentifier
+                Type: String
+            isEnd: false
+            onFailure: Abort
+            nextStep: WaitForAvailableStateOfRestoredDBInstance
+          - name: WaitForAvailableStateOfRestoredDBInstance
+            action: 'aws:waitForAwsResourceProperty'
+            inputs:
+              Service: rds
+              Api: DescribeDBInstances
+              PropertySelector: '$.DBInstances[0].DBInstanceStatus'
+              DesiredValues:
+                - available
+              DBInstanceIdentifier: '{{ NewDatabaseIdentifier }}'
+            maxAttempts: 20
+            timeoutSeconds: 1000
+            isEnd: true
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: UseVPCAndSubnetsCondition
     Properties:
       GroupDescription: security group added to VPC config of every lambda used
-      GroupName: my-sg
+      GroupName: trapheus-sg
       VpcId: !Ref vpcId
+      Tags:
+        - Key: "AppComponent"
+          Value: "trapheus:securityGroup"
 
   CommonLambdaLayer:
     Type: AWS::Serverless::LayerVersion
@@ -184,8 +328,57 @@ Resources:
         - python3.7
         - python3.6
       LicenseInfo: 'MIT'
+
+  ShareSnapshotLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda_share_rds_snapshot_cross_account"
+      Description: Lambda function required to share rds snapshot to target aws account.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.11
+      CodeUri: src/shareSnapshot/
+      Handler: share_rds_snapshot_across_accounts.lambda_share_rds_snapshot_cross_account
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+      Environment:
+        Variables:
+          SHARE_SNAPSHOT_TASK_ROLE: !GetAtt RDSAutomationExecutionRole.Arn
+      VpcConfig:
+        !If [ UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue" ]
       Tags:
-        AppComponent: "SecurityGroup"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:ShareSnapshot"
+
+  RestoreRDSInTargetAccountsAndRegionsLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda_restore_rds_target_account"
+      Description: Lambda function required to restore db in target aws accounts and regions.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.11
+      CodeUri: src/restore/
+      Handler: cross_account_db_restore.lambda_restore_rds_target_account
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+      VpcConfig:
+        !If [ UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue" ]
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:RestoreRDSInTargetAccountsAndRegions"
 
   RenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -202,15 +395,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "RenameDBInstance"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:RenameDBInstance"
 
   DbInstanceStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -227,15 +419,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBInstanceStatus"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBInstanceStatus"
 
   DBRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -252,15 +443,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBInstanceRestore"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBInstanceRestore"
 
   DeleteInstanceLambdaFunction:
     Type: AWS::Serverless::Function
@@ -277,15 +467,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DeleteDBInstance"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DeleteDBInstance"
 
   DBSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -302,15 +491,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBSnapshot"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBSnapshot"
 
   EmailAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -327,7 +515,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -340,8 +527,8 @@ Resources:
           RecipientEmail:
             Fn::Sub: ${RecipientEmail}
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "EmailAlerting"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:EmailAlerting"
 
   SlackAlertLambdaFunction:
     Type: AWS::Serverless::Function
@@ -358,7 +545,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
@@ -369,8 +555,8 @@ Resources:
           SLACK_WEBHOOK:
             Fn::Sub: ${SlackWebhookUrls}
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "SlackAlerting"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:SlackAlerting"
 
   ClusterRenameLambdaFunction:
     Type: AWS::Serverless::Function
@@ -387,15 +573,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterRename"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterRename"
 
   ClusterRestoreLambdaFunction:
     Type: AWS::Serverless::Function
@@ -412,15 +597,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterRestore"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterRestore"
 
   ClusterStatusLambdaFunction:
     Type: AWS::Serverless::Function
@@ -437,15 +621,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterStatus"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterStatus"
 
   ClusterDeleteLambdaFunction:
     Type: AWS::Serverless::Function
@@ -462,15 +645,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterDelete"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterDelete"
 
   ClusterSnapshotLambdaFunction:
     Type: AWS::Serverless::Function
@@ -487,15 +669,14 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       VpcConfig:
         !If [UseVPCAndSubnetsCondition, {
           SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
           SubnetIds: !Split [ "," , !Ref Subnets ]
         } , !Ref "AWS::NoValue"  ]
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "DBClusterSnapshot"
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBClusterSnapshot"
         
   SnapshotExportKmsKey:
     Type: AWS::KMS::Key
@@ -532,16 +713,20 @@ Resources:
               - kms:UntagResource
             Resource: '*'
       Tags:
-        AppComponent: "CMK"
-        AppFunction: "export-snapshot-to-s3"
+        - Key: "AppComponent"
+          Value: "trapheus:CMK"
+        - Key: "AppFunction"
+          Value: "trapheus:export-snapshot-to-s3"
 
   SnapshotsBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub 'rds-snapshots-${AWS::AccountId}'
-    Tags:
-      AppComponent: "S3"
-      AppFunction: "rds-snapshots"
+      Tags:
+        - Key: "AppComponent"
+          Value: "trapheus:s3"
+        - Key: "AppFunction"
+          Value: "trapheus:rds-snapshots-s3"
 
   SnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -558,7 +743,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       Environment:
         Variables:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
@@ -566,9 +750,9 @@ Resources:
       VpcConfig:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
-    Tags:
-      AppComponent: "Lambda"
-      AppFunction: "DBExportSnapshots"
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:DBExportSnapshots"
 
   ClusterSnapshotExportLambdaFunction:
     Type: AWS::Serverless::Function
@@ -585,7 +769,6 @@ Resources:
       Timeout: 900
       Architectures:
         - arm64  # Specify arm64 for Graviton architecture
-
       Environment:
         Variables:
           SNAPSHOT_EXPORT_TASK_ROLE: !GetAtt LambdaExecutionRole.Arn
@@ -593,9 +776,9 @@ Resources:
       VpcConfig:
         SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ]
         SubnetIds: !Split [ "," , !Ref Subnets ]
-    Tags:
-      AppComponent: "Lambda"
-      AppFunction: "ClusterExportSnapshots"
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:ClusterExportSnapshots"
 
   DBRestoreStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -604,8 +787,53 @@ Resources:
         !Sub
         - |-
           {
-            "StartAt": "ShouldRestoreClusterOrInstance",
+            "StartAt": "IsTaskRestoreInTargetAccountsAndRegions",
             "States": {
+              "IsTaskRestoreInTargetAccountsAndRegions": {
+                "Type": "Choice",
+                  "Choices": [{
+                    "Variable": "$.task",
+                    "StringEquals": "restore_rds_in_target_accounts",
+                    "Next": "ShareRDSSnapshot"
+                  }],
+                  "Default": "ShouldRestoreClusterOrInstance"
+              },
+              "ShareRDSSnapshot": {
+                "Type": "Task",
+                "Resource": "${ShareSnapshotLambdaArn}",
+                "Next": "RestoreRDSInTargetAccountAndRegion",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["AutomationExecutionLimitExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "FailedState"
+                  }
+                ]
+              },
+              "RestoreRDSInTargetAccountAndRegion": {
+                "Type": "Task",
+                "Resource": "${RestoreRDSInTargetAccountsAndRegionsLambdaArn}",
+                "Next": "RestorePipelineComplete",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["AutomationExecutionLimitExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "FailedState"
+                  }
+                ]
+              },
               "ShouldRestoreClusterOrInstance": {
                 "Type": "Choice",
                   "Choices": [{
@@ -1295,12 +1523,16 @@ Resources:
             DBDeleteLambdaArn: !GetAtt DeleteInstanceLambdaFunction.Arn,
             DBSnapshotExportLambdaArn: !GetAtt SnapshotExportLambdaFunction.Arn,
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
-            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn
+            SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
+            ShareSnapshotLambdaArn: !GetAtt ShareSnapshotLambdaFunction.Arn,
+            RestoreRDSInTargetAccountsAndRegionsLambdaArn: !GetAtt RestoreRDSInTargetAccountsAndRegionsLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
       Tags:
-        AppComponent: "Lambda"
-        AppFunction: "ClusterExportSnapshots"
+        - Key: "AppComponent"
+          Value: "trapheus:StepFunction"
+        - Key: "AppFunction"
+          Value: "trapheus:DBRestoreStateMachine"
 
   DBRestoreStateMachineEventRule:
     Type: AWS::Events::Rule
@@ -1326,7 +1558,3 @@ Resources:
                       "task": "create_snapshot",
                       "isCluster": true
                   }'
-      Tags:
-        AppComponent: "CW-Rule"
-        AppFunction: "DBRestoreRule"
-
