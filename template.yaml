@@ -380,6 +380,31 @@ Resources:
         AppComponent: "trapheus:Lambda"
         AppFunction: "trapheus:RestoreRDSInTargetAccountsAndRegions"
 
+  AutomationExecutionStatusLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda_get_automation_execution_status"
+      Description: Lambda function which provides information on status of ssm automation completion
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.11
+      CodeUri: src/checkstatus/
+      Handler: get_automation_execution_status.py.lambda_get_automation_execution_status
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+      VpcConfig:
+        !If [ UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue" ]
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:AutomationExecutionStatus"
+
+
   RenameLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -801,7 +826,7 @@ Resources:
               "ShareRDSSnapshot": {
                 "Type": "Task",
                 "Resource": "${ShareSnapshotLambdaArn}",
-                "Next": "RestoreRDSInTargetAccountAndRegion",
+                "Next": "GetShareSnapshotAutomationStatus",
                 "ResultPath": "$.output",
                 "Retry": [{
                   "ErrorEquals": ["AutomationExecutionLimitExceededException"],
@@ -816,10 +841,28 @@ Resources:
                   }
                 ]
               },
+              "GetShareSnapshotAutomationStatus": {
+                "Type": "Task",
+                "Resource": "${AutomationExecutionStatusLambdaArn}",
+                "Next": "RestoreRDSInTargetAccountAndRegion",
+                "Retry": [
+                 {
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "FailedState"
+                  }
+                ]
+              },
               "RestoreRDSInTargetAccountAndRegion": {
                 "Type": "Task",
                 "Resource": "${RestoreRDSInTargetAccountsAndRegionsLambdaArn}",
-                "Next": "RestorePipelineComplete",
+                "Next": "GetRestoreSnapshotAutomationStatus",
                 "ResultPath": "$.output",
                 "Retry": [{
                   "ErrorEquals": ["AutomationExecutionLimitExceededException"],
@@ -828,6 +871,24 @@ Resources:
                   "BackoffRate": 2.0
                  }],
                 "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "FailedState"
+                  }
+                ]
+              },
+              "GetRestoreSnapshotAutomationStatus": {
+                "Type": "Task",
+                "Resource": "${AutomationExecutionStatusLambdaArn}",
+                "Next": "RestorePipelineComplete",
+                "Retry": [
+                 {
+                  "ErrorEquals": ["RateExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                 "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
                     "Next": "FailedState"
@@ -1525,7 +1586,8 @@ Resources:
             EmailAlertLambdaArn: !GetAtt EmailAlertLambdaFunction.Arn,
             SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
             ShareSnapshotLambdaArn: !GetAtt ShareSnapshotLambdaFunction.Arn,
-            RestoreRDSInTargetAccountsAndRegionsLambdaArn: !GetAtt RestoreRDSInTargetAccountsAndRegionsLambdaFunction.Arn
+            RestoreRDSInTargetAccountsAndRegionsLambdaArn: !GetAtt RestoreRDSInTargetAccountsAndRegionsLambdaFunction.Arn,
+            AutomationExecutionStatusLambdaArn: !GetAtt AutomationExecutionStatusLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
       Tags:
