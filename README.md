@@ -392,6 +392,10 @@ Prepare your environment. Install tools as needed.
 * [Unlocking the potential of data with TrapheusAI](https://medium.com/@chasindak9/unlocking-the-potential-of-data-with-trapheusai-772d9a1707f1)
 * [Celebrating three years of Trapheus with Hacktoberfest](https://medium.com/intuit-engineering/celebrating-three-years-of-trapheus-with-hacktoberfest-43a4043dc60f)
 
+## Maintainers 
+1. Namita Devadas (@namitad)
+2. Rohit Kumar (@stationeros)
+
 ## Contributors
 
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
