@@ -393,6 +393,10 @@ Prepare your environment. Install tools as needed.
 * [Celebrating three years of Trapheus with Hacktoberfest](https://medium.com/intuit-engineering/celebrating-three-years-of-trapheus-with-hacktoberfest-43a4043dc60f)
 * [Resiliency at massive scale - Snapshotting a distributed eventually consistent datastore](https://medium.com/@rite2rohit88/resiliency-at-massive-scale-snapshotting-a-distributed-eventually-consistent-datastore-8fbb92236217)
 
+## Maintainers 
+1. Namita Devadas (@namitad)
+2. Rohit Kumar (@stationeros)
+
 ## Contributors
 
 <a href="https://github.com/intuit/Trapheus/graphs/contributors">
