@@ -7,7 +7,7 @@ huggingface-hub
 redis
 streamlit-image-select
 requests
-transformers==4.30
+transformers
 accelerate
 bitsandbytes
 torch
