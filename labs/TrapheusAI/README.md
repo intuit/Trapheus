@@ -18,7 +18,13 @@ you orient, discover and navigate.
 *   Search for related data for a concept you want insights on
 *   Boost your productivity and do complex data analysis with no code at all
 *   One liner docker image for easy installation
-*   Direct download of datasets 
+*   Direct download of datasets
+
+<h2>🧐 Installation</h2>
+
+* Clone the repository
+* Put your openai and github personal token
+* Run streamlit run trapheus_app.py
 
 <h2>🚀 Demo</h2>
 
