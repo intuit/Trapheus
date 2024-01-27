@@ -210,6 +210,172 @@ Resources:
       Tags:
         - Key: "AppComponent"
           Value: "trapheus:iamrole"
+  
+  RestoreDBClusterFromSharedSnapshotSSMDocument:
+    Type: 'AWS::SSM::Document'
+    Properties:
+      Name: Trapheus-RestoreDatabaseClusterFromSharedSnapshot
+      DocumentFormat: YAML
+      DocumentType: Automation
+      Content:
+        schemaVersion: '0.3'
+        assumeRole: '{{ AutomationAssumeRole }}'
+        parameters:
+          AutomationAssumeRole:
+            default: ''
+            type: String
+          TargetVPCId:
+            default: ''
+            description: vpc id that defines the virtual networking environment for the new restored DB instance.
+            type: String
+          NewDatabaseIdentifier:
+            type: String
+          NewSnapshotIdentifier:
+            type: String
+          DatabaseEngine:
+            type: String
+          DatabaseEngineVersion:
+            type: String
+          DatabasePort:
+            type: String
+          DatabaseName:
+            type: String
+          DBMemberInstanceList:
+            type: StringList
+          DBMemberInstanceClassList:
+            type: StringList
+        variables:
+          InstanceClass:
+            type: String
+            default: '{{ variable:InstanceClass }}'
+        mainSteps:
+          - name: DescribeSharedSnapshot
+            action: aws:executeAwsApi
+            nextStep: CreateManualCopyOfSharedSnapshot
+            isEnd: false
+            inputs:
+              IncludeShared: true
+              Service: rds
+              Api: DescribeDBSnapshots
+              SnapshotType: shared
+            outputs:
+              - Type: String
+                Name: SharedSnapshotKmsKeyId
+                Selector: $.DBSnapshots[0].KmsKeyId
+              - Type: String
+                Name: SharedSnapshotARN
+                Selector: $.DBSnapshots[0].DBSnapshotArn
+          - name: CreateManualCopyOfSharedSnapshot
+            action: aws:executeAwsApi
+            nextStep: WaitForAvailableStateOfNewManualSnapshot
+            isEnd: false
+            onFailure: Abort
+            inputs:
+              KmsKeyId: '{{ DescribeSharedSnapshot.SharedSnapshotKmsKeyId }}'
+              TargetDBSnapshotIdentifier: '{{ NewSnapshotIdentifier }}'
+              Service: rds
+              Api: CopyDBSnapshot
+              SourceDBSnapshotIdentifier: '{{ DescribeSharedSnapshot.SharedSnapshotARN }}'
+            outputs:
+              - Type: String
+                Name: DBSnapshotIdentifier
+                Selector: $.DBSnapshot.DBSnapshotIdentifier
+          - name: WaitForAvailableStateOfNewManualSnapshot
+            action: aws:waitForAwsResourceProperty
+            maxAttempts: 10
+            timeoutSeconds: 600
+            nextStep: DescribeSecurityGroups
+            isEnd: false
+            inputs:
+              PropertySelector: $.DBSnapshots[0].Status
+              DesiredValues:
+                - available
+              Service: rds
+              Api: DescribeDBSnapshots
+              DBSnapshotIdentifier: '{{ CreateManualCopyOfSharedSnapshot.DBSnapshotIdentifier }}'
+          - name: DescribeSecurityGroups
+            action: aws:executeAwsApi
+            nextStep: RestoreDBClusterFromSnapshot
+            isEnd: false
+            inputs:
+              Service: ec2
+              Api: DescribeSecurityGroups
+              Filter.1.Name: vpc-id
+              Filter.1.Value.1: '{{ TargetVPCId }}'
+              Filter.2.Name: group-name
+              Filter.2.Value.1: default
+            outputs:
+              - Type: String
+                Name: SecurityGroupId
+                Selector: $. DescribeSecurityGroupsResponse[0].groupId
+          - name: RestoreDBClusterFromSnapshot
+            action: aws:executeAwsApi
+            nextStep: Loop
+            isEnd: false
+            inputs:
+              Service: rds
+              Api: RestoreDBClusterFromSnapshot
+              SnapshotIdentifier: '{{ NewSnapshotIdentifier }}'
+              Engine: '{{ DatabaseEngine }}'
+              DbClusterIdentifier: '{{ NewDatabaseIdentifier }}'
+              DatabaseName: '{{ DatabaseName }}'
+              EngineVersion: '{{ DatabaseEngineVersion }}'
+              DBSubnetGroupName: default-{{ TargetVPCId }}
+              Port: '{{ DatabasePort }}'
+              VpcSecurityGroupIds: '{{ DescribeSecurityGroups.SecurityGroupId }}'
+          - name: Loop
+            action: aws:loop
+            nextStep: WaitOnAWSResourceProperty
+            isEnd: false
+            inputs:
+              Iterators: '{{ DBMemberInstanceList }}'
+              Steps:
+                - name: UpdateVariable
+                  action: aws:updateVariable
+                  nextStep: CreateDBInstance
+                  isEnd: false
+                  inputs:
+                    Name: variable:InstanceClass
+                    Value: '{{ DBMemberInstanceClassList[{{ Loop.CurrentIteration }}] }}'
+                - name: CreateDBInstance
+                  action: aws:executeAwsApi
+                  isEnd: true
+                  inputs:
+                    Service: rds
+                    Api: CreateDBInstance
+                    DbInstanceIdentifier: '{{ Loop.CurrentIteratorValue }}'
+                    Engine: '{{ DatabaseEngine }}'
+                    DbInstanceClass: '{{ variable:InstanceClass }}'
+          - name: WaitOnAWSResourceProperty
+            action: aws:waitForAwsResourceProperty
+            nextStep: Loop_1
+            isEnd: false
+            inputs:
+              Service: rds
+              Api: DescribeDBClusters
+              PropertySelector: $.DBClusters[0].Status
+              DesiredValues:
+                - available
+              DBClusterIdentifier: '{{ NewDatabaseIdentifier }}'
+          - name: Loop_1
+            action: aws:loop
+            isEnd: true
+            inputs:
+              Iterators: '{{ DBMemberInstanceList }}'
+              Steps:
+                - name: WaitOnAWSResourceProperty_1
+                  action: aws:waitForAwsResourceProperty
+                  maxAttempts: 10
+                  timeoutSeconds: 600
+                  isEnd: true
+                  inputs:
+                    Service: rds
+                    Api: DescribeDBInstances
+                    PropertySelector: $. DBInstances[0].DBInstanceStatus
+                    DesiredValues:
+                      - available
+                    DBInstanceIdentifier: '{{ Loop_1.CurrentIteratorValue }}'
+
 
   RestoreDBFromSharedSnapshotSSMDocument:
     Type: 'AWS::SSM::Document'
@@ -380,6 +546,30 @@ Resources:
         AppComponent: "trapheus:Lambda"
         AppFunction: "trapheus:RestoreRDSInTargetAccountsAndRegions"
 
+  RestoreRDSClusterInTargetAccountsAndRegionsLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "lambda_restore_rds_cluster_target_account"
+      Description: Lambda function required to restore db in target aws accounts and regions.
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.11
+      CodeUri: src/restore/
+      Handler: cross_account_db_cluster_restore.lambda_restore_rds_cluster_target_account
+      MemorySize: 128
+      Layers:
+        - !Ref CommonLambdaLayer
+      Timeout: 900
+      Architectures:
+        - arm64  # Specify arm64 for Graviton architecture
+      VpcConfig:
+        !If [ UseVPCAndSubnetsCondition, {
+          SecurityGroupIds: !Split [ "," , !GetAtt LambdaSecurityGroup.GroupId ] ,
+          SubnetIds: !Split [ "," , !Ref Subnets ]
+        } , !Ref "AWS::NoValue" ]
+      Tags:
+        AppComponent: "trapheus:Lambda"
+        AppFunction: "trapheus:RestoreRDSClusterInTargetAccountsAndRegions"  
+
   AutomationExecutionStatusLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -388,7 +578,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.11
       CodeUri: src/checkstatus/
-      Handler: get_automation_execution_status.py.lambda_get_automation_execution_status
+      Handler: get_automation_execution_status.lambda_get_automation_execution_status
       MemorySize: 128
       Layers:
         - !Ref CommonLambdaLayer
@@ -844,7 +1034,7 @@ Resources:
               "GetShareSnapshotAutomationStatus": {
                 "Type": "Task",
                 "Resource": "${AutomationExecutionStatusLambdaArn}",
-                "Next": "RestoreRDSInTargetAccountAndRegion",
+                "Next": "ShouldRestoreClusterOrInstanceInTargetAccount",
                 "Retry": [
                  {
                   "ErrorEquals": ["RateExceededException"],
@@ -853,6 +1043,33 @@ Resources:
                   "BackoffRate": 2.0
                  }],
                  "Catch": [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "Next": "FailedState"
+                  }
+                ]
+              },
+              "ShouldRestoreClusterOrInstanceInTargetAccount": {
+                "Type": "Choice",
+                  "Choices": [{
+                    "Variable": "$.isCluster",
+                    "BooleanEquals": false,
+                    "Next": "RestoreRDSInTargetAccountAndRegion"
+                  }],
+                  "Default": "RestoreRDSClusterInTargetAccountAndRegion"
+              },
+              "RestoreRDSClusterInTargetAccountAndRegion": {
+                "Type": "Task",
+                "Resource": "${RestoreRDSClusterInTargetAccountsAndRegionsLambdaArn}",
+                "Next": "GetRestoreSnapshotAutomationStatus",
+                "ResultPath": "$.output",
+                "Retry": [{
+                  "ErrorEquals": ["AutomationExecutionLimitExceededException"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 5,
+                  "BackoffRate": 2.0
+                 }],
+                "Catch": [
                   {
                     "ErrorEquals": [ "States.ALL" ],
                     "Next": "FailedState"
@@ -1587,6 +1804,7 @@ Resources:
             SlackAlertLambdaArn: !GetAtt SlackAlertLambdaFunction.Arn,
             ShareSnapshotLambdaArn: !GetAtt ShareSnapshotLambdaFunction.Arn,
             RestoreRDSInTargetAccountsAndRegionsLambdaArn: !GetAtt RestoreRDSInTargetAccountsAndRegionsLambdaFunction.Arn,
+            RestoreRDSClusterInTargetAccountsAndRegionsLambdaArn: !GetAtt RestoreRDSClusterInTargetAccountsAndRegionsLambdaFunction.Arn,
             AutomationExecutionStatusLambdaArn: !GetAtt AutomationExecutionStatusLambdaFunction.Arn
           }
       RoleArn: !GetAtt StatesExecutionRole.Arn
