@@ -224,75 +224,73 @@ Resources:
           AutomationAssumeRole:
             default: ''
             type: String
+          DatabasePort:
+            type: Integer
+          DBMemberInstanceClassList:
+            type: StringList
+          DatabaseEngine:
+            type: String
+          DatabaseName:
+            type: String
+          DBMemberInstanceList:
+            type: StringList
           TargetVPCId:
             default: ''
             description: vpc id that defines the virtual networking environment for the new restored DB instance.
             type: String
           NewDatabaseIdentifier:
             type: String
-          NewSnapshotIdentifier:
-            type: String
-          DatabaseEngine:
-            type: String
           DatabaseEngineVersion:
             type: String
-          DatabasePort:
+          NewSnapshotIdentifier:
             type: String
-          DatabaseName:
-            type: String
-          DBMemberInstanceList:
-            type: StringList
-          DBMemberInstanceClassList:
-            type: StringList
-        variables:
-          InstanceClass:
-            type: String
-            default: '{{ variable:InstanceClass }}'
         mainSteps:
-          - name: DescribeSharedSnapshot
+          - name: DescribeDBClusterSharedSnapshots
             action: aws:executeAwsApi
             nextStep: CreateManualCopyOfSharedSnapshot
             isEnd: false
+            onFailure: Abort
             inputs:
-              IncludeShared: true
               Service: rds
-              Api: DescribeDBSnapshots
+              Api: DescribeDBClusterSnapshots
+              IncludeShared: true
               SnapshotType: shared
             outputs:
               - Type: String
                 Name: SharedSnapshotKmsKeyId
-                Selector: $.DBSnapshots[0].KmsKeyId
+                Selector: $.DBClusterSnapshots[0].KmsKeyId
               - Type: String
                 Name: SharedSnapshotARN
-                Selector: $.DBSnapshots[0].DBSnapshotArn
+                Selector: $.DBClusterSnapshots[0].DBClusterSnapshotArn
           - name: CreateManualCopyOfSharedSnapshot
             action: aws:executeAwsApi
             nextStep: WaitForAvailableStateOfNewManualSnapshot
             isEnd: false
             onFailure: Abort
             inputs:
-              KmsKeyId: '{{ DescribeSharedSnapshot.SharedSnapshotKmsKeyId }}'
-              TargetDBSnapshotIdentifier: '{{ NewSnapshotIdentifier }}'
               Service: rds
-              Api: CopyDBSnapshot
-              SourceDBSnapshotIdentifier: '{{ DescribeSharedSnapshot.SharedSnapshotARN }}'
+              Api: CopyDBClusterSnapshot
+              SourceDBClusterSnapshotIdentifier: '{{ DescribeDBClusterSharedSnapshots.SharedSnapshotARN }}'
+              TargetDBClusterSnapshotIdentifier: '{{ NewSnapshotIdentifier }}'
+              KmsKeyId: '{{ DescribeDBClusterSharedSnapshots.SharedSnapshotKmsKeyId }}'
             outputs:
               - Type: String
                 Name: DBSnapshotIdentifier
-                Selector: $.DBSnapshot.DBSnapshotIdentifier
+                Selector: $.DBClusterSnapshot.DBClusterSnapshotIdentifier
           - name: WaitForAvailableStateOfNewManualSnapshot
             action: aws:waitForAwsResourceProperty
             maxAttempts: 10
             timeoutSeconds: 600
             nextStep: DescribeSecurityGroups
             isEnd: false
+            onFailure: Abort
             inputs:
-              PropertySelector: $.DBSnapshots[0].Status
+              PropertySelector: $.DBClusterSnapshots[0].Status
               DesiredValues:
                 - available
               Service: rds
-              Api: DescribeDBSnapshots
-              DBSnapshotIdentifier: '{{ CreateManualCopyOfSharedSnapshot.DBSnapshotIdentifier }}'
+              Api: DescribeDBClusterSnapshots
+              DBClusterSnapshotIdentifier: '{{ CreateManualCopyOfSharedSnapshot.DBSnapshotIdentifier }}'
           - name: DescribeSecurityGroups
             action: aws:executeAwsApi
             nextStep: RestoreDBClusterFromSnapshot
@@ -300,63 +298,81 @@ Resources:
             inputs:
               Service: ec2
               Api: DescribeSecurityGroups
-              Filter.1.Name: vpc-id
-              Filter.1.Value.1: '{{ TargetVPCId }}'
-              Filter.2.Name: group-name
-              Filter.2.Value.1: default
+              Filters:
+                - Name: vpc-id
+                  Values:
+                    - '{{ TargetVPCId }}'
+                - Name: group-name
+                  Values:
+                    - default
             outputs:
               - Type: String
                 Name: SecurityGroupId
-                Selector: $. DescribeSecurityGroupsResponse[0].groupId
+                Selector: $.SecurityGroups[0].GroupId
           - name: RestoreDBClusterFromSnapshot
             action: aws:executeAwsApi
             nextStep: Loop
             isEnd: false
             inputs:
+              EngineVersion: '{{ DatabaseEngineVersion }}'
+              SnapshotIdentifier: '{{ NewSnapshotIdentifier }}'
+              VpcSecurityGroupIds:
+                - '{{ DescribeSecurityGroups.SecurityGroupId }}'
+              Port: '{{ DatabasePort }}'
+              DatabaseName: '{{ DatabaseName }}'
               Service: rds
               Api: RestoreDBClusterFromSnapshot
-              SnapshotIdentifier: '{{ NewSnapshotIdentifier }}'
               Engine: '{{ DatabaseEngine }}'
-              DbClusterIdentifier: '{{ NewDatabaseIdentifier }}'
-              DatabaseName: '{{ DatabaseName }}'
-              EngineVersion: '{{ DatabaseEngineVersion }}'
+              DBClusterIdentifier: '{{ NewDatabaseIdentifier }}'
               DBSubnetGroupName: default-{{ TargetVPCId }}
-              Port: '{{ DatabasePort }}'
-              VpcSecurityGroupIds: '{{ DescribeSecurityGroups.SecurityGroupId }}'
           - name: Loop
             action: aws:loop
             nextStep: WaitOnAWSResourceProperty
             isEnd: false
             inputs:
               Iterators: '{{ DBMemberInstanceList }}'
+              IteratorDataType: String
               Steps:
-                - name: UpdateVariable
-                  action: aws:updateVariable
+                - name: GetInstanceClassFromList
+                  action: aws:executeScript
                   nextStep: CreateDBInstance
                   isEnd: false
                   inputs:
-                    Name: variable:InstanceClass
-                    Value: '{{ DBMemberInstanceClassList[{{ Loop.CurrentIteration }}] }}'
+                    Runtime: python3.8
+                    Handler: script_handler
+                    Script: |-
+                      def script_handler(events, context):
+                        instanceClassList = events['Parameter1']
+                        index = events['Parameter2']-1
+                        return {'instanceClass': instanceClassList[index]}
+                    InputPayload:
+                      Parameter1: '{{ DBMemberInstanceClassList }}'
+                      Parameter2: '{{ Loop.CurrentIteration }}'
+                  outputs:
+                    - Type: String
+                      Name: instanceClass
+                      Selector: $.Payload.instanceClass
                 - name: CreateDBInstance
                   action: aws:executeAwsApi
                   isEnd: true
                   inputs:
                     Service: rds
                     Api: CreateDBInstance
-                    DbInstanceIdentifier: '{{ Loop.CurrentIteratorValue }}'
                     Engine: '{{ DatabaseEngine }}'
-                    DbInstanceClass: '{{ variable:InstanceClass }}'
+                    DBInstanceIdentifier: '{{ Loop.CurrentIteratorValue }}'
+                    DBClusterIdentifier: '{{ NewDatabaseIdentifier }}'
+                    DBInstanceClass: '{{ GetInstanceClassFromList.instanceClass }}'
           - name: WaitOnAWSResourceProperty
             action: aws:waitForAwsResourceProperty
             nextStep: Loop_1
             isEnd: false
             inputs:
-              Service: rds
-              Api: DescribeDBClusters
               PropertySelector: $.DBClusters[0].Status
               DesiredValues:
                 - available
               DBClusterIdentifier: '{{ NewDatabaseIdentifier }}'
+              Service: rds
+              Api: DescribeDBClusters
           - name: Loop_1
             action: aws:loop
             isEnd: true
@@ -369,12 +385,13 @@ Resources:
                   timeoutSeconds: 600
                   isEnd: true
                   inputs:
-                    Service: rds
-                    Api: DescribeDBInstances
                     PropertySelector: $. DBInstances[0].DBInstanceStatus
                     DesiredValues:
                       - available
+                    Service: rds
+                    Api: DescribeDBInstances
                     DBInstanceIdentifier: '{{ Loop_1.CurrentIteratorValue }}'
+
 
 
   RestoreDBFromSharedSnapshotSSMDocument:
