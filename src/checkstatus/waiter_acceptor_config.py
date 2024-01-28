@@ -80,42 +80,42 @@ SSM_AUTOMATION_EXECUTION_COMPLETED = [
         "expected": "Success",
         "matcher": "pathAll",
         "state": "success",
-        "argument": "AutomationExecution.AutomationExecutionStatus"
+        "argument": "AutomationExecutionMetadataList[].AutomationExecutionStatus"
     },
     {
         "expected": "CompletedWithSuccess",
         "matcher": "pathAll",
         "state": "success",
-        "argument": "AutomationExecution.AutomationExecutionStatus"
+        "argument": "AutomationExecutionMetadataList[].AutomationExecutionStatus"
     },
     {
         "expected": "TimedOut",
         "matcher": "pathAny",
         "state": "failure",
-        "argument": "AutomationExecution.AutomationExecutionStatus"
+        "argument": "AutomationExecutionMetadataList[].AutomationExecutionStatus"
     },
     {
         "expected": "Cancelling",
         "matcher": "pathAny",
         "state": "failure",
-        "argument": "AutomationExecution.AutomationExecutionStatus"
+        "argument": "AutomationExecutionMetadataList[].AutomationExecutionStatus"
     },
     {
         "expected": "Cancelled",
         "matcher": "pathAny",
         "state": "failure",
-        "argument": "AutomationExecution.AutomationExecutionStatus"
+        "argument": "AutomationExecutionMetadataList[].AutomationExecutionStatus"
     },
     {
         "expected": "Failed",
         "matcher": "pathAny",
         "state": "failure",
-        "argument": "AutomationExecution.AutomationExecutionStatus"
+        "argument": "AutomationExecutionMetadataList[].AutomationExecutionStatus"
     },
     {
         "expected": "CompletedWithFailure",
         "matcher": "pathAny",
         "state": "failure",
-        "argument": "AutomationExecution.AutomationExecutionStatus"
+        "argument": "AutomationExecutionMetadataList[].AutomationExecutionStatus"
     }
 ]
