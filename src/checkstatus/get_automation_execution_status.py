@@ -18,4 +18,4 @@ def lambda_get_automation_execution_status(event, context):
         result['taskname'] = event['output']['taskname']
         return result
     except Exception as error:
-        return custom_exceptions.SSMAutomationExecutionException(error)
+        raise custom_exceptions.SSMAutomationExecutionException(error)
