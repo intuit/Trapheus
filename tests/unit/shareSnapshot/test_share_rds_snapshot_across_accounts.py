@@ -25,7 +25,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_ssm.start_automation_execution.return_value = self.mocked_start_ssm_automation
         data = share_rds_snapshot_across_accounts.lambda_share_rds_snapshot_cross_account(self.event, {})
         self.assertEqual(data.get("identifier"), self.instance_id)
-        self.assertEqual(data.get("shareSnapshotExecutionId"), "execution345")
+        self.assertEqual(data.get("automation_execution_id"), "execution345")
 
     def test_share_snapshot_ssm_execution_failure(self, mock_client):
         mock_ssm = mock_client.return_value
