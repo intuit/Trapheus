@@ -63,7 +63,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_rds.describe_db_instances.return_value = self.mocked_describe_db_instances
         data = cross_account_db_cluster_restore.lambda_restore_rds_cluster_target_account(self.event, {})
         self.assertEqual(data.get("identifier"), self.instance_id)
-        self.assertEqual(data.get("restoreRDSAutomationExecutionId"), "execution123")
+        self.assertEqual(data.get("automation_execution_id"), "execution123")
 
     def test_restore_cluster_not_found_failure(self, mock_client):
         mock_ssm = mock_client.return_value
