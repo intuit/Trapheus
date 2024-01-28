@@ -9,14 +9,23 @@ def check_automation_execution_status(automation_execution_id, max_attempts, ssm
         "waiters": {
             "SSMAutomationExecutionStatus": {
                 "delay": constants.DELAY_INTERVAL,
-                "operation": "GetAutomationExecution",
+                "operation": "DescribeAutomationExecutions",
                 "maxAttempts": max_attempts,
                 "acceptors": acceptor_config
             }
         }
     })
+
+    automation_execution_filter = [
+        {
+            'Key': 'ExecutionId',
+            'Values': [
+                automation_execution_id,
+            ]
+        }
+    ]
     waiter = botocore.waiter.create_waiter_with_client('SSMAutomationExecutionStatus', model, ssm)
     try:
-        waiter.wait(AutomationExecutionId = automation_execution_id)
+        waiter.wait(Filters=automation_execution_filter)
     except botocore.exceptions.WaiterError as e:
         raise Exception(e)
