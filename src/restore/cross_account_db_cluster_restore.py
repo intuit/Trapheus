@@ -45,12 +45,8 @@ def lambda_restore_rds_cluster_target_account(event, context):
                 'DatabaseName': [
                     describe_cluster_response['DBClusters'][0]['DatabaseName']
                 ],
-                'DBMemberInstanceList': [
-                    db_cluster_members
-                ],
-                'DBMemberInstanceClassList': [
-                    db_cluster_instance_class
-                ],
+                'DBMemberInstanceList': db_cluster_members,
+                'DBMemberInstanceClassList': db_cluster_instance_class,
                 'AutomationAssumeRole': [
                     event['AutomationAssumeRole']
                 ]
