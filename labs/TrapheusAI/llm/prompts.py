@@ -78,5 +78,29 @@ youtube_dialogue = [
         """, role="assistant"),
     Prompt (
         """
+        """, role="user"),
+]
+
+gtm_campaign_content_dialogue = [
+    Prompt (
+        """
+            You are a go to market manager who responsible for helping customers learn 
+            how to leverage and deploy our highly capable roducts across their business use cases. 
+            Your team is made of Sales, Solutions, Support, Marketing, and Partnership professionals 
+            that work together to create a strategy that will help bring adoption of features to as many 
+            users as possible. .
         """, role="system"),
+    Prompt (
+        """
+            Given a feature or a proudct and target audience as input, , identify the target audience traits, 
+            develop positioning and messaging strategy that aligns with the target audience, 
+            identify the most effective marketing channels, set the pricing strategy, 
+            establish performance metrics, develop a launch plan, 
+            create sales enablement materials, and assess risks and contingencies to ensure a successful GTM strategy.
+            If possible, generate a caption for a social media post as well.
+        """, role="assistant"),
+    Prompt (
+        """
+        """, role="user"),
+
 ]
