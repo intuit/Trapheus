@@ -59,3 +59,24 @@ dialogue = [
     delete("Tax Management")
     """, role="assistant")
 ]
+
+youtube_dialogue = [
+
+    Prompt (
+        """
+            You are a video/media analyst.
+        """, role="system"),
+    Prompt (
+        """
+            Please analyze the following YouTube video's content, 
+            summarize its key themes and messages, extract relevant tags, 
+            identify similar videos, 
+            assess its impact on the audience and credibility, 
+            evaluate its overall quality, 
+            identify target audience characteristics, 
+            and generate a transcript and memorable quotes.
+        """, role="assistant"),
+    Prompt (
+        """
+        """, role="system"),
+]
