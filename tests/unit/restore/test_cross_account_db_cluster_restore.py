@@ -45,6 +45,26 @@ class TestResourceProvider(unittest.TestCase):
             }]
         }
 
+        self.mocked_describe_db_clusters_zero_instances = {
+            "ResponseMetadata": {
+                'HTTPStatusCode': 200
+            },
+            "DBClusters": [{
+                "DBClusterIdentifier": "database-1",
+                "DatabaseName": "POSTGRES",
+                "Port": 3306,
+                "Engine": "xyzz",
+                "EngineVersion": 10.7,
+                "VpcSecurityGroups": [{
+                    "VpcSecurityGroupId": "abc"
+                }],
+                "DBSubnetGroup": {
+                    "DBSubnetGroupName": "xyz"
+                },
+                "DBClusterMembers": []
+            }]
+        }
+
         self.mocked_describe_db_instances = {
             'ResponseMetadata': {
                 'HTTPStatusCode': 200
@@ -55,7 +75,7 @@ class TestResourceProvider(unittest.TestCase):
             }]
         }
 
-    def test_restore_success(self, mock_client):
+    def test_successful_restore_with_valid_event_data(self, mock_client):
         mock_ssm = mock_client.return_value
         mock_rds = mock_client.return_value
         mock_ssm.start_automation_execution.return_value = self.mocked_start_ssm_automation
@@ -64,6 +84,21 @@ class TestResourceProvider(unittest.TestCase):
         data = cross_account_db_cluster_restore.lambda_restore_rds_cluster_target_account(self.event, {})
         self.assertEqual(data.get("identifier"), self.instance_id)
         self.assertEqual(data.get("automation_execution_id"), "execution123")
+        mock_ssm.start_automation_execution.assert_called_once()
+        mock_rds.describe_db_clusters.assert_called_once()
+        mock_rds.describe_db_instances.assert_called_once()
+
+    def test_successful_cluster_restore_with_zero_instances(self, mock_client):
+        mock_ssm = mock_client.return_value
+        mock_rds = mock_client.return_value
+        mock_ssm.start_automation_execution.return_value = self.mocked_start_ssm_automation
+        mock_rds.describe_db_clusters.return_value = self.mocked_describe_db_clusters_zero_instances
+        data = cross_account_db_cluster_restore.lambda_restore_rds_cluster_target_account(self.event, {})
+        self.assertEqual(data.get("identifier"), self.instance_id)
+        self.assertEqual(data.get("automation_execution_id"), "execution123")
+        mock_ssm.start_automation_execution.assert_called_once()
+        mock_rds.describe_db_clusters.assert_called_once()
+        mock_rds.describe_db_instances.assert_not_called()
 
     def test_restore_cluster_not_found_failure(self, mock_client):
         mock_ssm = mock_client.return_value
