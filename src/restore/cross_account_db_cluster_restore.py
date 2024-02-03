@@ -8,21 +8,20 @@ def lambda_restore_rds_cluster_target_account(event, context):
     region = os.environ['Region']
     ssm = boto3.client('ssm', region)
     rds = boto3.client('rds', region)
-    result = {}
     try:
         describe_cluster_response = rds.describe_db_clusters(
             DBClusterIdentifier=event['identifier']
         )
-        engine = describe_cluster_response['DBClusters'][0]['Engine']
-        engine_version = describe_cluster_response['DBClusters'][0]['EngineVersion']
-        db_cluster_members = []
-        db_cluster_instance_class = []
-        for db_cluster_member in describe_cluster_response['DBClusters'][0]['DBClusterMembers']:
-            desc_db_response = rds.describe_db_instances(
-                DBInstanceIdentifier=db_cluster_member['DBInstanceIdentifier']
-            )
-            db_cluster_members.append(db_cluster_member['DBInstanceIdentifier'])
-            db_cluster_instance_class.append(desc_db_response['DBInstances'][0]['DBInstanceClass'])
+        db_cluster_data = describe_cluster_response['DBClusters'][0]
+        engine = db_cluster_data['Engine']
+        engine_version = db_cluster_data['EngineVersion']
+
+        db_cluster_members = [db_cluster_member['DBInstanceIdentifier'] for db_cluster_member in
+                              db_cluster_data['DBClusterMembers']]
+
+        db_cluster_instance_class = [desc_db_response['DBInstances'][0]['DBInstanceClass'] for desc_db_response in [
+            rds.describe_db_instances(DBInstanceIdentifier=db_cluster_member['DBInstanceIdentifier']) for
+            db_cluster_member in db_cluster_data['DBClusterMembers']]]
 
         response = ssm.start_automation_execution(
             DocumentName='Trapheus-RestoreDatabaseClusterFromSharedSnapshot',
@@ -40,10 +39,10 @@ def lambda_restore_rds_cluster_target_account(event, context):
                     engine_version
                 ],
                 'DatabasePort': [
-                    describe_cluster_response['DBClusters'][0]['Port']
+                    db_cluster_data['Port']
                 ],
                 'DatabaseName': [
-                    describe_cluster_response['DBClusters'][0]['DatabaseName']
+                    db_cluster_data['DatabaseName']
                 ],
                 'DBMemberInstanceList': db_cluster_members,
                 'DBMemberInstanceClassList': db_cluster_instance_class,
@@ -64,8 +63,11 @@ def lambda_restore_rds_cluster_target_account(event, context):
                 }
             ]
         )
-        result['identifier'] = event['identifier']
-        result['automation_execution_id'] = response.get("AutomationExecutionId")
+
+        result = {
+            'identifier': event['identifier'],
+            'automation_execution_id': response.get("AutomationExecutionId")
+        }
         return result
     except Exception as error:
         error_message = util.get_error_message(event['identifier'], error)
