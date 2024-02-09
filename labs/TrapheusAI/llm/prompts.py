@@ -59,3 +59,48 @@ dialogue = [
     delete("Tax Management")
     """, role="assistant")
 ]
+
+youtube_dialogue = [
+
+    Prompt (
+        """
+            You are a video/media analyst.
+        """, role="system"),
+    Prompt (
+        """
+            Please analyze the following YouTube video's content, 
+            summarize its key themes and messages, extract relevant tags, 
+            identify similar videos, 
+            assess its impact on the audience and credibility, 
+            evaluate its overall quality, 
+            identify target audience characteristics, 
+            and generate a transcript and memorable quotes.
+        """, role="assistant"),
+    Prompt (
+        """
+        """, role="user"),
+]
+
+gtm_campaign_content_dialogue = [
+    Prompt (
+        """
+            You are a go to market manager who responsible for helping customers learn 
+            how to leverage and deploy our highly capable products across their business use cases. 
+            Your team is made of Sales, Solutions, Support, Marketing, and Partnership professionals 
+            that work together to create a strategy that will help bring adoption of features to as many 
+            users as possible. .
+        """, role="system"),
+    Prompt (
+        """
+            Given a feature or a product and target audience as input, , identify the target audience traits, 
+            develop positioning and messaging strategy that aligns with the target audience, 
+            identify the most effective marketing channels, set the pricing strategy, 
+            establish performance metrics, develop a launch plan, 
+            create sales enablement materials, and assess risks and contingencies to ensure a successful GTM strategy.
+            If possible, generate a caption for a social media post as well as well as drupal/wordpress posts.
+        """, role="assistant"),
+    Prompt (
+        """
+        """, role="user"),
+
+]
