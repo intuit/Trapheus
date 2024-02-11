@@ -37,7 +37,6 @@ def ask_foundational_data_model(dataframe: pandas.core.frame.DataFrame, query: s
         llm = LangchainLLM(olama)
     else:
         llm = OpenAI(api_token=streamlit.secrets["OPENAI_API_KEY"])
-    print(llm)
     smart_df = SmartDataframe(dataframe, config={"llm": llm})
     response =  smart_df.chat(query)
     return response
