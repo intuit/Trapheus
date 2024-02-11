@@ -20,13 +20,15 @@ def initialize_page():
     streamlit.sidebar.image("logo/TrapheusAILogo.png", use_column_width=True)
     streamlit.sidebar.subheader("Select the type of analysis")
     analysis_type = streamlit.sidebar.selectbox("", options=["Concept Search", "Dataset Search"])
+    streamlit.sidebar.subheader("Select the type of LLM for analysis")
+    llm_type = streamlit.sidebar.selectbox("", options=["LocalLLM", "OpenAI"])
     if analysis_type == "Dataset Search":
-        handle_dataset_search()
+        handle_dataset_search(llm_type)
     else:
         handle_concept_search()
 
 # TODO Later move analysis types to a common abstract factory
-def handle_dataset_search():
+def handle_dataset_search(llm_type):
     query = streamlit.sidebar.text_area(
         "Search for data",
         value=streamlit.session_state.get("dataset-input", ""),
@@ -54,13 +56,9 @@ def handle_dataset_search():
                     mime = "text/csv", on_click = showDownloadMessage)
                 question = streamlit.chat_input("Ask any question related to the dataset")
                 if question:
-
-                    answer = ask_foundational_data_model(df, question)
-                    print(question)
+                    answer = ask_foundational_data_model(df, question, llm_type)
                     if ("plot" or "Plot" or "Chart" or "chart" or "Graph" or "graph") in question:
-                        print('inside')
                         plot_folder = glob("exports/charts/temp_chart.png")
-                        print (plot_folder)
                         plot = Image.open(plot_folder[0])
                         streamlit.image(plot, use_column_width=False)
                     else:
