@@ -1,15 +1,17 @@
-from dataclasses import asdict
-from typing import Tuple, List
-import openai
-
 import matplotlib
+import openai
 import pandas
+import streamlit as streamlit
+from dataclasses import asdict
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.llms import Ollama
+from llm.prompts import Prompt
 from pandasai import SmartDataframe
 from pandasai.llm.openai import OpenAI
-import streamlit as streamlit
+from typing import Tuple, List
 
-from llm.prompts import Prompt
-
+from pandasai.llm import LangchainLLM
 
 # Since most backends are non GUI setting this to Agg to pick this up later from a file
 # TODO later let the user choose the ibackend he is operating on from a command line param.
@@ -26,11 +28,16 @@ def ask_foundational_model(discourses: List[Prompt]) -> Tuple[str, List[Prompt]]
     answer = Prompt(**result["choices"][0]["message"])
     return answer.content, discourses + [answer]
 
-def ask_foundational_data_model(dataframe: pandas.core.frame.DataFrame, query: str):
+def ask_foundational_data_model(dataframe: pandas.core.frame.DataFrame, query: str, llm_type):
     # local llm is still having issues, i have reported this at
     # https://github.com/gventuri/pandas-ai/issues/340#issuecomment-1637184573
     # seeing if chart introduction can help https://github.com/gventuri/pandas-ai/pull/497/files#r1341966270
-    llm = OpenAI(api_token=streamlit.secrets["OPENAI_API_KEY"])
+    if llm_type == 'LocalLLM':
+        olama = Ollama(model="llama2")
+        # Wrapping up ollama in langchain LLM till its supported https://github.com/gventuri/pandas-ai/pull/611 
+        llm = LangchainLLM(olama)
+    else:
+        llm = OpenAI(api_token=streamlit.secrets["OPENAI_API_KEY"])
     smart_df = SmartDataframe(dataframe, config={"llm": llm})
     response =  smart_df.chat(query)
     return response
