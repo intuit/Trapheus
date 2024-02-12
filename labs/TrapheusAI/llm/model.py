@@ -34,6 +34,7 @@ def ask_foundational_data_model(dataframe: pandas.core.frame.DataFrame, query: s
     # seeing if chart introduction can help https://github.com/gventuri/pandas-ai/pull/497/files#r1341966270
     if llm_type == 'LocalLLM':
         olama = Ollama(model="llama2")
+        # Wrapping up ollama in langchain LLM till its supported https://github.com/gventuri/pandas-ai/pull/611 
         llm = LangchainLLM(olama)
     else:
         llm = OpenAI(api_token=streamlit.secrets["OPENAI_API_KEY"])
