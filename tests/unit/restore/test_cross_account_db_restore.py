@@ -25,7 +25,7 @@ class TestResourceProvider(unittest.TestCase):
         mock_ssm.start_automation_execution.return_value = self.mocked_start_ssm_automation
         data = cross_account_db_restore.lambda_restore_rds_target_account(self.event, {})
         self.assertEqual(data.get("identifier"), self.instance_id)
-        self.assertEqual(data.get("automation_execution_id"), "execution123")
+        self.assertEqual(data.get("restoreRDSAutomationExecutionId"), "execution123")
 
     def test_restore_ssm_execution_failure(self, mock_client):
         mock_ssm = mock_client.return_value
