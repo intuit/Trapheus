@@ -394,7 +394,6 @@ Prepare your environment. Install tools as needed.
 
 ## Maintainers 
 1. Namita Devadas (@namitad)
-2. Rohit Kumar (@stationeros)
 
 ## Contributors
 
