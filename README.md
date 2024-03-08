@@ -259,7 +259,6 @@ Reference Code Structure
 │   ├── README.fr.md
 │   └── README.zh-CN.md
 ├── install.py
-├── labs
 ├── presentation
 │   └── Trapheus.pptx
 ├── requirements.txt
