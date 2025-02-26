@@ -16,7 +16,7 @@ setup(name='trapheus', version='0.1.2', author='stationeros (Rohit Kumar)',
           'Topic :: System :: Distributed Computing'
       ],
       keywords='aws backup lambda rds snapshots step-functions state-machine aws-lambda-layer aws-lambda aws',
-      packages=['trapheus'],
+      packages=['trapheus'],af
       install_requires=['boto3', 'aws-sam-cli'],
       python_requires='>=3.7',
       description='Backup and restore manager for AWS RDS instances'
