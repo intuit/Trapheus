@@ -338,7 +338,7 @@ Resources:
                   nextStep: CreateDBInstance
                   isEnd: false
                   inputs:
-                    Runtime: python3.8
+                    Runtime: python3.11
                     Handler: script_handler
                     Script: |-
                       def script_handler(events, context):
